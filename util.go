@@ -1,6 +1,8 @@
 package neoroute
 
-import "strings"
+import (
+	"strings"
+)
 
 func containsSeparator(route string) bool {
 	return strings.ContainsRune(route, RouteSeparator)
