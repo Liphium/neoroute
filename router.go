@@ -33,8 +33,6 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 }](r Router, route string, handler func(c *Ctx[RS], req RQ) error) {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
-	fmt.Println(route)
-
 	neo := r.getNeo()
 	neo.routes[route] = func(c *ctx) error {
 
