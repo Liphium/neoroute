@@ -1,5 +1,5 @@
 package neoroute
 
-type Transporter interface {
-	SetRouter(r *NeoRouter)
+type Transporter[D any] interface {
+	SetRouter(r *NeoRouter[D])
 }

@@ -1,9 +1,9 @@
 package neoroute
 
-func NewNeoRouter(config Config) *NeoRouter {
-	return &NeoRouter{
-		routes:     make(map[string]func(c *ctx) error),
-		middleware: make(map[string]func(c *ctx) bool),
+func NewNeoRouter[D any](config Config) *NeoRouter[D] {
+	return &NeoRouter[D]{
+		routes:     make(map[string]func(c *ctx[D]) error),
+		middleware: make(map[string]func(c *ctx[D]) bool),
 		config:     config,
 	}
 }

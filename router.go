@@ -7,16 +7,16 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-type Router interface {
+type Router[D any] interface {
 	Use()
-	Group(route string) Router
+	Group(route string) Router[D]
 	getRoute() string
-	getNeo() *NeoRouter
+	getNeo() *NeoRouter[D]
 }
 
-type NeoRouter struct {
-	routes     map[string]func(c *ctx) error
-	middleware map[string]func(c *ctx) bool
+type NeoRouter[D any] struct {
+	routes     map[string]func(c *ctx[D]) error
+	middleware map[string]func(c *ctx[D]) bool
 	config     Config
 }
 
@@ -30,22 +30,22 @@ type NeoRouter struct {
 func Route[RQ any, RS msgp.Marshaler, PQ interface {
 	*RQ
 	msgp.Unmarshaler
-}](r Router, route string, handler func(c *Ctx[RS], req RQ) error) {
+}, D any](r Router[D], route string, handler func(c *Ctx[RS, D], req RQ) error) {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
-	neo.routes[route] = func(c *ctx) error {
+	neo.routes[route] = func(c *ctx[D]) error {
 
 		// Parse request data into struct
 		var data RQ
 		unmarshaler := any(&data).(msgp.Unmarshaler)
 
-		_, err := unmarshaler.UnmarshalMsg(c.Data)
+		_, err := unmarshaler.UnmarshalMsg(c.data)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal struct: %v", err)
 		}
 
-		ctx := &Ctx[RS]{
+		ctx := &Ctx[RS, D]{
 			ctx: *c,
 		}
 
@@ -56,13 +56,13 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 
 // RouteWithout is the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteWithout[RS msgp.Marshaler](r Router, route string, handler func(c *Ctx[RS]) error) {
+func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler func(c *Ctx[RS, D]) error) {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
-	neo.routes[route] = func(c *ctx) error {
+	neo.routes[route] = func(c *ctx[D]) error {
 
-		ctx := &Ctx[RS]{
+		ctx := &Ctx[RS, D]{
 			ctx: *c,
 		}
 
@@ -71,45 +71,46 @@ func RouteWithout[RS msgp.Marshaler](r Router, route string, handler func(c *Ctx
 	}
 }
 
-func (r *NeoRouter) Use() {
+func (r *NeoRouter[D]) Use() {
 
 }
 
-func (r *NeoRouter) Group(route string) Router {
-	return &Group{
+func (r *NeoRouter[D]) Group(route string) Router[D] {
+	return &Group[D]{
 		neo:    r,
 		prefix: route,
 		parent: nil,
 	}
 }
 
-func (r *NeoRouter) getRoute() string {
+func (r *NeoRouter[D]) getRoute() string {
 	return ""
 }
 
-func (r *NeoRouter) getNeo() *NeoRouter {
+func (r *NeoRouter[D]) getNeo() *NeoRouter[D] {
 	return r
 }
 
-func (r *NeoRouter) handle(reqData []byte) []byte {
+func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 
-	c := &ctx{
-		neo:   r,
-		id:    -1,
-		Data:  []byte{},
-		Route: "",
+	c := &ctx[D]{
+		neo:     r,
+		id:      -1,
+		data:    []byte{},
+		route:   "",
+		session: session,
 	}
 
 	var data Request
 	_, err := data.UnmarshalMsg(reqData)
 	if err != nil {
-		logger.Info("failed to unmarshal request: ", err)
+		logger.Info("failed to unmarshal request", "err", err)
 		return messageResponse(r, c.respondError(fmt.Errorf("Invalid request format.")))
 	}
 
 	c.id = data.Id
-	c.Data = data.Data
-	c.Route = data.Route
+	c.data = data.Data
+	c.route = data.Route
 
 	// Handle request
 	if handler, ok := r.routes[data.Route]; ok {
@@ -123,7 +124,7 @@ func (r *NeoRouter) handle(reqData []byte) []byte {
 			return messageResponse(c.neo, err.(response))
 		} else {
 			// Log error from handler and return generic error message to client
-			logger.Info("an error occurred: ", err)
+			logger.Info("an error occurred", "err", err)
 			return messageResponse(r, c.respondError(fmt.Errorf("Internal server error.")))
 		}
 	} else {

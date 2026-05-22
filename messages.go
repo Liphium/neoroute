@@ -37,7 +37,7 @@ func MessageEvent(event Event) ([]byte, error) {
 	return msgBytes, nil
 }
 
-func messageResponse(neo *NeoRouter, resp response) []byte {
+func messageResponse[D any](neo *NeoRouter[D], resp response) []byte {
 
 	// Marshal response data
 	respData, err := resp.MarshalMsg(nil)

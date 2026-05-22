@@ -1,17 +1,17 @@
 package neoroute
 
-type Group struct {
-	neo    Router
+type Group[D any] struct {
+	neo    Router[D]
 	prefix string
-	parent *Group
+	parent *Group[D]
 }
 
-func (m *Group) Use() {
+func (m *Group[D]) Use() {
 
 }
 
-func (m *Group) Group(route string) Router {
-	return &Group{
+func (m *Group[D]) Group(route string) Router[D] {
+	return &Group[D]{
 		neo:    m.neo,
 		prefix: route,
 		parent: m,
@@ -19,13 +19,13 @@ func (m *Group) Group(route string) Router {
 
 }
 
-func (r *Group) getRoute() string {
+func (r *Group[D]) getRoute() string {
 	if r.parent == nil {
 		return r.prefix
 	}
 	return r.parent.getRoute() + string(RouteSeparator) + r.prefix
 }
 
-func (m *Group) getNeo() *NeoRouter {
+func (m *Group[D]) getNeo() *NeoRouter[D] {
 	return m.neo.getNeo()
 }

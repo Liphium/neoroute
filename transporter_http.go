@@ -1,19 +1,18 @@
 package neoroute
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 )
 
-type HTTPTransporter struct {
-	router *NeoRouter
+type HTTPTransporter[D any] struct {
+	router *NeoRouter[D]
 }
 
-type HTTPHook func(w http.ResponseWriter, r *http.Request)
+var _ Transporter[any] = &HTTPTransporter[any]{}
 
-func NewHTTPTransporter() (HTTPHook, Transporter) {
-	transporter := &HTTPTransporter{
+func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], bool)) (http.HandlerFunc, *HTTPTransporter[D]) {
+	transporter := &HTTPTransporter[D]{
 		router: nil,
 	}
 	hook := func(w http.ResponseWriter, r *http.Request) {
@@ -27,15 +26,23 @@ func NewHTTPTransporter() (HTTPHook, Transporter) {
 			// Read body data
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
-				http.Error(w, fmt.Sprintf("Error reading request body: %v", err), http.StatusInternalServerError)
+				errResp := transporter.router.config.ErrorHandler(err)
+				http.Error(w, errResp, http.StatusInternalServerError)
+				return
+			}
+
+			// Perform handshake to get session data
+			session, ok := handshake(r)
+			if !ok {
+				http.Error(w, "Handshake failed.", http.StatusUnauthorized)
 				return
 			}
 
 			// Send response
 			w.WriteHeader(http.StatusOK)
-			_, err = w.Write(transporter.router.handle(body))
+			_, err = w.Write(transporter.router.handle(body, session))
 			if err != nil {
-				logger.Info("failed to send http response: ", err)
+				logger.Info("failed to send http response", "err", err)
 			}
 		}
 
@@ -44,6 +51,6 @@ func NewHTTPTransporter() (HTTPHook, Transporter) {
 	return hook, transporter
 }
 
-func (t *HTTPTransporter) SetRouter(r *NeoRouter) {
+func (t *HTTPTransporter[D]) SetRouter(r *NeoRouter[D]) {
 	t.router = r
 }
