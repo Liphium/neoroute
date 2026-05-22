@@ -1,6 +1,6 @@
 c.out
 .magic
-*_gen.go
-*_gen_test.go
+examples/*/*_gen.go
+examples/*/*_gen_test.go
 workspace
 sender
