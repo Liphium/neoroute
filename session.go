@@ -8,10 +8,9 @@ type Session[D any] struct {
 	sessionData D
 }
 
-func NewSession(id string) *Session[any] {
-	return &Session[any]{
-		id:          id,
-		sessionData: nil,
+func NewSession[D any](id string) *Session[D] {
+	return &Session[D]{
+		id: id,
 	}
 }
 

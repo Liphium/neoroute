@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Liphium/neoroute"
+	"github.com/google/uuid"
 	"github.com/quic-go/quic-go/http3"
 )
 
@@ -30,13 +31,19 @@ type Response struct {
 	Field2 int    `msg:"field2"`
 }
 
+type SessionData struct {
+	Token string
+}
+
 func main() {
 
 	// Create HTTP transporter
-	hook, t := neoroute.NewHTTPTransporter()
+	hook, t := neoroute.NewHTTPTransporter(func(r *http.Request) (*neoroute.Session[SessionData], bool) {
+		return neoroute.NewSession[SessionData](uuid.NewString()), true
+	})
 
 	// Create router and set it for transporter
-	router := neoroute.NewNeoRouter(neoroute.Config{
+	router := neoroute.NewNeoRouter[SessionData](neoroute.Config{
 		ErrorHandler: func(err error) string {
 			return fmt.Sprintf("error: %v", err)
 		},
@@ -44,7 +51,7 @@ func main() {
 	t.SetRouter(router)
 
 	// Route: simple.route
-	neoroute.Route(router, "simple.route", func(c *neoroute.Ctx[Response], req Request) error {
+	neoroute.Route(router, "simple.route", func(c *neoroute.Ctx[Response, SessionData], req Request) error {
 		return c.Respond(Response{Field1: "simple response", Field2: 68})
 	})
 
@@ -53,7 +60,7 @@ func main() {
 
 	// Create subroute for group1
 	// Route: group1.route1
-	neoroute.Route(group1, "route1", func(c *neoroute.Ctx[Response], req Request) error {
+	neoroute.Route(group1, "route1", func(c *neoroute.Ctx[Response, SessionData], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 1,
@@ -65,7 +72,7 @@ func main() {
 
 	// Create subroute for group2
 	// Route: group1.group2.route1
-	neoroute.Route(group2, "route1", func(c *neoroute.Ctx[Response], req Request) error {
+	neoroute.Route(group2, "route1", func(c *neoroute.Ctx[Response, SessionData], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 2,

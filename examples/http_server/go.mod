@@ -8,6 +8,7 @@ require github.com/quic-go/quic-go v0.59.1
 
 require (
 	github.com/Liphium/neoroute v0.0.0
+	github.com/google/uuid v1.6.0
 	github.com/tinylib/msgp v1.6.4
 )
 
