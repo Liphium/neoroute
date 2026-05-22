@@ -8,7 +8,6 @@ import (
 )
 
 type Router[D any] interface {
-	Use()
 	Group(route string) Router[D]
 	getRoute() string
 	getNeo() *NeoRouter[D]
@@ -71,8 +70,19 @@ func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler f
 	}
 }
 
-func (r *NeoRouter[D]) Use() {
+func Use[RS msgp.Marshaler, D any](r Router[D], route string, middleware func(c *Ctx[RS, D]) bool) {
+	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
+	neo := r.getNeo()
+	neo.middleware[route] = func(c *ctx[D]) bool {
+
+		ctx := &Ctx[RS, D]{
+			ctx: *c,
+		}
+
+		// Run middleware
+		return middleware(ctx)
+	}
 }
 
 func (r *NeoRouter[D]) Group(route string) Router[D] {
@@ -108,27 +118,41 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 		return messageResponse(r, c.respondError(fmt.Errorf("Invalid request format.")))
 	}
 
+	route := cleanRoute(data.Route)
+
 	c.id = data.Id
 	c.data = data.Data
-	c.route = data.Route
+	c.route = route
+
+	// Check if handler for route exists
+	handler, handlerExists := r.routes[route]
+	if !handlerExists {
+		return messageResponse(r, c.respondError(fmt.Errorf("Route does not exist.")))
+	}
+
+	// Run middlewares
+	subRoutes := buildSubroutes(route)
+	for _, subroute := range subRoutes {
+		if middleware, ok := r.middleware[subroute]; ok {
+			if !middleware(c) {
+				messageResponse(r, c.respondError(fmt.Errorf("Middleware denied access.")))
+			}
+		}
+	}
 
 	// Handle request
-	if handler, ok := r.routes[data.Route]; ok {
-		if err := handler(c); err == nil {
+	if err := handler(c); err == nil {
 
-			// Handlers never should return nil.
-			panic("handler should always return something")
-		} else if errors.Is(err, response{}) {
+		// Handlers never should return nil.
+		panic("handler should always return something")
+	} else if errors.Is(err, response{}) {
 
-			// Return response from handler
-			return messageResponse(c.neo, err.(response))
-		} else {
-			// Log error from handler and return generic error message to client
-			logger.Info("an error occurred", "err", err)
-			return messageResponse(r, c.respondError(fmt.Errorf("Internal server error.")))
-		}
+		// Return response from handler
+		return messageResponse(c.neo, err.(response))
 	} else {
-		return messageResponse(r, c.respondError(fmt.Errorf("Route does not exist.")))
+		// Log error from handler and return generic error message to client
+		logger.Info("an error occurred", "err", err)
+		return messageResponse(r, c.respondError(fmt.Errorf("Internal server error.")))
 	}
 
 }

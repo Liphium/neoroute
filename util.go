@@ -8,6 +8,23 @@ func containsSeparator(route string) bool {
 	return strings.ContainsRune(route, RouteSeparator)
 }
 
+func splitRoute(route string) []string {
+	return strings.Split(route, string(RouteSeparator))
+}
+
+func buildSubroutes(route string) []string {
+	routeParts := splitRoute(route)
+	subRoutes := []string{}
+	for i := 0; i < len(routeParts); i++ {
+		subroute := ""
+		for j := 0; j < i; j++ {
+			subroute += string(RouteSeparator) + routeParts[j]
+		}
+		subRoutes = append(subRoutes, cleanRoute(subroute))
+	}
+	return subRoutes
+}
+
 func cleanRoute(route string) string {
 
 	// Remove leading and trailing separators

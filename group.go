@@ -6,10 +6,6 @@ type Group[D any] struct {
 	parent *Group[D]
 }
 
-func (m *Group[D]) Use() {
-
-}
-
 func (m *Group[D]) Group(route string) Router[D] {
 	return &Group[D]{
 		neo:    m.neo,
