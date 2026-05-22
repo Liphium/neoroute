@@ -13,11 +13,11 @@ func splitRoute(route string) []string {
 }
 
 func buildSubroutes(route string) []string {
-	routeParts := splitRoute(route)
+	routeParts := splitRoute(cleanRoute(route))
 	subRoutes := []string{}
 	for i := 0; i < len(routeParts); i++ {
 		subroute := ""
-		for j := 0; j < i; j++ {
+		for j := 0; j <= i; j++ {
 			subroute += string(RouteSeparator) + routeParts[j]
 		}
 		subRoutes = append(subRoutes, cleanRoute(subroute))
