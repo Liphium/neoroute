@@ -60,8 +60,12 @@ func main() {
 	t.SetRouter(router)
 
 	// Route: simple.route
-	neoroute.RouteWithout(router, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
+	// Wrap the HandleWithout call with a Use to directly apply a middleware to that route specifically.
+	neoroute.Use(neoroute.RouteWithout(router, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
+	}), "", func(c *neoroute.Ctx[SessionData]) bool {
+		fmt.Println("middleware mounted directly on route was used")
+		return true
 	})
 
 	// Create group for group1

@@ -29,7 +29,7 @@ type NeoRouter[D any] struct {
 func Route[RQ any, RS msgp.Marshaler, PQ interface {
 	*RQ
 	msgp.Unmarshaler
-}, D any](r Router[D], route string, handler func(c *ResCtx[RS, D], req RQ) error) {
+}, D any](r Router[D], route string, handler func(c *ResCtx[RS, D], req RQ) error) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
@@ -51,11 +51,16 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 		// Let the handler handle it
 		return handler(ctx, data)
 	}
+
+	return &RouteRouter[D]{
+		neo:   neo,
+		route: route,
+	}
 }
 
 // RouteWithout is the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler func(c *ResCtx[RS, D]) error) {
+func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler func(c *ResCtx[RS, D]) error) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
@@ -67,6 +72,11 @@ func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler f
 
 		// Let the handler handle it
 		return handler(ctx)
+	}
+
+	return &RouteRouter[D]{
+		neo:   neo,
+		route: route,
 	}
 }
 

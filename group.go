@@ -3,7 +3,7 @@ package neoroute
 type Group[D any] struct {
 	neo    Router[D]
 	prefix string
-	parent *Group[D]
+	parent Router[D]
 }
 
 func (m *Group[D]) Group(route string) Router[D] {
