@@ -6,11 +6,11 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-type Ctx[RS msgp.Marshaler, D any] struct {
-	ctx[D]
+type ResCtx[RS msgp.Marshaler, D any] struct {
+	Ctx[D]
 }
 
-func (c *Ctx[RS, D]) Respond(resp RS) error {
+func (c *ResCtx[RS, D]) Respond(resp RS) error {
 
 	// Marshal response data
 	respData, err := resp.MarshalMsg(nil)
@@ -25,7 +25,7 @@ func (c *Ctx[RS, D]) Respond(resp RS) error {
 	}
 }
 
-func (c *Ctx[RS, D]) RespondError(err error) error {
+func (c *ResCtx[RS, D]) RespondError(err error) error {
 	return response{
 		Id:      c.id,
 		IsError: true,
@@ -33,7 +33,7 @@ func (c *Ctx[RS, D]) RespondError(err error) error {
 	}
 }
 
-type ctx[D any] struct {
+type Ctx[D any] struct {
 	neo     *NeoRouter[D]
 	id      int    // request id, used for responses
 	data    []byte // data field from Request struct
@@ -41,23 +41,23 @@ type ctx[D any] struct {
 	session *Session[D]
 }
 
-func (c *ctx[D]) Id() int {
+func (c *Ctx[D]) Id() int {
 	return c.id
 }
 
-func (c *ctx[D]) Data() []byte {
+func (c *Ctx[D]) Data() []byte {
 	return c.data
 }
 
-func (c *ctx[D]) Route() string {
+func (c *Ctx[D]) Route() string {
 	return c.route
 }
 
-func (c *ctx[D]) Session() *Session[D] {
+func (c *Ctx[D]) Session() *Session[D] {
 	return c.session
 }
 
-func (c *ctx[D]) respondError(err error) response {
+func (c *Ctx[D]) respondError(err error) response {
 	return response{
 		Id:      c.id,
 		IsError: true,

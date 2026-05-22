@@ -14,8 +14,8 @@ type Router[D any] interface {
 }
 
 type NeoRouter[D any] struct {
-	routes     map[string]func(c *ctx[D]) error
-	middleware map[string]func(c *ctx[D]) bool
+	routes     map[string]func(c *Ctx[D]) error
+	middleware map[string]func(c *Ctx[D]) bool
 	config     Config
 }
 
@@ -29,11 +29,11 @@ type NeoRouter[D any] struct {
 func Route[RQ any, RS msgp.Marshaler, PQ interface {
 	*RQ
 	msgp.Unmarshaler
-}, D any](r Router[D], route string, handler func(c *Ctx[RS, D], req RQ) error) {
+}, D any](r Router[D], route string, handler func(c *ResCtx[RS, D], req RQ) error) {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
-	neo.routes[route] = func(c *ctx[D]) error {
+	neo.routes[route] = func(c *Ctx[D]) error {
 
 		// Parse request data into struct
 		var data RQ
@@ -44,8 +44,8 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 			return fmt.Errorf("failed to unmarshal struct: %v", err)
 		}
 
-		ctx := &Ctx[RS, D]{
-			ctx: *c,
+		ctx := &ResCtx[RS, D]{
+			Ctx: *c,
 		}
 
 		// Let the handler handle it
@@ -55,14 +55,14 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 
 // RouteWithout is the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler func(c *Ctx[RS, D]) error) {
+func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler func(c *ResCtx[RS, D]) error) {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
-	neo.routes[route] = func(c *ctx[D]) error {
+	neo.routes[route] = func(c *Ctx[D]) error {
 
-		ctx := &Ctx[RS, D]{
-			ctx: *c,
+		ctx := &ResCtx[RS, D]{
+			Ctx: *c,
 		}
 
 		// Let the handler handle it
@@ -70,18 +70,14 @@ func RouteWithout[RS msgp.Marshaler, D any](r Router[D], route string, handler f
 	}
 }
 
-func Use[RS msgp.Marshaler, D any](r Router[D], route string, middleware func(c *Ctx[RS, D]) bool) {
+func Use[D any](r Router[D], route string, middleware func(c *Ctx[D]) bool) {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neo := r.getNeo()
-	neo.middleware[route] = func(c *ctx[D]) bool {
-
-		ctx := &Ctx[RS, D]{
-			ctx: *c,
-		}
+	neo.middleware[route] = func(c *Ctx[D]) bool {
 
 		// Run middleware
-		return middleware(ctx)
+		return middleware(c)
 	}
 }
 
@@ -103,7 +99,7 @@ func (r *NeoRouter[D]) getNeo() *NeoRouter[D] {
 
 func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 
-	c := &ctx[D]{
+	c := &Ctx[D]{
 		neo:     r,
 		id:      -1,
 		data:    []byte{},
@@ -135,7 +131,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	for _, subroute := range subRoutes {
 		if middleware, ok := r.middleware[subroute]; ok {
 			if !middleware(c) {
-				messageResponse(r, c.respondError(fmt.Errorf("Middleware denied access.")))
+				return messageResponse(r, c.respondError(fmt.Errorf("Middleware denied access.")))
 			}
 		}
 	}

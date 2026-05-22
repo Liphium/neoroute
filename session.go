@@ -10,15 +10,16 @@ type Session[D any] struct {
 
 func NewSession[D any](id string) *Session[D] {
 	return &Session[D]{
-		id: id,
+		mutex: &sync.Mutex{},
+		id:    id,
 	}
 }
 
-func (s *Session[D]) GetId() string {
+func (s *Session[D]) Id() string {
 	return s.id
 }
 
-func (s *Session[D]) GetData() D {
+func (s *Session[D]) Data() D {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.sessionData

@@ -39,7 +39,16 @@ func main() {
 
 	// Create HTTP transporter
 	hook, t := neoroute.NewHTTPTransporter(func(r *http.Request) (*neoroute.Session[SessionData], bool) {
-		return neoroute.NewSession[SessionData](uuid.NewString()), true
+
+		// Create session with randomly generated id for session
+		session := neoroute.NewSession[SessionData](uuid.NewString())
+
+		// Set token if one provided as session data
+		session.SetData(SessionData{
+			Token: r.URL.Query().Get("token"),
+		})
+
+		return session, true
 	})
 
 	// Create router and set it for transporter
@@ -51,16 +60,28 @@ func main() {
 	t.SetRouter(router)
 
 	// Route: simple.route
-	neoroute.Route(router, "simple.route", func(c *neoroute.Ctx[Response, SessionData], req Request) error {
-		return c.Respond(Response{Field1: "simple response", Field2: 68})
+	neoroute.RouteWithout(router, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
+		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
 	})
 
 	// Create group for group1
 	group1 := router.Group("group1")
 
+	// Apply auth middleware to group1
+	// If the token provided in the handshake is not `secret_token` this wont let the user continue.
+	// Now only simple.route can be accessed without a token.
+	neoroute.Use(group1, "", func(c *neoroute.Ctx[SessionData]) bool {
+		fmt.Printf("middleware for group1 used with route %v by userId %v\n", c.Route(), c.Session().Id())
+		fmt.Printf("session data: %+v\n", c.Session().Data().Token)
+		if c.Session().Data().Token == "" {
+			fmt.Println("no token provided, rejecting request")
+		}
+		return c.Session().Data().Token == "secret_token"
+	})
+
 	// Create subroute for group1
 	// Route: group1.route1
-	neoroute.Route(group1, "route1", func(c *neoroute.Ctx[Response, SessionData], req Request) error {
+	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[Response, SessionData], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 1,
@@ -72,7 +93,7 @@ func main() {
 
 	// Create subroute for group2
 	// Route: group1.group2.route1
-	neoroute.Route(group2, "route1", func(c *neoroute.Ctx[Response, SessionData], req Request) error {
+	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[Response, SessionData], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 2,
