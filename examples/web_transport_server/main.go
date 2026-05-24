@@ -17,6 +17,7 @@ import (
 	"github.com/Liphium/neoroute"
 	"github.com/google/uuid"
 	"github.com/quic-go/quic-go/http3"
+	"github.com/quic-go/webtransport-go"
 )
 
 //go:generate msgp
@@ -37,19 +38,62 @@ type SessionData struct {
 
 func main() {
 
-	// Create HTTP transporter
-	hook, t := neoroute.NewHTTPTransporter(func(r *http.Request) (*neoroute.Session[SessionData], bool) {
-
-		// Create session with randomly generated id for session
-		session := neoroute.NewSession[SessionData](uuid.NewString())
-
-		// Set token if one provided as session data
-		session.SetData(SessionData{
-			Token: r.URL.Query().Get("token"),
-		})
-
-		return session, true
+	// Create server
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+		_, _ = w.Write([]byte("hello over HTTP/3\n"))
 	})
+
+	// Load TLS certificate and serve server over HTTP/3
+	cert, err := selfSignedCert()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := &http3.Server{
+		Addr:    ":6121",
+		Handler: mux,
+		TLSConfig: http3.ConfigureTLSConfig(&tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}),
+	}
+
+	webtransport.ConfigureHTTP3Server(server)
+
+	wtServer := &webtransport.Server{
+		H3:          server,
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
+	defer wtServer.Close()
+
+	config := neoroute.WTTConfig[SessionData]{
+		UpgradeFunc:          wtServer.Upgrade,
+		OverwriteSessionFunc: func(id string) bool { return true },
+		HandshakeFunc: func(r *http.Request) (*neoroute.Session[SessionData], bool) {
+
+			// Create session with randomly generated id for session
+			session := neoroute.NewSession[SessionData](uuid.NewString())
+
+			// Set token if one provided as session data
+			session.SetData(SessionData{
+				Token: r.URL.Query().Get("token"),
+			})
+
+			return session, true
+		},
+		EnterNetworkFunc: func(session *neoroute.Session[SessionData]) {
+			fmt.Println("client connected")
+		},
+		DisconnectHandler: func(session *neoroute.Session[SessionData]) {
+			fmt.Println("client disconnected")
+		},
+		WantReliableSteam:        true,
+		WantUnreliableConnection: true,
+	}
+
+	// Create WebTransport transporter
+	hook, t := neoroute.NewWebTransportTransporter(config)
 
 	// Create router and set it for transporter
 	router := neoroute.NewNeoRouter[SessionData](neoroute.Config{
@@ -57,21 +101,11 @@ func main() {
 			return fmt.Sprintf("error: %v", err)
 		},
 	})
-	router2 := neoroute.NewNeoRouter[SessionData](neoroute.Config{
-		ErrorHandler: func(err error) string {
-			return fmt.Sprintf("error: %v", err)
-		},
-	})
 	t.SetRouter(router)
-
-	// Create a router group, any function used with this router will be applied to all neo routes it contains.
-	// This is useful when you want to apply certain groups, routes or middle ware to multiple routers at once.
-	// You could use router2 for example for WebTransport and apply shared routes to both and add the WebTransport specific routes only to router2.
-	rGroup := neoroute.NewRouterGroup(router, router2)
 
 	// Route: simple.route
 	// Wrap the RouteResponse call with a Use to directly apply a middleware to that route specifically.
-	neoroute.Use(neoroute.RouteResponse(rGroup, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
+	neoroute.Use(neoroute.RouteResponse(router, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
 	}), "", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Println("middleware mounted directly on route was used")
@@ -79,7 +113,7 @@ func main() {
 	})
 
 	// Create group for group1
-	group1 := rGroup.Group("group1")
+	group1 := router.Group("group1")
 
 	// Apply auth middleware to group1
 	// If the token provided in the handshake is not `secret_token` this wont let the user continue.
@@ -114,29 +148,8 @@ func main() {
 		})
 	})
 
-	// Create server
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
-		_, _ = w.Write([]byte("hello over HTTP/3\n"))
-	})
-
 	// Hook transporter into /neo route
 	mux.HandleFunc("/neo", hook)
-
-	// Load TLS certificate and serve server over HTTP/3
-	cert, err := selfSignedCert()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	server := &http3.Server{
-		Addr:    ":6121",
-		Handler: mux,
-		TLSConfig: http3.ConfigureTLSConfig(&tls.Config{
-			Certificates: []tls.Certificate{cert},
-		}),
-	}
 
 	log.Println("listening on https://localhost:6121 over HTTP/3")
 	log.Fatal(server.ListenAndServe())

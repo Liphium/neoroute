@@ -19,33 +19,33 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 
 		// Route request
 		if transporter.router == nil {
-			http.Error(w, "Router not set", http.StatusInternalServerError)
+			http.Error(w, "Router not set.", http.StatusInternalServerError)
 			return
-		} else {
+		}
 
-			// Read body data
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				errResp := transporter.router.config.ErrorHandler(err)
-				http.Error(w, errResp, http.StatusInternalServerError)
-				return
-			}
+		// Perform handshake to get session data
+		session, ok := handshake(r)
+		if !ok {
+			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
+			return
+		}
 
-			// Perform handshake to get session data
-			session, ok := handshake(r)
-			if !ok {
-				http.Error(w, "Handshake failed.", http.StatusUnauthorized)
-				return
-			}
+		// Read body data
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			errResp := transporter.router.config.ErrorHandler(err)
+			http.Error(w, errResp, http.StatusInternalServerError)
+			return
+		}
 
-			// Send response
-			w.WriteHeader(http.StatusOK)
-			_, err = w.Write(transporter.router.handle(body, session))
+		// Send response
+		w.WriteHeader(http.StatusOK)
+		if resp := transporter.router.handle(body, session); resp != nil {
+			_, err = w.Write(resp)
 			if err != nil {
 				logger.Info("failed to send http response", "err", err)
 			}
 		}
-
 	}
 
 	return hook, transporter

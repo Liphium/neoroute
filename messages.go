@@ -93,3 +93,19 @@ func (r response) Is(target error) bool {
 	_, ok = target.(*response)
 	return ok
 }
+
+// This type is used for routes that have no response so no error is thrown.
+type noResponse struct{}
+
+func (r noResponse) Error() string {
+	return ""
+}
+
+func (r noResponse) Is(target error) bool {
+	_, ok := target.(noResponse)
+	if ok {
+		return true
+	}
+	_, ok = target.(*noResponse)
+	return ok
+}
