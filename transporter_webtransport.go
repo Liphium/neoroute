@@ -1,7 +1,6 @@
 package neoroute
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"sync"
@@ -192,7 +191,7 @@ func (t *WebTransportTransporter[D]) listenStream(session *wttSession[D], done c
 		default:
 		}
 
-		st, err := wtSession.AcceptStream(context.Background())
+		st, err := wtSession.AcceptStream(wtSession.Context())
 		if err != nil {
 			logger.Info("failed to accept stream", "err", err)
 			return // session closed / error
@@ -246,7 +245,7 @@ func (t *WebTransportTransporter[D]) listenDatagram(session *wttSession[D], done
 		}
 
 		// Receive request data
-		data, err := wtSession.ReceiveDatagram(context.Background())
+		data, err := wtSession.ReceiveDatagram(wtSession.Context())
 		if err != nil {
 			logger.Info("error receiving datagram", "err", err)
 			return
