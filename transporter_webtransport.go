@@ -14,8 +14,11 @@ type WebTransportTransporter[D any] struct {
 	mutex    *sync.Mutex
 	sessions map[string]*wttSession[D]
 }
+
+type UpgradeFunc func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
+
 type WTTConfig[D any] struct {
-	UpgradeFunc          func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
+	UpgradeFunc          UpgradeFunc
 	OverwriteSessionFunc func(id string) bool
 
 	HandshakeFunc     func(r *http.Request) (*Session[D], bool)
