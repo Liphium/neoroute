@@ -6,14 +6,18 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-type ResCtx[RS msgp.Marshaler, D any] struct {
+type ResCtx[RS any, PS interface {
+	*RS
+	msgp.Marshaler
+}, D any] struct {
 	Ctx[D]
 }
 
-func (c *ResCtx[RS, D]) Respond(resp RS) error {
+func (c *ResCtx[RS, PS, D]) Respond(resp RS) error {
 
 	// Marshal response data
-	respData, err := resp.MarshalMsg(nil)
+	marshaler := any(&resp).(msgp.Marshaler)
+	respData, err := marshaler.MarshalMsg(nil)
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %v", err)
 	}
@@ -25,7 +29,7 @@ func (c *ResCtx[RS, D]) Respond(resp RS) error {
 	}
 }
 
-func (c *ResCtx[RS, D]) RespondError(err error) error {
+func (c *ResCtx[RS, PS, D]) RespondError(err error) error {
 	return response{
 		Id:      c.id,
 		IsError: true,

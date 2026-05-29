@@ -13,10 +13,13 @@ import (
 // If characters are used that are not allowed, they will be striped, this can lead to unwanted behavior.
 //
 // Make sure the handler never returns nil, otherwise the router will panic.
-func Route[RQ any, RS msgp.Marshaler, PQ interface {
+func Route[RQ any, PQ interface {
 	*RQ
 	msgp.Unmarshaler
-}, D any](r Router[D], route string, handler func(c *ResCtx[RS, D], req RQ) error) Router[D] {
+}, RS any, PS interface {
+	*RS
+	msgp.Marshaler
+}, D any](r Router[D], route string, handler func(c *ResCtx[RS, PS, D], req RQ) error) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -32,7 +35,7 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 				return fmt.Errorf("failed to unmarshal struct: %v", err)
 			}
 
-			ctx := &ResCtx[RS, D]{
+			ctx := &ResCtx[RS, PS, D]{
 				Ctx: *c,
 			}
 
@@ -49,14 +52,17 @@ func Route[RQ any, RS msgp.Marshaler, PQ interface {
 
 // RouteResponse does the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteResponse[RS msgp.Marshaler, D any](r Router[D], route string, handler func(c *ResCtx[RS, D]) error) Router[D] {
+func RouteResponse[RS any, PS interface {
+	*RS
+	msgp.Marshaler
+}, D any](r Router[D], route string, handler func(c *ResCtx[RS, PS, D]) error) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
 	for _, neo := range neos {
 		neo.routes[route] = func(c *Ctx[D]) error {
 
-			ctx := &ResCtx[RS, D]{
+			ctx := &ResCtx[RS, PS, D]{
 				Ctx: *c,
 			}
 
@@ -73,10 +79,13 @@ func RouteResponse[RS msgp.Marshaler, D any](r Router[D], route string, handler 
 
 // RouteRequest does the same as Route but the handler does not return anything.
 // This can be useful if you only want to receive the data for example streaming over WebTransport.
-func RouteRequest[RQ any, RS msgp.Marshaler, PQ interface {
+func RouteRequest[RQ any, PQ interface {
 	*RQ
 	msgp.Unmarshaler
-}, D any](r Router[D], route string, handler func(c *ResCtx[RS, D], req RQ)) Router[D] {
+}, RS any, PS interface {
+	*RS
+	msgp.Marshaler
+}, D any](r Router[D], route string, handler func(c *ResCtx[RS, PS, D], req RQ)) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -93,7 +102,7 @@ func RouteRequest[RQ any, RS msgp.Marshaler, PQ interface {
 				return &noResponse{}
 			}
 
-			ctx := &ResCtx[RS, D]{
+			ctx := &ResCtx[RS, PS, D]{
 				Ctx: *c,
 			}
 
