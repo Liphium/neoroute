@@ -7,11 +7,14 @@ import (
 
 type Router[D any] interface {
 	Group(route string) Router[D]
+	AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D]
+	Use(route string, middleware func(c *Ctx[D]) bool)
 	getRoute() string
 	getNeos() []*NeoRouter[D]
 }
 
 type NeoRouter[D any] struct {
+	neos       []*NeoRouter[D]
 	routes     map[string]func(c *Ctx[D]) error
 	middleware map[string]func(c *Ctx[D]) bool
 	config     Config
@@ -30,6 +33,24 @@ func (r *NeoRouter[D]) Group(route string) Router[D] {
 		neos:   []*NeoRouter[D]{r},
 		prefix: route,
 		parent: nil,
+	}
+}
+
+func (r *NeoRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {
+	r.neos = append(r.neos, append([]*NeoRouter[D]{router}, routers...)...)
+	return r
+}
+
+func (r *NeoRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
+	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
+
+	neos := r.getNeos()
+	for _, neo := range neos {
+		neo.middleware[route] = func(c *Ctx[D]) bool {
+
+			// Run middleware
+			return middleware(c)
+		}
 	}
 }
 
@@ -95,9 +116,9 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 		// Return no response
 		return nil
 	} else {
-		// Log error from handler and return generic error message to client
-		logger.Info("an error occurred", "err", err)
-		return messageResponse(r, c.respondError(fmt.Errorf("Internal server error.")))
+
+		// Let user decide what error to return and how to handle it.
+		return messageResponse(r, c.respondError(fmt.Errorf("%s", r.config.ErrorHandler(err))))
 	}
 
 }

@@ -50,9 +50,9 @@ func Route[RQ any, PQ interface {
 	}
 }
 
-// RouteResponse does the same as Route but the handler does not receive a request struct, only the context.
+// RouteNoRequest does the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteResponse[RS any, PS interface {
+func RouteNoRequest[RS any, PS interface {
 	*RS
 	msgp.Marshaler
 }, D any](r Router[D], route string, handler func(c *ResCtx[RS, PS, D]) error) Router[D] {
@@ -77,15 +77,71 @@ func RouteResponse[RS any, PS interface {
 	}
 }
 
-// RouteRequest does the same as Route but the handler does not return anything.
-// This can be useful if you only want to receive the data for example streaming over WebTransport.
-func RouteRequest[RQ any, PQ interface {
+// RouteOk does the same as Route but the handler does not have a return type, it can only succeed or error.
+// This can be useful if you don't have any return data, but the request can still have an error.
+func RouteOk[RQ any, PQ interface {
 	*RQ
 	msgp.Unmarshaler
-}, RS any, PS interface {
-	*RS
-	msgp.Marshaler
-}, D any](r Router[D], route string, handler func(c *ResCtx[RS, PS, D], req RQ)) Router[D] {
+}, D any](r Router[D], route string, handler func(c *OkCtx[D], req RQ) error) Router[D] {
+	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
+
+	neos := r.getNeos()
+	for _, neo := range neos {
+		neo.routes[route] = func(c *Ctx[D]) error {
+
+			// Parse request data into struct
+			var data RQ
+			unmarshaler := any(&data).(msgp.Unmarshaler)
+
+			_, err := unmarshaler.UnmarshalMsg(c.data)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal request data in RouteRequestOk for route %s: %v", route, err)
+			}
+
+			ctx := &OkCtx[D]{
+				Ctx: *c,
+			}
+
+			// Let the handler handle it
+			return handler(ctx, data)
+		}
+	}
+
+	return &RouteRouter[D]{
+		neos:  neos,
+		route: route,
+	}
+}
+
+// RouteOkNoRequest does the same as RouteOk but the handler does not receive a request struct, only the context.
+// This can be useful if you don't want to receive any data and the handler can only succeed or error.
+func RouteOkNoRequest[D any](r Router[D], route string, handler func(c *OkCtx[D]) error) Router[D] {
+	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
+
+	neos := r.getNeos()
+	for _, neo := range neos {
+		neo.routes[route] = func(c *Ctx[D]) error {
+			ctx := &OkCtx[D]{
+				Ctx: *c,
+			}
+
+			// Let the handler handle it
+			return handler(ctx)
+		}
+	}
+
+	return &RouteRouter[D]{
+		neos:  neos,
+		route: route,
+	}
+}
+
+// RouteNoResponse does the same as Route but the handler does not return anything.
+// This can be useful if you only want to receive the data for example streaming over WebTransport.
+func RouteNoResponse[RQ any, PQ interface {
+	*RQ
+	msgp.Unmarshaler
+}, D any](r Router[D], route string, handler func(c *Ctx[D], req RQ)) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -102,12 +158,8 @@ func RouteRequest[RQ any, PQ interface {
 				return &noResponse{}
 			}
 
-			ctx := &ResCtx[RS, PS, D]{
-				Ctx: *c,
-			}
-
 			// Let the handler handle it
-			handler(ctx, data)
+			handler(c, data)
 			return &noResponse{}
 		}
 	}

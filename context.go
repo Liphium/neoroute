@@ -6,6 +6,8 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
+// Wraps context for handlers that return a response.
+
 type ResCtx[RS any, PS interface {
 	*RS
 	msgp.Marshaler
@@ -24,18 +26,36 @@ func (c *ResCtx[RS, PS, D]) Respond(resp RS) error {
 
 	return response{
 		Id:      c.id,
+		HasData: true,
 		IsError: false,
 		Data:    respData,
 	}
 }
 
 func (c *ResCtx[RS, PS, D]) RespondError(err error) error {
+	return c.respondError(err)
+}
+
+// Wraps context for handlers that don't return any data, only success or error.
+
+type OkCtx[D any] struct {
+	Ctx[D]
+}
+
+func (c *OkCtx[D]) RespondOk() error {
 	return response{
 		Id:      c.id,
-		IsError: true,
-		Data:    []byte(fmt.Sprintf("%v", err)),
+		HasData: false,
+		IsError: false,
+		Data:    []byte{},
 	}
 }
+
+func (c *OkCtx[D]) RespondError(err error) error {
+	return c.respondError(err)
+}
+
+// Default context that contains the request information.
 
 type Ctx[D any] struct {
 	neo     *NeoRouter[D]
@@ -64,6 +84,7 @@ func (c *Ctx[D]) Session() *Session[D] {
 func (c *Ctx[D]) respondError(err error) response {
 	return response{
 		Id:      c.id,
+		HasData: true,
 		IsError: true,
 		Data:    []byte(fmt.Sprintf("%v", err)),
 	}

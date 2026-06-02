@@ -1,28 +1,37 @@
 package neoroute
 
-type RouterGroup[D any] struct {
-	neos []*NeoRouter[D]
+type Group[D any] struct {
+	neos   []*NeoRouter[D]
+	prefix string
+	parent Router[D]
 }
 
-func NewRouterGroup[D any](neo *NeoRouter[D], neos ...*NeoRouter[D]) Router[D] {
-	return &RouterGroup[D]{
-		neos: append(neos, neo),
-	}
-}
-
-func (m *RouterGroup[D]) Group(route string) Router[D] {
+func (m *Group[D]) Group(route string) Router[D] {
 	return &Group[D]{
 		neos:   m.neos,
 		prefix: route,
 		parent: m,
 	}
-
 }
 
-func (r *RouterGroup[D]) getRoute() string {
-	return ""
+func (m *Group[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {
+	m.neos = append(m.neos, append([]*NeoRouter[D]{router}, routers...)...)
+	return m
 }
 
-func (m *RouterGroup[D]) getNeos() []*NeoRouter[D] {
+func (m *Group[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
+	for _, neo := range m.neos {
+		neo.Use(route, middleware)
+	}
+}
+
+func (m *Group[D]) getRoute() string {
+	if m.parent == nil {
+		return m.prefix
+	}
+	return m.parent.getRoute() + string(RouteSeparator) + m.prefix
+}
+
+func (m *Group[D]) getNeos() []*NeoRouter[D] {
 	return m.neos
 }

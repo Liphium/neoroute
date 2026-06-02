@@ -77,6 +77,7 @@ type Event struct {
 
 type response struct {
 	Id      int    `msg:"id"`
+	HasData bool   `msg:"has_data"`
 	IsError bool   `msg:"error"`
 	Data    []byte `msg:"data"`
 }

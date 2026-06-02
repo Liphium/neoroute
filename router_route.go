@@ -5,19 +5,30 @@ type RouteRouter[D any] struct {
 	route string
 }
 
-func (m *RouteRouter[D]) Group(route string) Router[D] {
+func (r *RouteRouter[D]) Group(route string) Router[D] {
 	return &Group[D]{
-		neos:   m.neos,
+		neos:   r.neos,
 		prefix: route,
-		parent: m,
+		parent: r,
 	}
 
+}
+
+func (r *RouteRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {
+	r.neos = append(r.neos, append([]*NeoRouter[D]{router}, routers...)...)
+	return r
+}
+
+func (r *RouteRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
+	for _, neo := range r.neos {
+		neo.Use(route, middleware)
+	}
 }
 
 func (r *RouteRouter[D]) getRoute() string {
 	return r.route
 }
 
-func (m *RouteRouter[D]) getNeos() []*NeoRouter[D] {
-	return m.neos
+func (r *RouteRouter[D]) getNeos() []*NeoRouter[D] {
+	return r.neos
 }
