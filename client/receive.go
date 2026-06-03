@@ -1,16 +1,14 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/tinylib/msgp/msgp"
 )
 
 func Receive[E any, EP interface {
 	*E
 	msgp.Unmarshaler
-}](r *Receiver, eventName string, handlerFunc func(c *Ctx, req E) error) {
-	r.handler[eventName] = func(c *Ctx) error {
+}](r *Receiver, eventName string, handlerFunc func(c *Ctx, req E)) {
+	r.handler[eventName] = func(c *Ctx) {
 
 		// Parse request data into struct
 		var data E
@@ -18,10 +16,11 @@ func Receive[E any, EP interface {
 
 		_, err := unmarshaler.UnmarshalMsg(c.data)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal struct: %v", err)
+			logger.Info("failed to unmarshal struct event", "err", err)
+			return
 		}
 
 		// Let the handler handle it
-		return handlerFunc(c, data)
+		handlerFunc(c, data)
 	}
 }

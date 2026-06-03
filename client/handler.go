@@ -12,7 +12,7 @@ type Handler struct {
 	sendFunc  func(data []byte) error
 	requestId int
 	waiters   map[int]chan response
-	handler   map[string]func(*Ctx) error // Only used with receiver
+	handler   map[string]func(*Ctx) // Only used with receiver
 }
 
 // NewHandler returns an initialized handler
@@ -26,7 +26,7 @@ func NewHandler(config Config) *Handler {
 		config:    config,
 		requestId: 0,
 		waiters:   make(map[int]chan response),
-		handler:   make(map[string]func(*Ctx) error),
+		handler:   make(map[string]func(*Ctx)),
 	}
 }
 
@@ -113,9 +113,7 @@ func (h *Handler) handleEvent(eventBytes []byte) {
 		name: ev.Name,
 	}
 
-	logger.Info("stating handling of event", "event", ev.Name)
-	if err := handler(c); err != nil {
-		h.config.ErrorHandler(err)
-	}
+	logger.Info("starting handling of event", "event", ev.Name)
+	handler(c)
 	logger.Info("finished handling of event", "event", ev.Name)
 }

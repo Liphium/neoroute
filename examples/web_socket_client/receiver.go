@@ -7,8 +7,7 @@ import (
 )
 
 func registerReceiver(r *client.Receiver) {
-	client.Receive(r, "new_pun_submitted", func(c *client.Ctx, req NewPunEvent) error {
-		log.Printf("A new was submitted by someone, it is %v\n", req.Pun)
-		return nil
+	client.Receive(r, "new_pun_submitted", func(c *client.Ctx, req NewPunEvent) {
+		log.Printf("A new pun was submitted by someone, it is %v\n", req.Pun)
 	})
 }
