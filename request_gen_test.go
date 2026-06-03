@@ -9,8 +9,8 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-func TestMarshalUnmarshalRequest(t *testing.T) {
-	v := Request{}
+func TestMarshalUnmarshalrequest(t *testing.T) {
+	v := request{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -32,8 +32,8 @@ func TestMarshalUnmarshalRequest(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgRequest(b *testing.B) {
-	v := Request{}
+func BenchmarkMarshalMsgrequest(b *testing.B) {
+	v := request{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -41,8 +41,8 @@ func BenchmarkMarshalMsgRequest(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgRequest(b *testing.B) {
-	v := Request{}
+func BenchmarkAppendMsgrequest(b *testing.B) {
+	v := request{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -53,8 +53,8 @@ func BenchmarkAppendMsgRequest(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalRequest(b *testing.B) {
-	v := Request{}
+func BenchmarkUnmarshalrequest(b *testing.B) {
+	v := request{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -67,17 +67,17 @@ func BenchmarkUnmarshalRequest(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeRequest(t *testing.T) {
-	v := Request{}
+func TestEncodeDecoderequest(t *testing.T) {
+	v := request{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
 	m := v.Msgsize()
 	if buf.Len() > m {
-		t.Log("WARNING: TestEncodeDecodeRequest Msgsize() is inaccurate")
+		t.Log("WARNING: TestEncodeDecoderequest Msgsize() is inaccurate")
 	}
 
-	vn := Request{}
+	vn := request{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -91,8 +91,8 @@ func TestEncodeDecodeRequest(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeRequest(b *testing.B) {
-	v := Request{}
+func BenchmarkEncoderequest(b *testing.B) {
+	v := request{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -105,8 +105,8 @@ func BenchmarkEncodeRequest(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeRequest(b *testing.B) {
-	v := Request{}
+func BenchmarkDecoderequest(b *testing.B) {
+	v := request{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))

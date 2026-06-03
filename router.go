@@ -72,7 +72,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 		session: session,
 	}
 
-	var data Request
+	var data request
 	_, err := data.UnmarshalMsg(reqData)
 	if err != nil {
 		logger.Info("failed to unmarshal request", "err", err)
