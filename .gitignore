@@ -5,4 +5,3 @@ examples/*/*_gen_test.go
 workspace
 sender
 sender_ws
-client
