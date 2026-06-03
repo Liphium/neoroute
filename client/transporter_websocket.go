@@ -1,13 +1,15 @@
 package client
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"runtime/debug"
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 type WebSocketTransporter struct {
@@ -29,7 +31,9 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	w.done = make(chan struct{})
 
 	// Connect to server
-	conn, _, err := websocket.DefaultDialer.Dial(url.String(), nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, url.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to websocket server: %v", err)
 	}
@@ -37,23 +41,16 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	w.receiver.setSendFunc(func(data []byte) error {
 		w.sendMutex.Lock()
 		defer w.sendMutex.Unlock()
-		return w.conn.WriteMessage(websocket.BinaryMessage, data)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+		defer cancel()
+		return w.conn.Write(ctx, websocket.MessageBinary, data)
 	})
 	go w.ws(conn)
 	return w.done, nil
 }
 
 func (w *WebSocketTransporter) Close() error {
-	closePayload := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
-
-	err := w.conn.WriteControl(
-		websocket.CloseMessage,
-		closePayload,
-		time.Now().Add(time.Second*2),
-	)
-
-	time.Sleep(500 * time.Millisecond)
-	return err
+	return w.conn.Close(websocket.StatusNormalClosure, "")
 }
 
 func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
@@ -64,27 +61,32 @@ func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
 		defer close(w.done)
 		if err := recover(); err != nil {
 			debug.PrintStack()
-			conn.Close()
+			w.Close()
 			logger.Error("there was an error with the connection", "err", err.(error))
 			return
 		}
 
 		// Close the connection
-		defer conn.Close()
+		defer w.Close()
 	}()
 
 	for {
-		messageType, msg, err := conn.ReadMessage()
+		messageType, msg, err := conn.Read(context.Background())
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			var closeErr websocket.CloseError
+			if errors.As(err, &closeErr) {
+				logger.Info("websocket connection closed by remote",
+					"code", closeErr.Code,
+					"reason", closeErr.Reason,
+				)
 				return
 			}
 
-			logger.Info("error reading message", "err", err)
+			logger.Error("error reading message", "err", err)
 			return
 		}
 
-		if messageType != websocket.BinaryMessage {
+		if messageType != websocket.MessageBinary {
 			logger.Info("wrong message type", "type", messageType)
 			return
 		}
