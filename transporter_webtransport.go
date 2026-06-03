@@ -160,10 +160,22 @@ func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (Ada
 		return nil, fmt.Errorf("webtransport session not set for %s", id)
 	}
 
+	transporterType := "WebTransport Reliable"
+	if unreliable {
+		transporterType = "WebTransport Unreliable"
+	}
+
+	eventRegistries := t.eventRegistriesReliable
+	if unreliable {
+		eventRegistries = t.eventRegistriesUnreliable
+	}
+
 	adapter := &WebTransportAdapter{
-		session:      wtSession,
-		mutex:        &sync.Mutex{},
-		isUnreliable: unreliable,
+		transporterType: transporterType,
+		eventRegistries: eventRegistries,
+		session:         wtSession,
+		mutex:           &sync.Mutex{},
+		isUnreliable:    unreliable,
 	}
 	go adapter.waitClosed()
 	return adapter, nil

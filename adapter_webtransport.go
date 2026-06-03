@@ -3,18 +3,21 @@ package neoroute
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/quic-go/webtransport-go"
 )
 
 type WebTransportAdapter struct {
-	session      *webtransport.Session
-	mutex        *sync.Mutex
-	isUnreliable bool
-	removeFunc   func()
-	closed       bool
-	removeOnce   sync.Once
+	session         *webtransport.Session
+	mutex           *sync.Mutex
+	transporterType string
+	eventRegistries []*EventRegistry
+	isUnreliable    bool
+	removeFunc      func()
+	closed          bool
+	removeOnce      sync.Once
 }
 
 func (a *WebTransportAdapter) send(b []byte) error {
@@ -22,6 +25,19 @@ func (a *WebTransportAdapter) send(b []byte) error {
 		return a.sendUnreliable(b)
 	}
 	return a.sendReliable(b)
+}
+
+func (a *WebTransportAdapter) isEventRegistered(name string) bool {
+	for _, eventRegistry := range a.eventRegistries {
+		if slices.Contains(eventRegistry.getEvents(), name) {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *WebTransportAdapter) getTransportType() string {
+	return a.transporterType
 }
 
 func (a *WebTransportAdapter) sendReliable(b []byte) error {

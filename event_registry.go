@@ -19,6 +19,14 @@ func NewEventRegistry() *EventRegistry {
 	}
 }
 
+func (er *EventRegistry) getEvents() []string {
+	er.mutex.Lock()
+	defer er.mutex.Unlock()
+	return er.registeredEvents
+}
+
+// Register returns a new event builder.
+// First register all events only then start creating adapters.
 func Register[E any, EM interface {
 	*E
 	msgp.Marshaler
