@@ -1,6 +1,7 @@
 package neoroute
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -123,12 +124,42 @@ func (t *WebTransportTransporter[D]) removeSession(id string) {
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) Adapt() {
-
+func (t *WebTransportTransporter[D]) Adapt(id string) (Adapter, error) {
+	return t.newAdapter(id, false)
 }
 
-func (t *WebTransportTransporter[D]) AdaptUnreliable() {
+func (t *WebTransportTransporter[D]) AdaptUnreliable(id string) (Adapter, error) {
+	return t.newAdapter(id, true)
+}
 
+func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (Adapter, error) {
+	session, ok := t.getSession(id)
+	if !ok {
+		return nil, fmt.Errorf("session %s not found", id)
+	}
+
+	session.mutex.Lock()
+	wtSession := session.wtSession
+	session.mutex.Unlock()
+
+	if wtSession == nil {
+		return nil, fmt.Errorf("webtransport session not set for %s", id)
+	}
+
+	adapter := &WebTransportAdapter{
+		session:      wtSession,
+		mutex:        &sync.Mutex{},
+		isUnreliable: unreliable,
+	}
+	go adapter.waitClosed()
+	return adapter, nil
+}
+
+func (t *WebTransportTransporter[D]) getSession(id string) (*wttSession[D], bool) {
+	t.mutex.Lock()
+	session, ok := t.sessions[id]
+	t.mutex.Unlock()
+	return session, ok
 }
 
 func (t *WebTransportTransporter[D]) handleSession(session *wttSession[D]) {
