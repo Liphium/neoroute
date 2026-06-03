@@ -10,10 +10,12 @@ import (
 )
 
 type WebTransportTransporter[D any] struct {
-	router   *NeoRouter[D]
-	config   WTTConfig[D]
-	mutex    *sync.Mutex
-	sessions map[string]*wttSession[D]
+	eventRegistriesUnreliable []*EventRegistry
+	eventRegistriesReliable   []*EventRegistry
+	router                    *NeoRouter[D]
+	config                    WTTConfig[D]
+	mutex                     *sync.Mutex
+	sessions                  map[string]*wttSession[D]
 }
 
 type UpgradeFunc func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
@@ -68,7 +70,7 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 		}
 
 		// Add session to transporter
-		session := transporter.addSession(userSession.Id(), userSession, transportSession)
+		session := transporter.addSession(userSession, transportSession)
 		if session == nil {
 			return
 		}
@@ -86,7 +88,19 @@ func (t *WebTransportTransporter[D]) SetRouter(r *NeoRouter[D]) {
 	t.router = r
 }
 
-func (t *WebTransportTransporter[D]) addSession(id string, userSession *Session[D], transportSession *webtransport.Session) *wttSession[D] {
+func (t *WebTransportTransporter[D]) AddEventRegistryReliable(e *EventRegistry) {
+	t.mutex.Lock()
+	t.eventRegistriesReliable = append(t.eventRegistriesReliable, e)
+	t.mutex.Unlock()
+}
+
+func (t *WebTransportTransporter[D]) AddEventRegistryUnreliable(e *EventRegistry) {
+	t.mutex.Lock()
+	t.eventRegistriesUnreliable = append(t.eventRegistriesUnreliable, e)
+	t.mutex.Unlock()
+}
+
+func (t *WebTransportTransporter[D]) addSession(userSession *Session[D], transportSession *webtransport.Session) *wttSession[D] {
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()

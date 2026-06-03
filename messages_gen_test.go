@@ -9,8 +9,8 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-func TestMarshalUnmarshalEvent(t *testing.T) {
-	v := Event{}
+func TestMarshalUnmarshalevent(t *testing.T) {
+	v := event{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -32,8 +32,8 @@ func TestMarshalUnmarshalEvent(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgEvent(b *testing.B) {
-	v := Event{}
+func BenchmarkMarshalMsgevent(b *testing.B) {
+	v := event{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -41,8 +41,8 @@ func BenchmarkMarshalMsgEvent(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgEvent(b *testing.B) {
-	v := Event{}
+func BenchmarkAppendMsgevent(b *testing.B) {
+	v := event{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -53,8 +53,8 @@ func BenchmarkAppendMsgEvent(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalEvent(b *testing.B) {
-	v := Event{}
+func BenchmarkUnmarshalevent(b *testing.B) {
+	v := event{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -67,17 +67,17 @@ func BenchmarkUnmarshalEvent(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeEvent(t *testing.T) {
-	v := Event{}
+func TestEncodeDecodeevent(t *testing.T) {
+	v := event{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
 	m := v.Msgsize()
 	if buf.Len() > m {
-		t.Log("WARNING: TestEncodeDecodeEvent Msgsize() is inaccurate")
+		t.Log("WARNING: TestEncodeDecodeevent Msgsize() is inaccurate")
 	}
 
-	vn := Event{}
+	vn := event{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -91,8 +91,8 @@ func TestEncodeDecodeEvent(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeEvent(b *testing.B) {
-	v := Event{}
+func BenchmarkEncodeevent(b *testing.B) {
+	v := event{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -105,8 +105,8 @@ func BenchmarkEncodeEvent(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeEvent(b *testing.B) {
-	v := Event{}
+func BenchmarkDecodeevent(b *testing.B) {
+	v := event{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -122,8 +122,8 @@ func BenchmarkDecodeEvent(b *testing.B) {
 	}
 }
 
-func TestMarshalUnmarshalMessage(t *testing.T) {
-	v := Message{}
+func TestMarshalUnmarshalmessage(t *testing.T) {
+	v := message{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -145,8 +145,8 @@ func TestMarshalUnmarshalMessage(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgMessage(b *testing.B) {
-	v := Message{}
+func BenchmarkMarshalMsgmessage(b *testing.B) {
+	v := message{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -154,8 +154,8 @@ func BenchmarkMarshalMsgMessage(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgMessage(b *testing.B) {
-	v := Message{}
+func BenchmarkAppendMsgmessage(b *testing.B) {
+	v := message{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -166,8 +166,8 @@ func BenchmarkAppendMsgMessage(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalMessage(b *testing.B) {
-	v := Message{}
+func BenchmarkUnmarshalmessage(b *testing.B) {
+	v := message{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -180,17 +180,17 @@ func BenchmarkUnmarshalMessage(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeMessage(t *testing.T) {
-	v := Message{}
+func TestEncodeDecodemessage(t *testing.T) {
+	v := message{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
 	m := v.Msgsize()
 	if buf.Len() > m {
-		t.Log("WARNING: TestEncodeDecodeMessage Msgsize() is inaccurate")
+		t.Log("WARNING: TestEncodeDecodemessage Msgsize() is inaccurate")
 	}
 
-	vn := Message{}
+	vn := message{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -204,8 +204,8 @@ func TestEncodeDecodeMessage(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeMessage(b *testing.B) {
-	v := Message{}
+func BenchmarkEncodemessage(b *testing.B) {
+	v := message{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -218,8 +218,8 @@ func BenchmarkEncodeMessage(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeMessage(b *testing.B) {
-	v := Message{}
+func BenchmarkDecodemessage(b *testing.B) {
+	v := message{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))

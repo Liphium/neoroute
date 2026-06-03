@@ -45,14 +45,14 @@ func (r *AdapterRegistry[D]) unregisterIfSame(name string, adapter Adapter) {
 	}
 }
 
-func (r *AdapterRegistry[D]) Send(name string, event Event) error {
+func (r *AdapterRegistry[D]) Send(name string, event event) error {
 	r.mutex.RLock()
 	adapter, exists := r.adapters[name]
 	r.mutex.RUnlock()
 	if !exists {
 		return fmt.Errorf("adapter with name %s not found", name)
 	}
-	eventBytes, err := MessageEvent(event)
+	eventBytes, err := messageEvent(event)
 	if err != nil {
 		return fmt.Errorf("marshal event for adapter %s: %v", name, err)
 	}
@@ -60,7 +60,7 @@ func (r *AdapterRegistry[D]) Send(name string, event Event) error {
 	return adapter.send(eventBytes)
 }
 
-func (r *AdapterRegistry[D]) Broadcast(event Event) error {
+func (r *AdapterRegistry[D]) Broadcast(event event) error {
 
 	// Collect adapters to send to
 	r.mutex.RLock()
@@ -77,7 +77,7 @@ func (r *AdapterRegistry[D]) Broadcast(event Event) error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, len(adapters))
 
-	eventBytes, err := MessageEvent(event)
+	eventBytes, err := messageEvent(event)
 	if err != nil {
 		return fmt.Errorf("marshal event for broadcast: %v", err)
 	}

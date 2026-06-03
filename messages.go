@@ -11,12 +11,12 @@ const (
 
 //go:generate msgp -unexported
 
-type Message struct {
+type message struct {
 	Type int    `msg:"type"` // Response or event
 	Data []byte `msg:"data"`
 }
 
-func MessageEvent(event Event) ([]byte, error) {
+func messageEvent(event event) ([]byte, error) {
 
 	// Marshal event data
 	eventData, err := event.MarshalMsg(nil)
@@ -24,7 +24,7 @@ func MessageEvent(event Event) ([]byte, error) {
 		return nil, fmt.Errorf("failed to marshal event data: %v", err)
 	}
 
-	msg := Message{
+	msg := message{
 		Type: MessageTypeEvent,
 		Data: eventData,
 	}
@@ -55,7 +55,7 @@ func messageResponse[D any](neo *NeoRouter[D], resp response) []byte {
 
 	}
 
-	msg := Message{
+	msg := message{
 		Type: MessageTypeResponse,
 		Data: respData,
 	}
@@ -70,7 +70,7 @@ func messageResponse[D any](neo *NeoRouter[D], resp response) []byte {
 	return msgBytes
 }
 
-type Event struct {
+type event struct {
 	Name string `msg:"name"`
 	Data []byte `msg:"data"`
 }
