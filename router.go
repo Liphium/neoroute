@@ -2,7 +2,6 @@ package neoroute
 
 import (
 	"errors"
-	"fmt"
 )
 
 type Router[D any] interface {
@@ -76,7 +75,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	_, err := data.UnmarshalMsg(reqData)
 	if err != nil {
 		logger.Info("failed to unmarshal request", "err", err)
-		return messageResponse(r, c.respondError(fmt.Errorf("Invalid request format.")))
+		return messageResponse(r, c.respondError("Invalid request format."))
 	}
 
 	route := cleanRoute(data.Route)
@@ -88,7 +87,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	// Check if handler for route exists
 	handler, exists := r.routes[route]
 	if !exists {
-		return messageResponse(r, c.respondError(fmt.Errorf("Route does not exist.")))
+		return messageResponse(r, c.respondError("Route does not exist."))
 	}
 
 	// Run middlewares
@@ -96,7 +95,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	for _, subroute := range subRoutes {
 		if middleware, ok := r.middleware[subroute]; ok {
 			if !middleware(c) {
-				return messageResponse(r, c.respondError(fmt.Errorf("Middleware denied access.")))
+				return messageResponse(r, c.respondError("Middleware denied access."))
 			}
 		}
 	}
@@ -118,7 +117,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	} else {
 
 		// Let user decide what error to return and how to handle it.
-		return messageResponse(r, c.respondError(fmt.Errorf("%s", r.config.ErrorHandler(err))))
+		return messageResponse(r, c.respondError(r.config.ErrorHandler(err)))
 	}
 
 }

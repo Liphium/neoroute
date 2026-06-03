@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -92,7 +91,7 @@ func main() {
 		log.Println("message received")
 		// Check pun contains go
 		if !strings.Contains(strings.ToLower(req.Pun), "go") {
-			return c.RespondError(fmt.Errorf("pun has to contain at least one instance of go. For example How is it GOing."))
+			return c.RespondError("Pun has to contain at least one instance of go. For example How is it GOing.")
 		}
 
 		// Send new pun to all clients

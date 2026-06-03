@@ -32,7 +32,7 @@ func (c *ResCtx[RS, PS, D]) Respond(resp RS) error {
 	}
 }
 
-func (c *ResCtx[RS, PS, D]) RespondError(err error) error {
+func (c *ResCtx[RS, PS, D]) RespondError(err string) error {
 	return c.respondError(err)
 }
 
@@ -51,7 +51,7 @@ func (c *OkCtx[D]) RespondOk() error {
 	}
 }
 
-func (c *OkCtx[D]) RespondError(err error) error {
+func (c *OkCtx[D]) RespondError(err string) error {
 	return c.respondError(err)
 }
 
@@ -81,11 +81,11 @@ func (c *Ctx[D]) Session() *Session[D] {
 	return c.session
 }
 
-func (c *Ctx[D]) respondError(err error) response {
+func (c *Ctx[D]) respondError(err string) response {
 	return response{
 		Id:      c.id,
 		HasData: true,
 		IsError: true,
-		Data:    []byte(fmt.Sprintf("%v", err)),
+		Data:    []byte(err),
 	}
 }
