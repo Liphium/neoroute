@@ -2,12 +2,13 @@ package neoroute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 type WebSocketTransporter[D any] struct {
@@ -18,7 +19,7 @@ type WebSocketTransporter[D any] struct {
 	sessions        map[string]*wsSession[D]
 }
 
-type UpgradeFuncWS func(w http.ResponseWriter, r *http.Request, responseHeader http.Header) (*websocket.Conn, error)
+type UpgradeFuncWS func(w http.ResponseWriter, r *http.Request, opts *websocket.AcceptOptions) (*websocket.Conn, error)
 
 type WSConfig[D any] struct {
 	UpgradeFunc          UpgradeFuncWS
@@ -109,7 +110,9 @@ func (t *WebSocketTransporter[D]) addSession(userSession *Session[D], conn *webs
 			if oldSession.cancel != nil {
 				oldSession.cancel() // Cancel old context if overwritten
 			}
-			oldSession.conn.Close()
+			if err := oldSession.conn.CloseNow(); err != nil {
+				logger.Info("failed to close old connection", "session", userSession.id, "err", err)
+			}
 
 			oldSession.mutex.Unlock()
 
@@ -187,7 +190,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		if session.cancel != nil {
 			session.cancel()
 		}
-		conn.Close()
+		conn.CloseNow()
 		t.config.DisconnectHandler(session.session)
 		session.mutex.Lock()
 		t.removeSession(session.session.id)
@@ -196,34 +199,42 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 
 	t.config.EnterNetworkFunc(session.session, t)
 
-	conn.SetReadDeadline(time.Now().Add(time.Hour * 24 * 7))
-
 	for {
-		messageType, msg, err := conn.ReadMessage()
+		messageType, msg, err := conn.Read(context.Background())
 		if err != nil {
 
 			// Only log err if it is not due to expected connection closure
-			if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				logger.Info("couldn't read message", "err", err)
+			var closeErr websocket.CloseError
+			if errors.As(err, &closeErr) {
+				logger.Info("websocket connection closed by remote",
+					"code", closeErr.Code,
+					"reason", closeErr.Reason,
+				)
+				return
 			}
 
 			return
 		}
 
-		if messageType != websocket.BinaryMessage {
-			continue
+		if messageType != websocket.MessageBinary {
+			return
 		}
 
 		// Handle request and send response back over the same connection
 		resp := t.router.handle(msg, userSession)
 		if resp != nil {
-			session.mutex.Lock()
-			err = conn.WriteMessage(messageType, resp)
-			session.mutex.Unlock()
-			if err != nil {
-				logger.Info("failed to send websocket response", "err", err)
-				return
-			}
+			go func() {
+				session.sendMutex.Lock()
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+				defer cancel()
+				err = conn.Write(ctx, websocket.MessageBinary, resp)
+				session.sendMutex.Unlock()
+				if err != nil {
+					logger.Info("failed to send websocket response", "err", err)
+					return
+				}
+			}()
+
 		}
 	}
 }

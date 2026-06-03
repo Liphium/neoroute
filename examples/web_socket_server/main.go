@@ -7,24 +7,14 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
+	"github.com/coder/websocket"
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 )
 
 type Counter struct {
 	mutex       *sync.Mutex
 	echoCounter int
 	puns        []string
-}
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	// CheckOrigin allows us to accept connections from different domains.
-	// For development, we return true. For production, secure this!
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
 }
 
 // Setup events
@@ -39,7 +29,7 @@ func main() {
 	adapterReg := neoroute.NewAdapterRegistry[struct{}]()
 
 	hook, t := neoroute.NewWebSocketTransporter(neoroute.WSConfig[struct{}]{
-		UpgradeFunc: upgrader.Upgrade,
+		UpgradeFunc: websocket.Accept,
 		OverwriteSessionFunc: func(id string) bool {
 			return true
 		},
@@ -115,5 +105,7 @@ func main() {
 	mux.HandleFunc("/", hook)
 
 	log.Println("listening on localhost:6121")
-	http.ListenAndServe(":6121", mux)
+	if err := http.ListenAndServe(":6121", mux); err != nil {
+		log.Fatal("failed to start server: ", err)
+	}
 }

@@ -4,8 +4,9 @@ import (
 	"context"
 	"slices"
 	"sync"
+	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 type WebSocketAdapter struct {
@@ -23,7 +24,9 @@ type WebSocketAdapter struct {
 func (a *WebSocketAdapter) send(b []byte) error {
 	a.sendMutex.Lock()
 	defer a.sendMutex.Unlock()
-	return a.conn.WriteMessage(websocket.BinaryMessage, b)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+	return a.conn.Write(ctx, websocket.MessageBinary, b)
 }
 
 func (a *WebSocketAdapter) isEventRegistered(name string) bool {
