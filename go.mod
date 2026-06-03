@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.5.3
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/quic-go/webtransport-go v0.10.0
 )

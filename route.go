@@ -13,12 +13,12 @@ import (
 // If characters are used that are not allowed, they will be striped, this can lead to unwanted behavior.
 //
 // Make sure the handler never returns nil, otherwise the router will panic.
-func Route[RQ any, PQ interface {
-	*RQ
-	msgp.Unmarshaler
-}, RS any, PS interface {
+func Route[RS any, PS interface {
 	*RS
 	msgp.Marshaler
+}, RQ any, PQ interface {
+	*RQ
+	msgp.Unmarshaler
 }, D any](r Router[D], route string, handler func(c *ResCtx[RS, PS, D], req RQ) error) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 

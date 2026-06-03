@@ -18,10 +18,10 @@ type WebTransportTransporter[D any] struct {
 	sessions                  map[string]*wttSession[D]
 }
 
-type UpgradeFunc func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
+type UpgradeFuncWTT func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
 
 type WTTConfig[D any] struct {
-	UpgradeFunc          UpgradeFunc
+	UpgradeFunc          UpgradeFuncWTT
 	OverwriteSessionFunc func(id string) bool
 
 	HandshakeFunc     func(r *http.Request) (*Session[D], bool)
@@ -42,10 +42,12 @@ var _ Transporter[any] = &WebTransportTransporter[any]{}
 
 func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *WebTransportTransporter[D]) {
 	transporter := &WebTransportTransporter[D]{
-		router:   nil,
-		config:   config,
-		sessions: make(map[string]*wttSession[D]),
-		mutex:    &sync.Mutex{},
+		router:                    nil,
+		config:                    config,
+		sessions:                  make(map[string]*wttSession[D]),
+		mutex:                     &sync.Mutex{},
+		eventRegistriesReliable:   []*EventRegistry{},
+		eventRegistriesUnreliable: []*EventRegistry{},
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
