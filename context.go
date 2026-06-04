@@ -8,14 +8,14 @@ import (
 
 // Wraps context for handlers that return a response.
 
-type ResCtx[RS any, PS interface {
+type ResCtx[D any, RS any, PS interface {
 	*RS
 	msgp.Marshaler
-}, D any] struct {
+}] struct {
 	Ctx[D]
 }
 
-func (c *ResCtx[RS, PS, D]) Respond(resp RS) error {
+func (c *ResCtx[D, RS, PS]) Respond(resp RS) error {
 
 	// Marshal response data
 	marshaler := any(&resp).(msgp.Marshaler)
@@ -32,7 +32,7 @@ func (c *ResCtx[RS, PS, D]) Respond(resp RS) error {
 	}
 }
 
-func (c *ResCtx[RS, PS, D]) RespondError(err string) error {
+func (c *ResCtx[D, RS, PS]) RespondError(err string) error {
 	return c.respondError(err)
 }
 
