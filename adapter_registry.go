@@ -7,19 +7,19 @@ import (
 	"sync"
 )
 
-type AdapterRegistry[D any] struct {
+type AdapterRegistry struct {
 	mutex    *sync.RWMutex
 	adapters map[string]Adapter
 }
 
-func NewAdapterRegistry[D any]() *AdapterRegistry[D] {
-	return &AdapterRegistry[D]{
+func NewAdapterRegistry() *AdapterRegistry {
+	return &AdapterRegistry{
 		mutex:    &sync.RWMutex{},
 		adapters: make(map[string]Adapter),
 	}
 }
 
-func (r *AdapterRegistry[D]) Register(name string, adapter Adapter) {
+func (r *AdapterRegistry) Register(name string, adapter Adapter) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	r.adapters[name] = adapter
@@ -28,7 +28,7 @@ func (r *AdapterRegistry[D]) Register(name string, adapter Adapter) {
 	})
 }
 
-func (r *AdapterRegistry[D]) Unregister(name string) {
+func (r *AdapterRegistry) Unregister(name string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	_, exists := r.adapters[name]
@@ -38,7 +38,7 @@ func (r *AdapterRegistry[D]) Unregister(name string) {
 	delete(r.adapters, name)
 }
 
-func (r *AdapterRegistry[D]) unregisterIfSame(name string, adapter Adapter) {
+func (r *AdapterRegistry) unregisterIfSame(name string, adapter Adapter) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	if current, exists := r.adapters[name]; exists && current == adapter {
@@ -46,7 +46,7 @@ func (r *AdapterRegistry[D]) unregisterIfSame(name string, adapter Adapter) {
 	}
 }
 
-func (r *AdapterRegistry[D]) Send(name string, event event) error {
+func (r *AdapterRegistry) Send(name string, event event) error {
 	r.mutex.RLock()
 	adapter, exists := r.adapters[name]
 	r.mutex.RUnlock()
@@ -67,7 +67,7 @@ func (r *AdapterRegistry[D]) Send(name string, event event) error {
 	return adapter.send(eventBytes)
 }
 
-func (r *AdapterRegistry[D]) Broadcast(event event) error {
+func (r *AdapterRegistry) Broadcast(event event) error {
 
 	// Collect adapters to send to
 	r.mutex.RLock()
