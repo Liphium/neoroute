@@ -26,7 +26,7 @@ func main() {
 		mutex: &sync.Mutex{},
 	}
 
-	adapterReg := neoroute.NewAdapterRegistry[struct{}]()
+	adapterReg := neoroute.NewAdapterRegistry()
 
 	hook, t := neoroute.NewWebSocketTransporter(neoroute.WSConfig[struct{}]{
 		UpgradeFunc: websocket.Accept,
