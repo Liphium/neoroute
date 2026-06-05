@@ -60,17 +60,13 @@ func (c *OkCtx[D]) RespondError(err string) error {
 type Ctx[D any] struct {
 	neo     *NeoRouter[D]
 	id      int    // request id, used for responses
-	data    []byte // data field from Request struct
+	reqData []byte // data field from Request struct
 	route   string // the route that matched the request
 	session *Session[D]
 }
 
 func (c *Ctx[D]) Id() int {
 	return c.id
-}
-
-func (c *Ctx[D]) Data() []byte {
-	return c.data
 }
 
 func (c *Ctx[D]) Route() string {

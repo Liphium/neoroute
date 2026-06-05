@@ -30,7 +30,7 @@ func Route[D any, RS any, PS interface {
 			var data RQ
 			unmarshaler := any(&data).(msgp.Unmarshaler)
 
-			_, err := unmarshaler.UnmarshalMsg(c.data)
+			_, err := unmarshaler.UnmarshalMsg(c.reqData)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal struct: %v", err)
 			}
@@ -93,7 +93,7 @@ func RouteOk[D any, RQ any, PQ interface {
 			var data RQ
 			unmarshaler := any(&data).(msgp.Unmarshaler)
 
-			_, err := unmarshaler.UnmarshalMsg(c.data)
+			_, err := unmarshaler.UnmarshalMsg(c.reqData)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal request data in RouteRequestOk for route %s: %v", route, err)
 			}
@@ -152,7 +152,7 @@ func RouteNoResponse[D any, RQ any, PQ interface {
 			var data RQ
 			unmarshaler := any(&data).(msgp.Unmarshaler)
 
-			_, err := unmarshaler.UnmarshalMsg(c.data)
+			_, err := unmarshaler.UnmarshalMsg(c.reqData)
 			if err != nil {
 				logger.Info("failed to unmarshal request data in RouteRequest", "route", route, "err", err)
 				return &noResponse{}

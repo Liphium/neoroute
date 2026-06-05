@@ -66,7 +66,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	c := &Ctx[D]{
 		neo:     r,
 		id:      -1,
-		data:    []byte{},
+		reqData: []byte{},
 		route:   "",
 		session: session,
 	}
@@ -81,7 +81,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	route := cleanRoute(data.Route)
 
 	c.id = data.Id
-	c.data = data.Data
+	c.reqData = data.Data
 	c.route = route
 
 	// Check if handler for route exists
