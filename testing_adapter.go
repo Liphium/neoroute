@@ -109,3 +109,16 @@ func (a *TestingAdapter) Close() {
 		a.removeOnce.Do(removeFunc)
 	}
 }
+
+func UnmarshalEventTesting[E any, EP interface {
+	*E
+	msgp.Unmarshaler
+}](event event) (E, error) {
+	var ev E
+	unmarshaler := any(&ev).(msgp.Unmarshaler)
+	_, err := unmarshaler.UnmarshalMsg(event.Data)
+	if err != nil {
+		return ev, fmt.Errorf("failed to unmarshal event: %v", err)
+	}
+	return ev, nil
+}
