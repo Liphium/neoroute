@@ -18,7 +18,7 @@ type TestingAdapter struct {
 	removeOnce      sync.Once
 
 	// Stored events that are sent to the adapter. Used for testing purposes.
-	receivedEvents [][]byte
+	receivedMessages [][]byte
 }
 
 func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
@@ -44,7 +44,7 @@ func (a *TestingAdapter) DrainEvents() ([]event, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.receivedEvents = nil
+	a.receivedMessages = nil
 	return events, nil
 }
 
@@ -52,10 +52,20 @@ func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 
 	// Unmarshal events into struct
 	events := []event{}
-	for _, eventBytes := range a.receivedEvents {
+	for _, messageBytes := range a.receivedMessages {
+
+		var msg message
+		_, err := msg.UnmarshalMsg(messageBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal messages: %v", err)
+		}
+
+		if msg.Type != MessageTypeEvent {
+			return nil, fmt.Errorf("message was not of type event: %v", msg.Type)
+		}
+
 		var event event
-		unmarshaler := any(&event).(msgp.Unmarshaler)
-		_, err := unmarshaler.UnmarshalMsg(eventBytes)
+		_, err = event.UnmarshalMsg(msg.Data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal events: %v", err)
 		}
@@ -67,7 +77,7 @@ func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 func (a *TestingAdapter) send(b []byte) error {
 	a.sendMutex.Lock()
 	defer a.sendMutex.Unlock()
-	a.receivedEvents = append(a.receivedEvents, b)
+	a.receivedMessages = append(a.receivedMessages, b)
 	return nil
 }
 
