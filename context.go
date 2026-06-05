@@ -36,6 +36,10 @@ func (c *ResCtx[D, RS, PS]) RespondError(err string) error {
 	return c.respondError(err)
 }
 
+func (c *ResCtx[D, RS, PS]) RespondCustom(err error) error {
+	return c.respondError(c.neo.config.ErrorHandler(err))
+}
+
 // Wraps context for handlers that don't return any data, only success or error.
 
 type OkCtx[D any] struct {
@@ -53,6 +57,10 @@ func (c *OkCtx[D]) RespondOk() error {
 
 func (c *OkCtx[D]) RespondError(err string) error {
 	return c.respondError(err)
+}
+
+func (c *OkCtx[D]) RespondCustom(err error) error {
+	return c.respondError(c.neo.config.ErrorHandler(err))
 }
 
 // Default context that contains the request information.

@@ -115,9 +115,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 		// Return no response
 		return nil
 	} else {
-
-		// Let user decide what error to return and how to handle it.
-		return messageResponse(r, c.respondError(r.config.ErrorHandler(err)))
+		panic("handler should use a c.Respond function to return something")
 	}
 
 }
