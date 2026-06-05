@@ -113,10 +113,10 @@ func (a *TestingAdapter) Close() {
 func UnmarshalEventTesting[E any, EP interface {
 	*E
 	msgp.Unmarshaler
-}](event event) (E, error) {
+}](eventData []byte) (E, error) {
 	var ev E
 	unmarshaler := any(&ev).(msgp.Unmarshaler)
-	_, err := unmarshaler.UnmarshalMsg(event.Data)
+	_, err := unmarshaler.UnmarshalMsg(eventData)
 	if err != nil {
 		return ev, fmt.Errorf("failed to unmarshal event: %v", err)
 	}
