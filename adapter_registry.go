@@ -38,6 +38,17 @@ func (r *AdapterRegistry) Unregister(name string) {
 	delete(r.adapters, name)
 }
 
+func (r *AdapterRegistry) Disconnect(name string) {
+	r.mutex.RLock()
+	adapter, exists := r.adapters[name]
+	r.mutex.RUnlock()
+	if !exists {
+		return
+	}
+	adapter.disconnect()
+
+}
+
 func (r *AdapterRegistry) unregisterIfSame(name string, adapter Adapter) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()

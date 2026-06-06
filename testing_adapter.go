@@ -19,6 +19,7 @@ type TestingAdapter struct {
 
 	// Stored events that are sent to the adapter. Used for testing purposes.
 	receivedMessages [][]byte
+	gotDisconnected  bool
 }
 
 func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
@@ -46,6 +47,12 @@ func (a *TestingAdapter) DrainEvents() ([]event, error) {
 	}
 	a.receivedMessages = nil
 	return events, nil
+}
+
+func (a *TestingAdapter) ConnectionStatus() (closed bool, gotDisconnected bool) {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	return a.closed, a.gotDisconnected
 }
 
 func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
@@ -107,6 +114,13 @@ func (a *TestingAdapter) setRemoveFunc(removeFunc func()) {
 	if closed {
 		a.removeOnce.Do(removeFunc)
 	}
+}
+
+func (a *TestingAdapter) disconnect() {
+	a.mutex.Lock()
+	a.gotDisconnected = true
+	a.mutex.Unlock()
+	a.Close()
 }
 
 func (a *TestingAdapter) Close() {

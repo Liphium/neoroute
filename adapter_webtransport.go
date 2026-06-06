@@ -95,6 +95,12 @@ func (a *WebTransportAdapter) setRemoveFunc(removeFunc func()) {
 	}
 }
 
+func (a *WebTransportAdapter) disconnect() {
+	a.mutex.Lock()
+	a.session.CloseWithError(0, "disconnecting")
+	a.mutex.Unlock()
+}
+
 func (a *WebTransportAdapter) waitClosed() {
 	if a.session == nil {
 		return

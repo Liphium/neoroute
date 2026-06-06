@@ -5,4 +5,5 @@ type Adapter interface {
 	getTransportType() string
 	send(b []byte) error
 	setRemoveFunc(removeFunc func())
+	disconnect()
 }

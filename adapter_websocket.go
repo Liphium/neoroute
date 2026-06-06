@@ -57,6 +57,12 @@ func (a *WebSocketAdapter) setRemoveFunc(removeFunc func()) {
 	}
 }
 
+func (a *WebSocketAdapter) disconnect() {
+	a.mutex.Lock()
+	a.conn.CloseNow()
+	a.mutex.Unlock()
+}
+
 func (a *WebSocketAdapter) waitClosed() {
 	if a.conn == nil {
 		return
