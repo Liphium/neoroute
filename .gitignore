@@ -1,7 +1,5 @@
 c.out
 .magic
-examples/*/*_gen.go
-examples/*/*_gen_test.go
 workspace
 sender
 sender_ws
