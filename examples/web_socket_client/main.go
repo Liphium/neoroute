@@ -37,6 +37,10 @@ func main() {
 	inputChan := make(chan string)
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Err() != nil {
+			log.Println("error with input scanner", scanner.Err())
+			return
+		}
 		for scanner.Scan() {
 			inputChan <- scanner.Text()
 		}
