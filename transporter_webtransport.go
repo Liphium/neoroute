@@ -267,7 +267,12 @@ func (t *WebTransportTransporter[D]) listenStream(session *wttSession[D], done c
 		}
 
 		// Handle request and send response
-		resp := t.router.handle(reqBytes, userSession)
+		resp, runAfter := t.router.handle(reqBytes, userSession)
+		defer func() {
+			for _, fn := range runAfter {
+				fn()
+			}
+		}()
 		if resp != nil {
 			_, err = st.Write(resp)
 			if err != nil {
@@ -314,7 +319,12 @@ func (t *WebTransportTransporter[D]) listenDatagram(session *wttSession[D], done
 		}
 
 		// Handle request and send response
-		resp := t.router.handle(data, userSession)
+		resp, runAfter := t.router.handle(data, userSession)
+		defer func() {
+			for _, fn := range runAfter {
+				fn()
+			}
+		}()
 		if resp != nil {
 			err = wtSession.SendDatagram(resp)
 			if err != nil {

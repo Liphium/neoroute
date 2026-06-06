@@ -40,6 +40,14 @@ func NewTestingSession[D any](data D, sessionId string) *Session[D] {
 	}
 }
 
+func EvaluateCtxTesting[D any](c *Ctx[D]) {
+	defer func() {
+		for _, fn := range c.runAfter {
+			fn()
+		}
+	}()
+}
+
 func GetTestingResponse[RQ any, PQ interface {
 	*RQ
 	msgp.Unmarshaler

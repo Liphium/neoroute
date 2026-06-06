@@ -40,12 +40,19 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 
 		// Send response
 		w.WriteHeader(http.StatusOK)
-		if resp := transporter.router.handle(body, session); resp != nil {
+		resp, runAfter := transporter.router.handle(body, session)
+		defer func() {
+			for _, fn := range runAfter {
+				fn()
+			}
+		}()
+		if resp != nil {
 			_, err = w.Write(resp)
 			if err != nil {
 				logger.Info("failed to send http response", "err", err)
 			}
 		}
+
 	}
 
 	return hook, transporter

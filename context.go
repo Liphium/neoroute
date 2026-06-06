@@ -66,11 +66,12 @@ func (c *OkCtx[D]) RespondCustom(err error) error {
 // Default context that contains the request information.
 
 type Ctx[D any] struct {
-	neo     *NeoRouter[D]
-	id      int    // request id, used for responses
-	reqData []byte // data field from Request struct
-	route   string // the route that matched the request
-	session *Session[D]
+	neo      *NeoRouter[D]
+	id       int    // request id, used for responses
+	reqData  []byte // data field from Request struct
+	route    string // the route that matched the request
+	session  *Session[D]
+	runAfter []func() // functions to run after the handler finishes, used for cleanup
 }
 
 func (c *Ctx[D]) Id() int {
@@ -83,6 +84,11 @@ func (c *Ctx[D]) Route() string {
 
 func (c *Ctx[D]) Session() *Session[D] {
 	return c.session
+}
+
+func (c *Ctx[D]) RunAfter(fn func(), fns ...func()) *Ctx[D] {
+	c.runAfter = append(c.runAfter, append([]func(){fn}, fns...)...)
+	return c
 }
 
 func (c *Ctx[D]) respondError(err string) response {

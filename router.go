@@ -61,7 +61,7 @@ func (r *NeoRouter[D]) getNeos() []*NeoRouter[D] {
 	return []*NeoRouter[D]{r}
 }
 
-func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
+func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []func()) {
 
 	c := &Ctx[D]{
 		neo:     r,
@@ -75,7 +75,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	_, err := data.UnmarshalMsg(reqData)
 	if err != nil {
 		logger.Info("failed to unmarshal request", "err", err)
-		return messageResponse(r, c.respondError("Invalid request format."))
+		return messageResponse(r, c.respondError("Invalid request format.")), nil
 	}
 
 	route := cleanRoute(data.Route)
@@ -87,7 +87,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	// Check if handler for route exists
 	handler, exists := r.routes[route]
 	if !exists {
-		return messageResponse(r, c.respondError("Route does not exist."))
+		return messageResponse(r, c.respondError("Route does not exist.")), nil
 	}
 
 	// Run middlewares
@@ -95,7 +95,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	for _, subroute := range subRoutes {
 		if middleware, ok := r.middleware[subroute]; ok {
 			if !middleware(c) {
-				return messageResponse(r, c.respondError("Middleware denied access."))
+				return messageResponse(r, c.respondError("Middleware denied access.")), nil
 			}
 		}
 	}
@@ -109,11 +109,11 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) []byte {
 	} else if errors.Is(err, response{}) {
 
 		// Return response from handler
-		return messageResponse(c.neo, err.(response))
+		return messageResponse(c.neo, err.(response)), c.runAfter
 	} else if errors.Is(err, noResponse{}) {
 
 		// Return no response
-		return nil
+		return nil, c.runAfter
 	} else {
 		panic("handler should use a c.Respond function to return something")
 	}

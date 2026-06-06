@@ -221,7 +221,12 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		}
 
 		// Handle request and send response back over the same connection
-		resp := t.router.handle(msg, userSession)
+		resp, runAfter := t.router.handle(msg, userSession)
+		defer func() {
+			for _, fn := range runAfter {
+				fn()
+			}
+		}()
 		if resp != nil {
 			go func() {
 				session.sendMutex.Lock()
