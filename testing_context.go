@@ -13,13 +13,13 @@ func NewTestingResCtx[D any, RS any, PS interface {
 	msgp.Marshaler
 }](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS, PS] {
 	return &ResCtx[D, RS, PS]{
-		Ctx: *NewTestingCtx[D](neo, route, session),
+		Ctx: NewTestingCtx[D](neo, route, session),
 	}
 }
 
 func NewTestingOkCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *OkCtx[D] {
 	return &OkCtx[D]{
-		Ctx: *NewTestingCtx[D](neo, route, session),
+		Ctx: NewTestingCtx[D](neo, route, session),
 	}
 }
 

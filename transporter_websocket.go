@@ -222,13 +222,15 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 
 		// Handle request and send response back over the same connection
 		resp, runAfter := t.router.handle(msg, userSession)
-		defer func() {
-			for _, fn := range runAfter {
-				fn()
-			}
-		}()
 		if resp != nil {
 			go func() {
+				defer func() {
+					for _, fn := range runAfter {
+
+						fn()
+					}
+				}()
+
 				session.sendMutex.Lock()
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 				defer cancel()

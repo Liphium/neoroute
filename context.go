@@ -2,6 +2,7 @@ package neoroute
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/tinylib/msgp/msgp"
 )
@@ -12,7 +13,7 @@ type ResCtx[D any, RS any, PS interface {
 	*RS
 	msgp.Marshaler
 }] struct {
-	Ctx[D]
+	*Ctx[D]
 }
 
 func (c *ResCtx[D, RS, PS]) Respond(resp RS) error {
@@ -43,7 +44,7 @@ func (c *ResCtx[D, RS, PS]) RespondCustom(err error) error {
 // Wraps context for handlers that don't return any data, only success or error.
 
 type OkCtx[D any] struct {
-	Ctx[D]
+	*Ctx[D]
 }
 
 func (c *OkCtx[D]) RespondOk() error {
@@ -74,24 +75,25 @@ type Ctx[D any] struct {
 	runAfter []func() // functions to run after the handler finishes, used for cleanup
 }
 
-func (c *Ctx[D]) Id() int {
+func (c Ctx[D]) Id() int {
 	return c.id
 }
 
-func (c *Ctx[D]) Route() string {
+func (c Ctx[D]) Route() string {
 	return c.route
 }
 
-func (c *Ctx[D]) Session() *Session[D] {
+func (c Ctx[D]) Session() *Session[D] {
 	return c.session
 }
 
 func (c *Ctx[D]) RunAfter(fn func(), fns ...func()) *Ctx[D] {
 	c.runAfter = append(c.runAfter, append([]func(){fn}, fns...)...)
+	log.Println("length", len(c.runAfter))
 	return c
 }
 
-func (c *Ctx[D]) respondError(err string) response {
+func (c Ctx[D]) respondError(err string) response {
 	return response{
 		Id:      c.id,
 		HasData: true,

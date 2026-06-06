@@ -36,7 +36,7 @@ func Route[D any, RS any, PS interface {
 			}
 
 			ctx := &ResCtx[D, RS, PS]{
-				Ctx: *c,
+				Ctx: c,
 			}
 
 			// Let the handler handle it
@@ -63,7 +63,7 @@ func RouteNoRequest[D any, RS any, PS interface {
 		neo.routes[route] = func(c *Ctx[D]) error {
 
 			ctx := &ResCtx[D, RS, PS]{
-				Ctx: *c,
+				Ctx: c,
 			}
 
 			// Let the handler handle it
@@ -99,7 +99,7 @@ func RouteOk[D any, RQ any, PQ interface {
 			}
 
 			ctx := &OkCtx[D]{
-				Ctx: *c,
+				Ctx: c,
 			}
 
 			// Let the handler handle it
@@ -122,7 +122,7 @@ func RouteOkNoRequest[D any](r Router[D], route string, handler func(c *OkCtx[D]
 	for _, neo := range neos {
 		neo.routes[route] = func(c *Ctx[D]) error {
 			ctx := &OkCtx[D]{
-				Ctx: *c,
+				Ctx: c,
 			}
 
 			// Let the handler handle it
