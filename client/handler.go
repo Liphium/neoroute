@@ -113,7 +113,5 @@ func (h *Handler) handleEvent(eventBytes []byte) {
 		name: ev.Name,
 	}
 
-	logger.Info("starting handling of event", "event", ev.Name)
 	handler(c)
-	logger.Info("finished handling of event", "event", ev.Name)
 }
