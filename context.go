@@ -15,8 +15,12 @@ type Context[D any] interface {
 // Responder can be used to typecast a Context to check
 // if it supports error responding.
 type Responder interface {
-	RespondCustom(error) error // Uses ErrorHandler function to convert an error to a error response string.
-	RespondError(string) error // Sends an error response with the specified message.
+
+	// RespondCustom uses ErrorHandler function to convert an error to a error response string.
+	RespondCustom(error) error
+
+	// RespondError sends an error response with the specified message.
+	RespondError(string) error
 }
 
 // --------------------------------------------------------------------------------
