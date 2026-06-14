@@ -25,7 +25,10 @@ type WSConfig[D any] struct {
 	UpgradeFunc          UpgradeFuncWS
 	OverwriteSessionFunc func(id string) bool
 
-	HandshakeFunc     func(r *http.Request) (*Session[D], bool)
+	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
+	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
+	HandshakeFunc func(r *http.Request) (*Session[D], bool)
+
 	EnterNetworkFunc  func(session *Session[D], t *WebSocketTransporter[D])
 	DisconnectHandler func(session *Session[D])
 }
@@ -100,6 +103,18 @@ func (t *WebSocketTransporter[D]) addSession(userSession *Session[D], conn *webs
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()
+
+	// Create session with unique id if handshake did not return one
+	if userSession == nil {
+		for {
+			newId := t.router.config.runUUIDGenerator()
+			if _, exists := t.sessions[newId]; !exists {
+				userSession = NewSession[D](newId)
+				break
+			}
+		}
+	}
+
 	if oldSession, exists := t.sessions[userSession.id]; exists {
 
 		if t.config.OverwriteSessionFunc(userSession.id) {

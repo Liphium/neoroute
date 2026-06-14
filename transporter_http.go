@@ -11,6 +11,10 @@ type HTTPTransporter[D any] struct {
 
 var _ Transporter[any] = &HTTPTransporter[any]{}
 
+// NewHTTPTransporter creates a new HTTP transporter with the given handshake function and returns it along with an http.HandlerFunc that can be used to handle incoming HTTP requests.
+//
+// If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
+// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], bool)) (http.HandlerFunc, *HTTPTransporter[D]) {
 	transporter := &HTTPTransporter[D]{
 		router: nil,
@@ -30,11 +34,15 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 			return
 		}
 
+		// Create session if handshake did not return one
+		if session == nil {
+			session = NewSession[D](transporter.router.config.runUUIDGenerator())
+		}
+
 		// Read body data
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			errResp := handleError(transporter.router.config, err)
-			http.Error(w, errResp, http.StatusInternalServerError)
+			http.Error(w, "Failed to read request body.", http.StatusInternalServerError)
 			return
 		}
 
@@ -52,7 +60,6 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 				logger.Info("failed to send http response", "err", err)
 			}
 		}
-
 	}
 
 	return hook, transporter

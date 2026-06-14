@@ -1,6 +1,8 @@
 package neoroute
 
-import "sync"
+import (
+	"sync"
+)
 
 type Session[D any] struct {
 	mutex       *sync.Mutex
@@ -8,6 +10,9 @@ type Session[D any] struct {
 	sessionData D
 }
 
+// NewSession creates a new session with the given id and returns a pointer to it.
+// If you want to let neoroute handle unique id management for you,
+// return nil in the handshake function and set the session data in the EnterNetworkFunc.
 func NewSession[D any](id string) *Session[D] {
 	return &Session[D]{
 		mutex: &sync.Mutex{},

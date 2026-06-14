@@ -122,6 +122,6 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	} else {
 
 		// Let user handle the error and decide what error message to send back to the client
-		return messageResponse(c.respondError(handleError(r.config, err))), c.runAfter
+		return messageResponse(c.respondError(r.config.runErrorHandler(err))), c.runAfter
 	}
 }
