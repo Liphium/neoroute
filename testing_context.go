@@ -3,26 +3,28 @@ package neoroute
 import (
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/tinylib/msgp/msgp"
 )
 
+// NewTestingResCtx creates a new ResCtx for testing with the given neo, route and session.
 func NewTestingResCtx[D any, RS any, PS interface {
 	*RS
 	msgp.Marshaler
 }](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS, PS] {
 	return &ResCtx[D, RS, PS]{
-		Ctx: NewTestingCtx[D](neo, route, session),
+		Ctx: NewTestingCtx(neo, route, session),
 	}
 }
 
+// NewTestingOkCtx creates a new OkCtx for testing with the given neo, route and session.
 func NewTestingOkCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *OkCtx[D] {
 	return &OkCtx[D]{
-		Ctx: NewTestingCtx[D](neo, route, session),
+		Ctx: NewTestingCtx(neo, route, session),
 	}
 }
 
+// NewTestingCtx creates a new context for testing with the given neo, route and session.
 func NewTestingCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *Ctx[D] {
 	return &Ctx[D]{
 		neo:     neo,
@@ -32,27 +34,20 @@ func NewTestingCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) 
 	}
 }
 
-func NewTestingSession[D any](data D, sessionId string) *Session[D] {
-	return &Session[D]{
-		sessionData: data,
-		id:          sessionId,
-		mutex:       &sync.Mutex{},
+// EvaluateCtxTesting runs all the functions that were added to the context with RunAfter.
+func EvaluateCtxTesting[D any](c *Ctx[D]) {
+	for _, fn := range c.runAfter {
+		fn()
 	}
 }
 
-func EvaluateCtxTesting[D any](c *Ctx[D]) {
-	defer func() {
-		for _, fn := range c.runAfter {
-			fn()
-		}
-	}()
-}
-
+// GetTestingResponse return the response data or an error message for the user or
+// an error from the handler or an error if the response is not correct.
 func GetTestingResponse[RQ any, PQ interface {
 	*RQ
 	msgp.Unmarshaler
 }](err error) (RQ, string, error) {
-	var respErr response
+	var respErr responseData
 	var resp RQ
 	if errors.As(err, &respErr) {
 		if respErr.IsError {
@@ -70,13 +65,17 @@ func GetTestingResponse[RQ any, PQ interface {
 		}
 		return resp, "", nil
 	} else {
-		return resp, "", fmt.Errorf("response is not response type")
+
+		// The handler returned an error, this would not be returned,
+		// but provided to the error handler and the response from it would be returned.
+		return resp, "", err
 	}
 }
 
-// GetTestingResponseOk return the error message or an error from the handler or an error if the response is not correct.
+// GetTestingResponseOk return the error message or an error from the handler or
+// an error from the handler or an error if the response is not correct.
 func GetTestingResponseOk(err error) (string, error) {
-	var respErr response
+	var respErr responseData
 
 	if errors.As(err, &respErr) {
 		if respErr.IsError {
@@ -87,6 +86,8 @@ func GetTestingResponseOk(err error) (string, error) {
 		}
 		return "", nil
 	} else {
-		return "", fmt.Errorf("response is not response type")
+		// The handler returned an error, this would not be returned,
+		// but provided to the error handler and the response from it would be returned.
+		return "", err
 	}
 }

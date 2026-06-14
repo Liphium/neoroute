@@ -12,17 +12,6 @@ type Context[D any] interface {
 	BaseCtx() *Ctx[D] // BaseCtx returns the underlying Ctx, allowing access to the session, request data, etc.
 }
 
-// Responder can be used to typecast a Context to check
-// if it supports error responding.
-type Responder interface {
-
-	// RespondCustom uses ErrorHandler function to convert an error to a error response string.
-	RespondCustom(error) error
-
-	// RespondError sends an error response with the specified message.
-	RespondError(string) error
-}
-
 // --------------------------------------------------------------------------------
 // Base Context
 // --------------------------------------------------------------------------------
@@ -61,14 +50,14 @@ func (c *Ctx[D]) RunAfter(fn func(), fns ...func()) *Ctx[D] {
 	return c
 }
 
-// unexported package helper so ResCtx and OkCtx can share code without
-// exposing response logic on the public Ctx API surface.
-func (c *Ctx[D]) respondError(err string) response {
+func (c *Ctx[D]) respondError(msg string) response {
 	return response{
-		Id:      c.id,
-		HasData: true,
-		IsError: true,
-		Data:    []byte(err),
+		Id: c.id,
+		responseData: responseData{
+			HasData: true,
+			IsError: true,
+			Data:    []byte(msg),
+		},
 	}
 }
 
@@ -95,22 +84,11 @@ func (c *ResCtx[D, RS, PS]) Respond(resp RS) error {
 		return fmt.Errorf("failed to marshal response: %v", err)
 	}
 
-	return response{
-		Id:      c.id,
+	return responseData{
 		HasData: true,
 		IsError: false,
 		Data:    respData,
 	}
-}
-
-// RespondError sends an error response with the specified message.
-func (c *ResCtx[D, RS, PS]) RespondError(err string) error {
-	return c.respondError(err)
-}
-
-// RespondCustom uses ErrorHandler function to convert an error to a error response string.
-func (c *ResCtx[D, RS, PS]) RespondCustom(err error) error {
-	return c.respondError(c.neo.config.ErrorHandler(err))
 }
 
 // -----------------------------------------------------------------------------
@@ -127,20 +105,9 @@ func (c *OkCtx[D]) BaseCtx() *Ctx[D] {
 
 // RespondOk sends a successful response.
 func (c *OkCtx[D]) RespondOk() error {
-	return response{
-		Id:      c.id,
+	return responseData{
 		HasData: false,
 		IsError: false,
 		Data:    []byte{},
 	}
-}
-
-// RespondError sends an error response with the specified message.
-func (c *OkCtx[D]) RespondError(err string) error {
-	return c.respondError(err)
-}
-
-// RespondCustom uses ErrorHandler function to convert an error to a error response string.
-func (c *OkCtx[D]) RespondCustom(err error) error {
-	return c.respondError(c.neo.config.ErrorHandler(err))
 }

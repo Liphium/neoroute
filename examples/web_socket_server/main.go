@@ -81,7 +81,7 @@ func main() {
 		log.Println("message received")
 		// Check pun contains go
 		if !strings.Contains(strings.ToLower(req.Pun), "go") {
-			return c.RespondError("Pun has to contain at least one instance of go. For example How is it GOing.")
+			return neoroute.NewError("Pun has to contain at least one instance of go. For example How is it GOing.")
 		}
 
 		// Send new pun to all clients

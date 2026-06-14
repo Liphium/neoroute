@@ -154,8 +154,7 @@ func RouteNoResponse[D any, RQ any, PQ interface {
 
 			_, err := unmarshaler.UnmarshalMsg(c.reqData)
 			if err != nil {
-				logger.Info("failed to unmarshal request data in RouteRequest", "route", route, "err", err)
-				return &noResponse{}
+				return fmt.Errorf("failed to unmarshal request data in RouteRequest for route %s: %v", route, err)
 			}
 
 			// Let the handler handle it
