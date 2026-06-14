@@ -13,6 +13,8 @@ type responseData struct {
 	Data    []byte `msg:"data"`
 }
 
+// NewError creates a new error response with the given message.
+// This will sent the error message as an error response to the user.
 func NewError(msg string) error {
 	return responseData{
 		HasData: true,
