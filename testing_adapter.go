@@ -22,6 +22,9 @@ type TestingAdapter struct {
 	gotDisconnected  bool
 }
 
+// NewTestingAdapter creates a new TestingAdapter with the given event registries.
+// This adapter can be registered in tests instead of a real adapter to collect
+// sent events and check if the correct events were sent.
 func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
 	adapter := &TestingAdapter{
 		transporterType: "TestingAdapter",
@@ -32,12 +35,14 @@ func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
 	return adapter
 }
 
+// GetEvents returns the unmarshaled events that were sent to the adapter.
 func (a *TestingAdapter) GetEvents() ([]event, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	return a.unmarshalEvents()
 }
 
+// DrainEvents returns the unmarshaled events that were sent to the adapter and clears the stored events.
 func (a *TestingAdapter) DrainEvents() ([]event, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -49,12 +54,16 @@ func (a *TestingAdapter) DrainEvents() ([]event, error) {
 	return events, nil
 }
 
+// ConnectionStatus returns if the adapter is closed and if it got disconnected.
+// This can be used in tests to check if the adapter was closed and or got disconnected.
 func (a *TestingAdapter) ConnectionStatus() (closed bool, gotDisconnected bool) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	return a.closed, a.gotDisconnected
 }
 
+// unmarshalEvents unmarshals the stored messages into events. It returns an error
+// if the messages could not be unmarshaled or if they are not of type event.
 func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 
 	// Unmarshal events into struct
@@ -81,6 +90,9 @@ func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 	return events, nil
 }
 
+// send stores the given bytes in the adapter.
+// This implements the send function of the Adapter interface
+// and would normally send the bytes to the client.
 func (a *TestingAdapter) send(b []byte) error {
 	a.sendMutex.Lock()
 	defer a.sendMutex.Unlock()
@@ -88,6 +100,8 @@ func (a *TestingAdapter) send(b []byte) error {
 	return nil
 }
 
+// isEventRegistered checks if the given event name is registered in any of the event registries of the adapter.
+// This implements the isEventRegistered function of the Adapter interface.
 func (a *TestingAdapter) isEventRegistered(name string) bool {
 	for _, eventRegistry := range a.eventRegistries {
 		if slices.Contains(eventRegistry.getEvents(), name) {
@@ -97,10 +111,15 @@ func (a *TestingAdapter) isEventRegistered(name string) bool {
 	return false
 }
 
+// getTransportType returns the type of the transporter.
+// This implements the getTransportType function of the Adapter interface.
 func (a *TestingAdapter) getTransportType() string {
 	return a.transporterType
 }
 
+// setRemoveFunc sets the function that should be called when the adapter is closed,
+// in the testing adapter this will only happen when Close() is called.
+// This implements the setRemoveFunc function of the Adapter interface.
 func (a *TestingAdapter) setRemoveFunc(removeFunc func()) {
 	if removeFunc == nil {
 		return
@@ -116,6 +135,7 @@ func (a *TestingAdapter) setRemoveFunc(removeFunc func()) {
 	}
 }
 
+// disconnect sets the gotDisconnected flag to true and calls Close() to close the adapter.
 func (a *TestingAdapter) disconnect() {
 	a.mutex.Lock()
 	a.gotDisconnected = true
@@ -123,6 +143,9 @@ func (a *TestingAdapter) disconnect() {
 	a.Close()
 }
 
+// Close sets the closed flag to true and calls the remove function if it is set.
+// Use this to simulate a user closing the connection to the server.
+// This would normally be called by the transporter when the connection is closed.
 func (a *TestingAdapter) Close() {
 	a.mutex.Lock()
 	a.closed = true
@@ -134,6 +157,7 @@ func (a *TestingAdapter) Close() {
 	}
 }
 
+// UnmarshalEventTesting is a helper function to unmarshal event data from an event struct.
 func UnmarshalEventTesting[E any, EP interface {
 	*E
 	msgp.Unmarshaler
