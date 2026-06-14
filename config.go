@@ -29,6 +29,7 @@ func (cfg Config) runErrorHandler(err error) string {
 
 func (cfg Config) runUUIDGenerator() string {
 	if cfg.UUIDGenerator == nil {
+		slog.Debug("UUIDGenerator was used, if this happens infinitely your generator might be problematic")
 		return uuid.NewString()
 	}
 	return cfg.UUIDGenerator()
