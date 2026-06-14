@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/transporter"
 	"github.com/coder/websocket"
 	"github.com/google/uuid"
 )
@@ -28,7 +29,7 @@ func main() {
 
 	adapterReg := neoroute.NewAdapterRegistry()
 
-	hook, t := neoroute.NewWebSocketTransporter(neoroute.WSConfig[struct{}]{
+	hook, t := transporter.NewWebSocketTransporter(transporter.WSConfig[struct{}]{
 		UpgradeFunc: websocket.Accept,
 		OverwriteSessionFunc: func(id string) bool {
 			return true
@@ -36,7 +37,7 @@ func main() {
 		HandshakeFunc: func(r *http.Request) (*neoroute.Session[struct{}], bool) {
 			return neoroute.NewSession[struct{}](uuid.NewString()), true
 		},
-		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *neoroute.WebSocketTransporter[struct{}]) {
+		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *transporter.WebSocketTransporter[struct{}]) {
 
 			log.Println("user connected")
 

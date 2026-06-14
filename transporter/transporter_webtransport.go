@@ -1,4 +1,4 @@
-package neoroute
+package transporter
 
 import (
 	"fmt"
@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/Liphium/neoroute"
 	"github.com/quic-go/webtransport-go"
 )
 
 type WebTransportTransporter[D any] struct {
-	eventRegistriesUnreliable []*EventRegistry
-	eventRegistriesReliable   []*EventRegistry
-	router                    *NeoRouter[D]
+	eventRegistriesUnreliable []*neoroute.EventRegistry
+	eventRegistriesReliable   []*neoroute.EventRegistry
+	router                    *neoroute.NeoRouter[D]
 	config                    WTTConfig[D]
 	mutex                     *sync.Mutex
 	sessions                  map[string]*wttSession[D]
@@ -26,9 +27,9 @@ type WTTConfig[D any] struct {
 
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
-	HandshakeFunc     func(r *http.Request) (*Session[D], bool)
-	EnterNetworkFunc  func(session *Session[D])
-	DisconnectHandler func(session *Session[D])
+	HandshakeFunc     func(r *http.Request) (*neoroute.Session[D], bool)
+	EnterNetworkFunc  func(session *neoroute.Session[D])
+	DisconnectHandler func(session *neoroute.Session[D])
 
 	WantReliableSteam        bool
 	WantUnreliableConnection bool
@@ -37,10 +38,10 @@ type WTTConfig[D any] struct {
 type wttSession[D any] struct {
 	mutex     *sync.Mutex
 	wtSession *webtransport.Session
-	session   *Session[D]
+	session   *neoroute.Session[D]
 }
 
-var _ Transporter[any] = &WebTransportTransporter[any]{}
+var _ neoroute.Transporter[any] = &WebTransportTransporter[any]{}
 
 func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *WebTransportTransporter[D]) {
 	transporter := &WebTransportTransporter[D]{
@@ -48,8 +49,8 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 		config:                    config,
 		sessions:                  make(map[string]*wttSession[D]),
 		mutex:                     &sync.Mutex{},
-		eventRegistriesReliable:   []*EventRegistry{},
-		eventRegistriesUnreliable: []*EventRegistry{},
+		eventRegistriesReliable:   []*neoroute.EventRegistry{},
+		eventRegistriesUnreliable: []*neoroute.EventRegistry{},
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +70,7 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 		// Upgrade to WebTransport session
 		transportSession, err := transporter.config.UpgradeFunc(w, r)
 		if err != nil {
-			logger.Info("Upgrade to WebTransport failed", "err", err)
+			neoroute.Logger.Info("Upgrade to WebTransport failed", "err", err)
 			return
 		}
 
@@ -88,23 +89,23 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 // SetRouter sets the router for the transporter.
 // This should be done before starting to listen for connections.
 // This should only be done once and not changed later.
-func (t *WebTransportTransporter[D]) SetRouter(r *NeoRouter[D]) {
+func (t *WebTransportTransporter[D]) SetRouter(r *neoroute.NeoRouter[D]) {
 	t.router = r
 }
 
-func (t *WebTransportTransporter[D]) AddEventRegistryReliable(e *EventRegistry) {
+func (t *WebTransportTransporter[D]) AddEventRegistryReliable(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistriesReliable = append(t.eventRegistriesReliable, e)
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) AddEventRegistryUnreliable(e *EventRegistry) {
+func (t *WebTransportTransporter[D]) AddEventRegistryUnreliable(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistriesUnreliable = append(t.eventRegistriesUnreliable, e)
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) addSession(userSession *Session[D], transportSession *webtransport.Session) *wttSession[D] {
+func (t *WebTransportTransporter[D]) addSession(userSession *neoroute.Session[D], transportSession *webtransport.Session) *wttSession[D] {
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()
@@ -112,17 +113,17 @@ func (t *WebTransportTransporter[D]) addSession(userSession *Session[D], transpo
 	// Create session with unique id if handshake did not return one
 	if userSession == nil {
 		for {
-			newId := t.router.config.runUUIDGenerator()
+			newId := t.router.Config().RunUUIDGenerator()
 			if _, exists := t.sessions[newId]; !exists {
-				userSession = NewSession[D](newId)
+				userSession = neoroute.NewSession[D](newId)
 				break
 			}
 		}
 	}
 
-	if oldSession, exists := t.sessions[userSession.id]; exists {
+	if oldSession, exists := t.sessions[userSession.Id()]; exists {
 
-		if t.config.OverwriteSessionFunc(userSession.id) {
+		if t.config.OverwriteSessionFunc(userSession.Id()) {
 
 			oldSession.mutex.Lock()
 
@@ -143,7 +144,7 @@ func (t *WebTransportTransporter[D]) addSession(userSession *Session[D], transpo
 		wtSession: transportSession,
 		session:   userSession,
 	}
-	t.sessions[userSession.id] = session
+	t.sessions[userSession.Id()] = session
 	t.mutex.Unlock()
 	return session
 }
@@ -154,15 +155,15 @@ func (t *WebTransportTransporter[D]) removeSession(id string) {
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) Adapt(id string) (Adapter, error) {
+func (t *WebTransportTransporter[D]) Adapt(id string) (neoroute.Adapter, error) {
 	return t.newAdapter(id, false)
 }
 
-func (t *WebTransportTransporter[D]) AdaptUnreliable(id string) (Adapter, error) {
+func (t *WebTransportTransporter[D]) AdaptUnreliable(id string) (neoroute.Adapter, error) {
 	return t.newAdapter(id, true)
 }
 
-func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (Adapter, error) {
+func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (neoroute.Adapter, error) {
 	session, ok := t.getSession(id)
 	if !ok {
 		return nil, fmt.Errorf("session %s not found", id)
@@ -209,7 +210,7 @@ func (t *WebTransportTransporter[D]) handleSession(session *wttSession[D]) {
 	defer func() {
 		t.config.DisconnectHandler(session.session)
 		session.mutex.Lock()
-		t.removeSession(session.session.id)
+		t.removeSession(session.session.Id())
 		session.mutex.Unlock()
 	}()
 
@@ -269,19 +270,19 @@ func (t *WebTransportTransporter[D]) listenStream(session *wttSession[D], done c
 
 		st, err := wtSession.AcceptStream(wtSession.Context())
 		if err != nil {
-			logger.Info("failed to accept stream", "err", err)
+			neoroute.Logger.Info("failed to accept stream", "err", err)
 			return // session closed / error
 		}
 
 		// Collect request data
 		reqBytes, err := io.ReadAll(st)
 		if err != nil {
-			logger.Info("failed to read stream request", "err", err)
+			neoroute.Logger.Info("failed to read stream request", "err", err)
 			return
 		}
 
 		// Handle request and send response
-		resp, runAfter := t.router.handle(reqBytes, userSession)
+		resp, runAfter := t.router.Handle(reqBytes, userSession)
 		defer func() {
 			for _, fn := range runAfter {
 				fn()
@@ -290,7 +291,7 @@ func (t *WebTransportTransporter[D]) listenStream(session *wttSession[D], done c
 		if resp != nil {
 			_, err = st.Write(resp)
 			if err != nil {
-				logger.Info("failed to send response", "err", err)
+				neoroute.Logger.Info("failed to send response", "err", err)
 				st.Close()
 				return
 			}
@@ -328,12 +329,12 @@ func (t *WebTransportTransporter[D]) listenDatagram(session *wttSession[D], done
 		// Receive request data
 		data, err := wtSession.ReceiveDatagram(wtSession.Context())
 		if err != nil {
-			logger.Info("error receiving datagram", "err", err)
+			neoroute.Logger.Info("error receiving datagram", "err", err)
 			return
 		}
 
 		// Handle request and send response
-		resp, runAfter := t.router.handle(data, userSession)
+		resp, runAfter := t.router.Handle(data, userSession)
 		defer func() {
 			for _, fn := range runAfter {
 				fn()
@@ -342,7 +343,7 @@ func (t *WebTransportTransporter[D]) listenDatagram(session *wttSession[D], done
 		if resp != nil {
 			err = wtSession.SendDatagram(resp)
 			if err != nil {
-				logger.Info("error sending datagram", "err", err)
+				neoroute.Logger.Info("error sending datagram", "err", err)
 				return
 			}
 		}

@@ -1,4 +1,4 @@
-package neoroute
+package transporter
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Liphium/neoroute"
 	"github.com/coder/websocket"
 )
 
@@ -15,13 +16,13 @@ type WebSocketAdapter struct {
 	sendMutex       *sync.Mutex
 	ctx             context.Context
 	transporterType string
-	eventRegistries []*EventRegistry
+	eventRegistries []*neoroute.EventRegistry
 	removeFunc      func()
 	closed          bool
 	removeOnce      sync.Once
 }
 
-func (a *WebSocketAdapter) send(b []byte) error {
+func (a *WebSocketAdapter) Send(b []byte) error {
 	a.sendMutex.Lock()
 	defer a.sendMutex.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
@@ -29,20 +30,20 @@ func (a *WebSocketAdapter) send(b []byte) error {
 	return a.conn.Write(ctx, websocket.MessageBinary, b)
 }
 
-func (a *WebSocketAdapter) isEventRegistered(name string) bool {
+func (a *WebSocketAdapter) IsEventRegistered(name string) bool {
 	for _, eventRegistry := range a.eventRegistries {
-		if slices.Contains(eventRegistry.getEvents(), name) {
+		if slices.Contains(eventRegistry.GetEvents(), name) {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *WebSocketAdapter) getTransportType() string {
+func (a *WebSocketAdapter) GetTransportType() string {
 	return a.transporterType
 }
 
-func (a *WebSocketAdapter) setRemoveFunc(removeFunc func()) {
+func (a *WebSocketAdapter) SetRemoveFunc(removeFunc func()) {
 	if removeFunc == nil {
 		return
 	}
@@ -57,7 +58,7 @@ func (a *WebSocketAdapter) setRemoveFunc(removeFunc func()) {
 	}
 }
 
-func (a *WebSocketAdapter) disconnect() {
+func (a *WebSocketAdapter) Disconnect() {
 	a.mutex.Lock()
 	a.conn.CloseNow()
 	a.mutex.Unlock()

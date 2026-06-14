@@ -1,21 +1,23 @@
-package neoroute
+package transporter
 
 import (
 	"io"
 	"net/http"
+
+	"github.com/Liphium/neoroute"
 )
 
 type HTTPTransporter[D any] struct {
-	router *NeoRouter[D]
+	router *neoroute.NeoRouter[D]
 }
 
-var _ Transporter[any] = &HTTPTransporter[any]{}
+var _ neoroute.Transporter[any] = &HTTPTransporter[any]{}
 
 // NewHTTPTransporter creates a new HTTP transporter with the given handshake function and returns it along with an http.HandlerFunc that can be used to handle incoming HTTP requests.
 //
 // If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 // If the bool is false, the handshake will be considered failed and the connection will be rejected.
-func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], bool)) (http.HandlerFunc, *HTTPTransporter[D]) {
+func NewHTTPTransporter[D any](handshake func(r *http.Request) (*neoroute.Session[D], bool)) (http.HandlerFunc, *HTTPTransporter[D]) {
 	transporter := &HTTPTransporter[D]{
 		router: nil,
 	}
@@ -36,7 +38,7 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 
 		// Create session if handshake did not return one
 		if session == nil {
-			session = NewSession[D](transporter.router.config.runUUIDGenerator())
+			session = neoroute.NewSession[D](transporter.router.Config().RunUUIDGenerator())
 		}
 
 		// Read body data
@@ -48,7 +50,7 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 
 		// Send response
 		w.WriteHeader(http.StatusOK)
-		resp, runAfter := transporter.router.handle(body, session)
+		resp, runAfter := transporter.router.Handle(body, session)
 		defer func() {
 			for _, fn := range runAfter {
 				fn()
@@ -57,7 +59,7 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 		if resp != nil {
 			_, err = w.Write(resp)
 			if err != nil {
-				logger.Info("failed to send http response", "err", err)
+				neoroute.Logger.Info("failed to send http response", "err", err)
 			}
 		}
 	}
@@ -65,6 +67,6 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 	return hook, transporter
 }
 
-func (t *HTTPTransporter[D]) SetRouter(r *NeoRouter[D]) {
+func (t *HTTPTransporter[D]) SetRouter(r *neoroute.NeoRouter[D]) {
 	t.router = r
 }

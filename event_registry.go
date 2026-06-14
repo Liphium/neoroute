@@ -19,7 +19,9 @@ func NewEventRegistry() *EventRegistry {
 	}
 }
 
-func (er *EventRegistry) getEvents() []string {
+// GetEvents returns the registered events in the registry.
+// ONLY USE THIS WHEN IMPLEMENTING AN ADAPTER.
+func (er *EventRegistry) GetEvents() []string {
 	er.mutex.Lock()
 	defer er.mutex.Unlock()
 	return er.registeredEvents

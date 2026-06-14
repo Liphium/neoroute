@@ -19,7 +19,7 @@ type Config struct {
 	UUIDGenerator func() string
 }
 
-func (cfg Config) runErrorHandler(err error) string {
+func (cfg Config) RunErrorHandler(err error) string {
 	if cfg.ErrorHandler == nil {
 		slog.Info("ErrorHandler is not set in config. An route returned an error", "error", err)
 		return "Internal Server Error"
@@ -27,7 +27,7 @@ func (cfg Config) runErrorHandler(err error) string {
 	return cfg.ErrorHandler(err)
 }
 
-func (cfg Config) runUUIDGenerator() string {
+func (cfg Config) RunUUIDGenerator() string {
 	if cfg.UUIDGenerator == nil {
 		slog.Debug("UUIDGenerator was used, if this happens infinitely your generator might be problematic")
 		return uuid.NewString()
