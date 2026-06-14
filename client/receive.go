@@ -7,7 +7,7 @@ import (
 func Receive[E any, EP interface {
 	*E
 	msgp.Unmarshaler
-}](r *Receiver, eventName string, handlerFunc func(c *Ctx, req E)) {
+}](r *Receiver, eventName string, handlerFunc func(c *Ctx, data E)) {
 	r.handler[eventName] = func(c *Ctx) {
 
 		// Parse request data into struct
@@ -16,7 +16,7 @@ func Receive[E any, EP interface {
 
 		_, err := unmarshaler.UnmarshalMsg(c.data)
 		if err != nil {
-			logger.Info("failed to unmarshal struct event", "err", err)
+			Logger.Info("failed to unmarshal struct event", "err", err)
 			return
 		}
 

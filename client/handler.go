@@ -37,7 +37,7 @@ func (h *Handler) getRequestId() int {
 	return h.requestId
 }
 
-func (h *Handler) setSendFunc(sendFunc func(data []byte) error) {
+func (h *Handler) SetSendFunc(sendFunc func(data []byte) error) {
 	h.mutex.Lock()
 	h.sendFunc = sendFunc
 	h.mutex.Unlock()
@@ -45,13 +45,14 @@ func (h *Handler) setSendFunc(sendFunc func(data []byte) error) {
 
 // handle should be called by a transporter method when it receives a message.
 // Make sure to call handle in a new go routine to avoid blocking.
-func (h *Handler) handle(reqData []byte) {
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
+func (h *Handler) Handle(reqData []byte) {
 
 	// Unmarshal request data to message
 	var message message
 	_, err := message.UnmarshalMsg(reqData)
 	if err != nil {
-		logger.Info("failed to unmarshal message", "err", err)
+		Logger.Info("failed to unmarshal message", "err", err)
 		return
 	}
 
@@ -62,7 +63,7 @@ func (h *Handler) handle(reqData []byte) {
 	case MessageTypeResponse:
 		h.handleResponse(message.Data)
 	default:
-		logger.Info("received unsupported message type", "type", message.Type)
+		Logger.Info("received unsupported message type", "type", message.Type)
 		return
 	}
 }
@@ -71,7 +72,7 @@ func (h *Handler) handleResponse(respBytes []byte) {
 	var resp response
 	_, err := resp.UnmarshalMsg(respBytes)
 	if err != nil {
-		logger.Info("failed to unmarshal response", "err", err)
+		Logger.Info("failed to unmarshal response", "err", err)
 		return
 	}
 
@@ -84,7 +85,7 @@ func (h *Handler) handleResponse(respBytes []byte) {
 	waiter, ok := h.waiters[resp.Id]
 	h.mutex.Unlock()
 	if !ok {
-		logger.Info("received response for non existing waiter", "response id", resp.Id)
+		Logger.Info("received response for non existing waiter", "response id", resp.Id)
 		return
 	}
 
@@ -95,7 +96,7 @@ func (h *Handler) handleEvent(eventBytes []byte) {
 	var ev event
 	_, err := ev.UnmarshalMsg(eventBytes)
 	if err != nil {
-		logger.Info("failed to unmarshal event", "err", err)
+		Logger.Info("failed to unmarshal event", "err", err)
 		return
 	}
 
@@ -104,7 +105,7 @@ func (h *Handler) handleEvent(eventBytes []byte) {
 	handler, ok := h.handler[ev.Name]
 	h.mutex.Unlock()
 	if !ok {
-		logger.Info("event handler doesn't exist", "handler", ev.Name)
+		Logger.Info("event handler doesn't exist", "handler", ev.Name)
 		return
 	}
 
