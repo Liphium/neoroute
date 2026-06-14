@@ -33,7 +33,7 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*Session[D], boo
 		// Read body data
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			errResp := transporter.router.config.ErrorHandler(err)
+			errResp := handleError(transporter.router.config, err)
 			http.Error(w, errResp, http.StatusInternalServerError)
 			return
 		}

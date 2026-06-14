@@ -75,7 +75,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	_, err := data.UnmarshalMsg(reqData)
 	if err != nil {
 		logger.Info("failed to unmarshal request", "err", err)
-		return messageResponse(r, c.respondError("Invalid request format.")), nil
+		return messageResponse(c.respondError(ErrInvalidRequestFormat)), nil
 	}
 
 	route := cleanRoute(data.Route)
@@ -87,7 +87,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	// Check if handler for route exists
 	handler, exists := r.routes[route]
 	if !exists {
-		return messageResponse(r, c.respondError("Route does not exist.")), nil
+		return messageResponse(c.respondError(ErrRouteNotExists)), nil
 	}
 
 	// Run middlewares
@@ -95,27 +95,33 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	for _, subroute := range subRoutes {
 		if middleware, ok := r.middleware[subroute]; ok {
 			if !middleware(c) {
-				return messageResponse(r, c.respondError("Middleware denied access.")), nil
+				return messageResponse(c.respondError(ErrMiddlewareDenied)), nil
 			}
 		}
 	}
 
 	// Handle request
-	err = handler(c)
+	err = handler(c) // TODO: add panic protection
 	if err == nil {
 
 		// Handlers never should return nil.
 		panic("handler should always return something")
-	} else if errors.Is(err, response{}) {
+	} else if errors.Is(err, responseData{}) {
 
 		// Return response from handler
-		return messageResponse(c.neo, err.(response)), c.runAfter
+		respData := err.(responseData)
+		resp := response{
+			Id:           c.id,
+			responseData: respData,
+		}
+		return messageResponse(resp), c.runAfter
 	} else if errors.Is(err, noResponse{}) {
 
 		// Return no response
 		return nil, c.runAfter
 	} else {
-		panic("handler should use a c.Respond function to return something")
-	}
 
+		// Let user handle the error and decide what error message to send back to the client
+		return messageResponse(c.respondError(handleError(r.config, err))), c.runAfter
+	}
 }

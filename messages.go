@@ -37,22 +37,13 @@ func messageEvent(event event) ([]byte, error) {
 	return msgBytes, nil
 }
 
-func messageResponse[D any](neo *NeoRouter[D], resp response) []byte {
+func messageResponse(resp response) []byte {
 
 	// Marshal response data
 	respData, err := resp.MarshalMsg(nil)
 	if err != nil {
-		resp := response{
-			Id:      resp.Id,
-			IsError: true,
-			Data:    []byte(neo.config.ErrorHandler(err)),
-		}
-		respData, err = resp.MarshalMsg(nil)
-		if err != nil {
-			// This should never happen. If this fails for you please open a bug report on our github.
-			panic(fmt.Sprintf("failed to marshal error response: %v", err))
-		}
-
+		// This should never happen. If this fails for you please open a bug report on our github.
+		panic(fmt.Sprintf("failed to marshal response: %v", err))
 	}
 
 	msg := message{
@@ -68,45 +59,4 @@ func messageResponse[D any](neo *NeoRouter[D], resp response) []byte {
 	}
 
 	return msgBytes
-}
-
-type event struct {
-	Name string `msg:"name"`
-	Data []byte `msg:"data"`
-}
-
-type response struct {
-	Id      int    `msg:"id"`
-	HasData bool   `msg:"has_data"`
-	IsError bool   `msg:"error"`
-	Data    []byte `msg:"data"`
-}
-
-func (r response) Error() string {
-	return ""
-}
-
-func (r response) Is(target error) bool {
-	_, ok := target.(response)
-	if ok {
-		return true
-	}
-	_, ok = target.(*response)
-	return ok
-}
-
-// This type is used for routes that have no response so no error is thrown.
-type noResponse struct{}
-
-func (r noResponse) Error() string {
-	return ""
-}
-
-func (r noResponse) Is(target error) bool {
-	_, ok := target.(noResponse)
-	if ok {
-		return true
-	}
-	_, ok = target.(*noResponse)
-	return ok
 }
