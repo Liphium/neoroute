@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
+	"github.com/google/uuid"
 	"github.com/quic-go/webtransport-go"
 )
 
@@ -27,7 +28,7 @@ type WTTConfig[D any] struct {
 
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
-	HandshakeFunc     func(r *http.Request) (*neoroute.Session[D], bool)
+	HandshakeFunc     neoroute.HandshakeFunc[D]
 	EnterNetworkFunc  func(session *neoroute.Session[D])
 	DisconnectHandler func(session *neoroute.Session[D])
 
@@ -61,7 +62,7 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 		}
 
 		// Perform handshake to get session data
-		userSession, ok := transporter.config.HandshakeFunc(r)
+		sessionData, ok := transporter.config.HandshakeFunc(r)
 		if !ok {
 			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
 			return
@@ -75,7 +76,7 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 		}
 
 		// Add session to transporter
-		session := transporter.addSession(userSession, transportSession)
+		session := transporter.addSession(sessionData, transportSession)
 		if session == nil {
 			return
 		}
@@ -105,36 +106,18 @@ func (t *WebTransportTransporter[D]) AddEventRegistryUnreliable(e *neoroute.Even
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) addSession(userSession *neoroute.Session[D], transportSession *webtransport.Session) *wttSession[D] {
+func (t *WebTransportTransporter[D]) addSession(sessionData D, transportSession *webtransport.Session) *wttSession[D] {
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()
 
 	// Create session with unique id if handshake did not return one
-	if userSession == nil {
-		for {
-			newId := t.router.Config().RunUUIDGenerator()
-			if _, exists := t.sessions[newId]; !exists {
-				userSession = neoroute.NewSession[D](newId)
-				break
-			}
-		}
-	}
-
-	if oldSession, exists := t.sessions[userSession.Id()]; exists {
-
-		if t.config.OverwriteSessionFunc(userSession.Id()) {
-
-			oldSession.mutex.Lock()
-
-			// Close existing session before overwriting
-			oldSession.wtSession.CloseWithError(0, "New session established.")
-
-			oldSession.mutex.Unlock()
-
-		} else {
-			t.mutex.Unlock()
-			return nil
+	var userSession *neoroute.Session[D]
+	for {
+		id := uuid.NewString()
+		if _, exists := t.sessions[id]; !exists {
+			userSession = neoroute.NewSession(id, sessionData)
+			break
 		}
 	}
 
@@ -155,12 +138,12 @@ func (t *WebTransportTransporter[D]) removeSession(id string) {
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) Adapt(id string) (neoroute.Adapter, error) {
-	return t.newAdapter(id, false)
+func (t *WebTransportTransporter[D]) Adapt(session *neoroute.Session[D]) (neoroute.Adapter, error) {
+	return t.newAdapter(session.Id(), false)
 }
 
-func (t *WebTransportTransporter[D]) AdaptUnreliable(id string) (neoroute.Adapter, error) {
-	return t.newAdapter(id, true)
+func (t *WebTransportTransporter[D]) AdaptUnreliable(session *neoroute.Session[D]) (neoroute.Adapter, error) {
+	return t.newAdapter(session.Id(), true)
 }
 
 func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (neoroute.Adapter, error) {

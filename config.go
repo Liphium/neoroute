@@ -2,8 +2,6 @@ package neoroute
 
 import (
 	"log/slog"
-
-	"github.com/google/uuid"
 )
 
 type Config struct {
@@ -12,11 +10,6 @@ type Config struct {
 	// and should return a string that will be sent back to the client.
 	// If nil, a default error message will be sent and the error will be logged.
 	ErrorHandler func(err error) string
-
-	// Is used to generate unique ids for sessions if no session
-	// is provided in handshake. Must be thread safe.
-	// Default is uuid.NewString() from https://github.com/google/uuid.
-	UUIDGenerator func() string
 }
 
 func (cfg Config) RunErrorHandler(err error) string {
@@ -25,12 +18,4 @@ func (cfg Config) RunErrorHandler(err error) string {
 		return "Internal Server Error"
 	}
 	return cfg.ErrorHandler(err)
-}
-
-func (cfg Config) RunUUIDGenerator() string {
-	if cfg.UUIDGenerator == nil {
-		slog.Debug("UUIDGenerator was used, if this happens infinitely your generator might be problematic")
-		return uuid.NewString()
-	}
-	return cfg.UUIDGenerator()
 }

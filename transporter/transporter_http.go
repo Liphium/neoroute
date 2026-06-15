@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Liphium/neoroute"
+	"github.com/google/uuid"
 )
 
 type HTTPTransporter[D any] struct {
@@ -17,7 +18,7 @@ var _ neoroute.Transporter[any] = &HTTPTransporter[any]{}
 //
 // If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 // If the bool is false, the handshake will be considered failed and the connection will be rejected.
-func NewHTTPTransporter[D any](handshake func(r *http.Request) (*neoroute.Session[D], bool)) (http.HandlerFunc, *HTTPTransporter[D]) {
+func NewHTTPTransporter[D any](handshake neoroute.HandshakeFunc[D]) (http.HandlerFunc, *HTTPTransporter[D]) {
 	transporter := &HTTPTransporter[D]{
 		router: nil,
 	}
@@ -30,16 +31,14 @@ func NewHTTPTransporter[D any](handshake func(r *http.Request) (*neoroute.Sessio
 		}
 
 		// Perform handshake to get session data
-		session, ok := handshake(r)
+		sessionData, ok := handshake(r)
 		if !ok {
 			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
 			return
 		}
 
-		// Create session if handshake did not return one
-		if session == nil {
-			session = neoroute.NewSession[D](transporter.router.Config().RunUUIDGenerator())
-		}
+		// Create session with handshake data
+		session := neoroute.NewSession[D](uuid.NewString(), sessionData)
 
 		// Read body data
 		body, err := io.ReadAll(r.Body)

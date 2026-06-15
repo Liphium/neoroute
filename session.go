@@ -11,15 +11,17 @@ type Session[D any] struct {
 }
 
 // NewSession creates a new session with the given id and returns a pointer to it.
-// If you want to let neoroute handle unique id management for you,
-// return nil in the handshake function and set the session data in the EnterNetworkFunc.
-func NewSession[D any](id string) *Session[D] {
+// ONLY USE THIS FUNCTION IF YOU ARE IMPLEMENTING A TRANSPORTER.
+func NewSession[D any](id string, data D) *Session[D] {
 	return &Session[D]{
-		mutex: &sync.Mutex{},
-		id:    id,
+		mutex:       &sync.Mutex{},
+		sessionData: data,
+		id:          id,
 	}
 }
 
+// Id returns the session's id.
+// ONLY USE THIS FUNCTION IF YOU ARE IMPLEMENTING A TRANSPORTER.
 func (s *Session[D]) Id() string {
 	return s.id
 }
