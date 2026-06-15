@@ -18,14 +18,14 @@ type WebSocketTransporter struct {
 	conn      *websocket.Conn
 	done      chan struct{}
 	receiver  *client.Receiver
-	sendMutex *sync.Mutex
+	sendMutex sync.Mutex
 }
 
 func NewWebSocketTransporter(r *client.Receiver) *WebSocketTransporter {
 
 	return &WebSocketTransporter{
 		receiver:  r,
-		sendMutex: &sync.Mutex{},
+		sendMutex: sync.Mutex{},
 	}
 }
 
