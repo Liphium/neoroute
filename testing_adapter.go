@@ -90,37 +90,37 @@ func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 	return events, nil
 }
 
-// send stores the given bytes in the adapter.
-// This implements the send function of the Adapter interface
-// and would normally send the bytes to the client.
-func (a *TestingAdapter) send(b []byte) error {
+// Send stores the given bytes in the adapter.
+// This implements the Send function of the Adapter interface
+// and would normally Send the bytes to the client.
+func (a *TestingAdapter) Send(b []byte) error {
 	a.sendMutex.Lock()
 	defer a.sendMutex.Unlock()
 	a.receivedMessages = append(a.receivedMessages, b)
 	return nil
 }
 
-// isEventRegistered checks if the given event name is registered in any of the event registries of the adapter.
-// This implements the isEventRegistered function of the Adapter interface.
-func (a *TestingAdapter) isEventRegistered(name string) bool {
+// IsEventRegistered checks if the given event name is registered in any of the event registries of the adapter.
+// This implements the IsEventRegistered function of the Adapter interface.
+func (a *TestingAdapter) IsEventRegistered(name string) bool {
 	for _, eventRegistry := range a.eventRegistries {
-		if slices.Contains(eventRegistry.getEvents(), name) {
+		if slices.Contains(eventRegistry.GetEvents(), name) {
 			return true
 		}
 	}
 	return false
 }
 
-// getTransportType returns the type of the transporter.
-// This implements the getTransportType function of the Adapter interface.
-func (a *TestingAdapter) getTransportType() string {
+// GetTransportType returns the type of the transporter.
+// This implements the GetTransportType function of the Adapter interface.
+func (a *TestingAdapter) GetTransportType() string {
 	return a.transporterType
 }
 
-// setRemoveFunc sets the function that should be called when the adapter is closed,
+// SetRemoveFunc sets the function that should be called when the adapter is closed,
 // in the testing adapter this will only happen when Close() is called.
-// This implements the setRemoveFunc function of the Adapter interface.
-func (a *TestingAdapter) setRemoveFunc(removeFunc func()) {
+// This implements the SetRemoveFunc function of the Adapter interface.
+func (a *TestingAdapter) SetRemoveFunc(removeFunc func()) {
 	if removeFunc == nil {
 		return
 	}
@@ -135,8 +135,8 @@ func (a *TestingAdapter) setRemoveFunc(removeFunc func()) {
 	}
 }
 
-// disconnect sets the gotDisconnected flag to true and calls Close() to close the adapter.
-func (a *TestingAdapter) disconnect() {
+// Disconnect sets the gotDisconnected flag to true and calls Close() to close the adapter.
+func (a *TestingAdapter) Disconnect() {
 	a.mutex.Lock()
 	a.gotDisconnected = true
 	a.mutex.Unlock()

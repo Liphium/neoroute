@@ -1,4 +1,4 @@
-package neoroute
+package transporter
 
 import (
 	"context"
@@ -8,12 +8,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Liphium/neoroute"
+	"github.com/google/uuid"
+
 	"github.com/coder/websocket"
 )
 
 type WebSocketTransporter[D any] struct {
-	eventRegistries []*EventRegistry
-	router          *NeoRouter[D]
+	eventRegistries []*neoroute.EventRegistry
+	router          *neoroute.NeoRouter[D]
 	config          WSConfig[D]
 	mutex           *sync.Mutex
 	sessions        map[string]*wsSession[D]
@@ -25,9 +28,12 @@ type WSConfig[D any] struct {
 	UpgradeFunc          UpgradeFuncWS
 	OverwriteSessionFunc func(id string) bool
 
-	HandshakeFunc     func(r *http.Request) (*Session[D], bool)
-	EnterNetworkFunc  func(session *Session[D], t *WebSocketTransporter[D])
-	DisconnectHandler func(session *Session[D])
+	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
+	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
+	HandshakeFunc neoroute.HandshakeFunc[D]
+
+	EnterNetworkFunc  func(session *neoroute.Session[D], t *WebSocketTransporter[D])
+	DisconnectHandler func(session *neoroute.Session[D])
 }
 
 type wsSession[D any] struct {
@@ -36,10 +42,10 @@ type wsSession[D any] struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
 	conn      *websocket.Conn
-	session   *Session[D]
+	session   *neoroute.Session[D]
 }
 
-var _ Transporter[any] = &WebSocketTransporter[any]{}
+var _ neoroute.Transporter[any] = &WebSocketTransporter[any]{}
 
 func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebSocketTransporter[D]) {
 	transporter := &WebSocketTransporter[D]{
@@ -47,7 +53,7 @@ func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebS
 		config:          config,
 		sessions:        make(map[string]*wsSession[D]),
 		mutex:           &sync.Mutex{},
-		eventRegistries: []*EventRegistry{},
+		eventRegistries: []*neoroute.EventRegistry{},
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +64,7 @@ func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebS
 		}
 
 		// Perform handshake to get session data
-		userSession, ok := transporter.config.HandshakeFunc(r)
+		sessionData, ok := transporter.config.HandshakeFunc(r)
 		if !ok {
 			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
 			return
@@ -67,12 +73,12 @@ func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebS
 		// Upgrade to WebSocket session
 		conn, err := transporter.config.UpgradeFunc(w, r, nil)
 		if err != nil {
-			logger.Info("Upgrade to WebSocket failed", "err", err)
+			neoroute.Logger.Info("Upgrade to WebSocket failed", "err", err)
 			return
 		}
 
 		// Add session to transporter
-		session := transporter.addSession(userSession, conn)
+		session := transporter.addSession(sessionData, conn)
 		if session == nil {
 			return
 		}
@@ -86,39 +92,28 @@ func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebS
 // SetRouter sets the router for the transporter.
 // This should be done before starting to listen for connections.
 // This should only be done once and not changed later.
-func (t *WebSocketTransporter[D]) SetRouter(r *NeoRouter[D]) {
+func (t *WebSocketTransporter[D]) SetRouter(r *neoroute.NeoRouter[D]) {
 	t.router = r
 }
 
-func (t *WebSocketTransporter[D]) AddEventRegistry(e *EventRegistry) {
+func (t *WebSocketTransporter[D]) AddEventRegistry(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistries = append(t.eventRegistries, e)
 	t.mutex.Unlock()
 }
 
-func (t *WebSocketTransporter[D]) addSession(userSession *Session[D], conn *websocket.Conn) *wsSession[D] {
+func (t *WebSocketTransporter[D]) addSession(sessionData D, conn *websocket.Conn) *wsSession[D] {
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()
-	if oldSession, exists := t.sessions[userSession.id]; exists {
 
-		if t.config.OverwriteSessionFunc(userSession.id) {
-
-			oldSession.mutex.Lock()
-
-			// Close existing session before overwriting
-			if oldSession.cancel != nil {
-				oldSession.cancel() // Cancel old context if overwritten
-			}
-			if err := oldSession.conn.CloseNow(); err != nil {
-				logger.Info("failed to close old connection", "session", userSession.id, "err", err)
-			}
-
-			oldSession.mutex.Unlock()
-
-		} else {
-			t.mutex.Unlock()
-			return nil
+	// Create session with unique id and provided session data
+	var userSession *neoroute.Session[D]
+	for {
+		id := uuid.NewString()
+		if _, exists := t.sessions[id]; !exists {
+			userSession = neoroute.NewSession[D](id, sessionData)
+			break
 		}
 	}
 
@@ -133,7 +128,7 @@ func (t *WebSocketTransporter[D]) addSession(userSession *Session[D], conn *webs
 		sendMutex: &sync.Mutex{},
 		cancel:    cancel,
 	}
-	t.sessions[userSession.id] = session
+	t.sessions[userSession.Id()] = session
 	t.mutex.Unlock()
 	return session
 }
@@ -144,20 +139,20 @@ func (t *WebSocketTransporter[D]) removeSession(id string) {
 	t.mutex.Unlock()
 }
 
-func (t *WebSocketTransporter[D]) Adapt(id string) (Adapter, error) {
-	session, ok := t.getSession(id)
+func (t *WebSocketTransporter[D]) Adapt(session *neoroute.Session[D]) (neoroute.Adapter, error) {
+	wsSession, ok := t.getSession(session.Id())
 	if !ok {
-		return nil, fmt.Errorf("session %s not found", id)
+		return nil, fmt.Errorf("session %s not found", session.Id())
 	}
 
-	session.mutex.Lock()
-	conn := session.conn
-	sendMutex := session.sendMutex
-	ctx := session.ctx
-	session.mutex.Unlock()
+	wsSession.mutex.Lock()
+	conn := wsSession.conn
+	sendMutex := wsSession.sendMutex
+	ctx := wsSession.ctx
+	wsSession.mutex.Unlock()
 
 	if conn == nil {
-		return nil, fmt.Errorf("websocket session not set for %s", id)
+		return nil, fmt.Errorf("websocket session not set for %s", session.Id())
 	}
 
 	adapter := &WebSocketAdapter{
@@ -193,7 +188,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		conn.CloseNow()
 		t.config.DisconnectHandler(session.session)
 		session.mutex.Lock()
-		t.removeSession(session.session.id)
+		t.removeSession(session.session.Id())
 		session.mutex.Unlock()
 	}()
 
@@ -206,7 +201,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 			// Only log err if it is not due to expected connection closure
 			var closeErr websocket.CloseError
 			if errors.As(err, &closeErr) {
-				logger.Info("websocket connection closed by remote",
+				neoroute.Logger.Info("websocket connection closed by remote",
 					"code", closeErr.Code,
 					"reason", closeErr.Reason,
 				)
@@ -221,7 +216,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		}
 
 		// Handle request and send response back over the same connection
-		resp, runAfter := t.router.handle(msg, userSession)
+		resp, runAfter := t.router.Handle(msg, userSession)
 		if resp != nil {
 			go func() {
 				defer func() {
@@ -237,7 +232,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 				err = conn.Write(ctx, websocket.MessageBinary, resp)
 				session.sendMutex.Unlock()
 				if err != nil {
-					logger.Info("failed to send websocket response", "err", err)
+					neoroute.Logger.Info("failed to send websocket response", "err", err)
 					return
 				}
 			}()

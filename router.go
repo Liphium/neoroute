@@ -27,6 +27,10 @@ func NewNeoRouter[D any](config Config) *NeoRouter[D] {
 	}
 }
 
+func (r *NeoRouter[D]) Config() Config {
+	return r.config
+}
+
 func (r *NeoRouter[D]) Group(route string) Router[D] {
 	return &Group[D]{
 		neos:   []*NeoRouter[D]{r},
@@ -61,7 +65,9 @@ func (r *NeoRouter[D]) getNeos() []*NeoRouter[D] {
 	return []*NeoRouter[D]{r}
 }
 
-func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []func()) {
+// Handle is called by transporters to handle incoming requests.
+// ONLY USE THIS IN A TRANSPORTER IMPLEMENTATION, THIS IS NOT MEANT TO BE USED BY USERS OF THE LIBRARY.
+func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []func()) {
 
 	c := &Ctx[D]{
 		neo:     r,
@@ -74,7 +80,7 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	var data request
 	_, err := data.UnmarshalMsg(reqData)
 	if err != nil {
-		logger.Info("failed to unmarshal request", "err", err)
+		Logger.Info("failed to unmarshal request", "err", err)
 		return messageResponse(c.respondError(ErrInvalidRequestFormat)), nil
 	}
 
@@ -122,6 +128,6 @@ func (r *NeoRouter[D]) handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	} else {
 
 		// Let user handle the error and decide what error message to send back to the client
-		return messageResponse(c.respondError(handleError(r.config, err))), c.runAfter
+		return messageResponse(c.respondError(r.config.RunErrorHandler(err))), c.runAfter
 	}
 }

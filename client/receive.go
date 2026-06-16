@@ -4,11 +4,14 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
+// Receive binds the event name to a handle function.
+// If the server sends a event with that name to this client
+// the provided function will handle it.
 func Receive[E any, EP interface {
 	*E
 	msgp.Unmarshaler
-}](r *Receiver, eventName string, handlerFunc func(c *Ctx, req E)) {
-	r.handler[eventName] = func(c *Ctx) {
+}](r *Receiver, eventName string, handleFunc func(c *Ctx, data E)) {
+	r.setEvent(eventName, func(c *Ctx) {
 
 		// Parse request data into struct
 		var data E
@@ -16,11 +19,11 @@ func Receive[E any, EP interface {
 
 		_, err := unmarshaler.UnmarshalMsg(c.data)
 		if err != nil {
-			logger.Info("failed to unmarshal struct event", "err", err)
+			Logger.Info("failed to unmarshal struct event", "err", err)
 			return
 		}
 
 		// Let the handler handle it
-		handlerFunc(c, data)
-	}
+		handleFunc(c, data)
+	})
 }

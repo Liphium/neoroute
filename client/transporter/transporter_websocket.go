@@ -1,4 +1,4 @@
-package client
+package transporter
 
 import (
 	"context"
@@ -9,21 +9,23 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Liphium/neoroute/client"
+
 	"github.com/coder/websocket"
 )
 
 type WebSocketTransporter struct {
 	conn      *websocket.Conn
 	done      chan struct{}
-	receiver  *Receiver
-	sendMutex *sync.Mutex
+	receiver  *client.Receiver
+	sendMutex sync.Mutex
 }
 
-func NewWebSocketTransporter(r *Receiver) *WebSocketTransporter {
+func NewWebSocketTransporter(r *client.Receiver) *WebSocketTransporter {
 
 	return &WebSocketTransporter{
 		receiver:  r,
-		sendMutex: &sync.Mutex{},
+		sendMutex: sync.Mutex{},
 	}
 }
 
@@ -38,7 +40,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 		return nil, fmt.Errorf("failed to connect to websocket server: %v", err)
 	}
 	w.conn = conn
-	w.receiver.setSendFunc(func(data []byte) error {
+	w.receiver.SetSendFunc(func(data []byte) error {
 		w.sendMutex.Lock()
 		defer w.sendMutex.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
@@ -62,7 +64,7 @@ func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
 		if err := recover(); err != nil {
 			debug.PrintStack()
 			w.Close()
-			logger.Error("there was an error with the connection", "err", err.(error))
+			client.Logger.Error("there was an error with the connection", "err", err.(error))
 			return
 		}
 
@@ -75,23 +77,23 @@ func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
 		if err != nil {
 			var closeErr websocket.CloseError
 			if errors.As(err, &closeErr) {
-				logger.Info("websocket connection closed by remote",
+				client.Logger.Info("websocket connection closed by remote",
 					"code", closeErr.Code,
 					"reason", closeErr.Reason,
 				)
 				return
 			}
 
-			logger.Error("error reading message", "err", err)
+			client.Logger.Error("error reading message", "err", err)
 			return
 		}
 
 		if messageType != websocket.MessageBinary {
-			logger.Info("wrong message type", "type", messageType)
+			client.Logger.Info("wrong message type", "type", messageType)
 			return
 		}
 
 		// Let receiver handle message
-		go w.receiver.handle(msg)
+		go w.receiver.Handle(msg)
 	}
 }

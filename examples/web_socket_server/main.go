@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/transporter"
 	"github.com/coder/websocket"
-	"github.com/google/uuid"
 )
 
 type Counter struct {
@@ -28,21 +28,21 @@ func main() {
 
 	adapterReg := neoroute.NewAdapterRegistry()
 
-	hook, t := neoroute.NewWebSocketTransporter(neoroute.WSConfig[struct{}]{
+	hook, t := transporter.NewWebSocketTransporter(transporter.WSConfig[struct{}]{
 		UpgradeFunc: websocket.Accept,
 		OverwriteSessionFunc: func(id string) bool {
 			return true
 		},
-		HandshakeFunc: func(r *http.Request) (*neoroute.Session[struct{}], bool) {
-			return neoroute.NewSession[struct{}](uuid.NewString()), true
+		HandshakeFunc: func(r *http.Request) (struct{}, bool) {
+			return struct{}{}, true
 		},
-		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *neoroute.WebSocketTransporter[struct{}]) {
+		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *transporter.WebSocketTransporter[struct{}]) {
 
 			log.Println("user connected")
 
 			// Add to adapter registry, in this case we don't have to manually unregister the adapter, because we want then in the registry until they disconnect.
 			// Then they will be removed automatically.
-			adapter, err := t.Adapt(session.Id())
+			adapter, err := t.Adapt(session)
 			if err != nil {
 				log.Println("failed to create adapter for", session.Id(), "with error", err)
 				return

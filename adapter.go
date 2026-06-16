@@ -1,9 +1,9 @@
 package neoroute
 
 type Adapter interface {
-	isEventRegistered(name string) bool
-	getTransportType() string
-	send(b []byte) error
-	setRemoveFunc(removeFunc func())
-	disconnect()
+	IsEventRegistered(name string) bool // DON'T USE THIS ONLY IMPLEMENT IT IF YOU ARE CREATING AN ADAPTER
+	GetTransportType() string           // DON'T USE THIS ONLY IMPLEMENT IT IF YOU ARE CREATING AN ADAPTER
+	Send(b []byte) error                // DON'T USE THIS ONLY IMPLEMENT IT IF YOU ARE CREATING AN ADAPTER
+	SetRemoveFunc(removeFunc func())    // DON'T USE THIS ONLY IMPLEMENT IT IF YOU ARE CREATING AN ADAPTER
+	Disconnect()                        // DON'T USE THIS ONLY IMPLEMENT IT IF YOU ARE CREATING AN ADAPTER
 }

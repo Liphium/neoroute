@@ -1,4 +1,4 @@
-package neoroute
+package transporter
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/Liphium/neoroute"
 	"github.com/quic-go/webtransport-go"
 )
 
@@ -13,30 +14,30 @@ type WebTransportAdapter struct {
 	session         *webtransport.Session
 	mutex           *sync.Mutex
 	transporterType string
-	eventRegistries []*EventRegistry
+	eventRegistries []*neoroute.EventRegistry
 	isUnreliable    bool
 	removeFunc      func()
 	closed          bool
 	removeOnce      sync.Once
 }
 
-func (a *WebTransportAdapter) send(b []byte) error {
+func (a *WebTransportAdapter) Send(b []byte) error {
 	if a.isUnreliable {
 		return a.sendUnreliable(b)
 	}
 	return a.sendReliable(b)
 }
 
-func (a *WebTransportAdapter) isEventRegistered(name string) bool {
+func (a *WebTransportAdapter) IsEventRegistered(name string) bool {
 	for _, eventRegistry := range a.eventRegistries {
-		if slices.Contains(eventRegistry.getEvents(), name) {
+		if slices.Contains(eventRegistry.GetEvents(), name) {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *WebTransportAdapter) getTransportType() string {
+func (a *WebTransportAdapter) GetTransportType() string {
 	return a.transporterType
 }
 
@@ -80,7 +81,7 @@ func (a *WebTransportAdapter) sendUnreliable(b []byte) error {
 	return nil
 }
 
-func (a *WebTransportAdapter) setRemoveFunc(removeFunc func()) {
+func (a *WebTransportAdapter) SetRemoveFunc(removeFunc func()) {
 	if removeFunc == nil {
 		return
 	}
@@ -95,7 +96,7 @@ func (a *WebTransportAdapter) setRemoveFunc(removeFunc func()) {
 	}
 }
 
-func (a *WebTransportAdapter) disconnect() {
+func (a *WebTransportAdapter) Disconnect() {
 	a.mutex.Lock()
 	a.session.CloseWithError(0, "disconnecting")
 	a.mutex.Unlock()

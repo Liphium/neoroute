@@ -7,7 +7,7 @@ import (
 )
 
 func SendSubmitPunRequest(r *client.Receiver, pun string) {
-	reqErr, sendErr := client.SendOk(&r.Handler, "submit_pun", SubmitPunRequest{Pun: pun})
+	reqErr, sendErr := client.SendOk(r, "submit_pun", SubmitPunRequest{Pun: pun})
 	if sendErr != nil {
 		log.Println("failed to send submit pun request: ", sendErr)
 	} else if reqErr != "" {
@@ -16,7 +16,7 @@ func SendSubmitPunRequest(r *client.Receiver, pun string) {
 }
 
 func SendEchoRequest(r *client.Receiver, message string) {
-	resp, reqErr, sendErr := client.Send[EchoResponse](&r.Handler, "echo", EchoRequest{Message: message})
+	resp, reqErr, sendErr := client.Send[EchoResponse](r, "echo", EchoRequest{Message: message})
 	if sendErr != nil {
 		log.Println("failed to send submit pun request: ", sendErr)
 	} else if reqErr != "" {

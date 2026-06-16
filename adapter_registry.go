@@ -23,7 +23,7 @@ func (r *AdapterRegistry) Register(name string, adapter Adapter) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	r.adapters[name] = adapter
-	adapter.setRemoveFunc(func() {
+	adapter.SetRemoveFunc(func() {
 		r.unregisterIfSame(name, adapter)
 	})
 }
@@ -45,7 +45,7 @@ func (r *AdapterRegistry) Disconnect(name string) {
 	if !exists {
 		return
 	}
-	adapter.disconnect()
+	adapter.Disconnect()
 
 }
 
@@ -70,12 +70,12 @@ func (r *AdapterRegistry) Send(name string, event event) error {
 	}
 
 	// Check the event is registered with transporter or exit
-	if ok := adapter.isEventRegistered(event.Name); !ok {
-		logger.Error("event is not registered with transporter", "transporter", adapter.getTransportType(), "event", event.Name)
+	if ok := adapter.IsEventRegistered(event.Name); !ok {
+		Logger.Error("event is not registered with transporter", "transporter", adapter.GetTransportType(), "event", event.Name)
 		os.Exit(1)
 	}
 
-	return adapter.send(eventBytes)
+	return adapter.Send(eventBytes)
 }
 
 func (r *AdapterRegistry) Broadcast(event event) error {
@@ -107,12 +107,12 @@ func (r *AdapterRegistry) Broadcast(event event) error {
 			defer wg.Done()
 
 			// Check the event is registered with transporter or exit
-			if ok := a.isEventRegistered(event.Name); !ok {
-				logger.Error("event is not registered with transporter", "transporter", a.getTransportType(), "event", event.Name)
+			if ok := a.IsEventRegistered(event.Name); !ok {
+				Logger.Error("event is not registered with transporter", "transporter", a.GetTransportType(), "event", event.Name)
 				os.Exit(1)
 			}
 
-			if err := a.send(eventBytes); err != nil {
+			if err := a.Send(eventBytes); err != nil {
 				errCh <- err
 			}
 		}(adapter)
