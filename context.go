@@ -53,11 +53,10 @@ func (c *Ctx[D]) RunAfter(fn func(), fns ...func()) *Ctx[D] {
 func (c *Ctx[D]) respondError(msg string) response {
 	return response{
 		Id: c.id,
-		responseData: responseData{
-			HasData: true,
-			IsError: true,
-			Data:    []byte(msg),
-		},
+
+		HasData: true,
+		IsError: true,
+		Data:    []byte(msg),
 	}
 }
 
@@ -84,7 +83,7 @@ func (c *ResCtx[D, RS, PS]) Respond(resp RS) error {
 		return fmt.Errorf("failed to marshal response: %v", err)
 	}
 
-	return responseData{
+	return &responseData{
 		HasData: true,
 		IsError: false,
 		Data:    respData,
@@ -105,7 +104,7 @@ func (c *OkCtx[D]) BaseCtx() *Ctx[D] {
 
 // RespondOk sends a successful response.
 func (c *OkCtx[D]) RespondOk() error {
-	return responseData{
+	return &responseData{
 		HasData: false,
 		IsError: false,
 		Data:    []byte{},

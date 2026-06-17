@@ -112,22 +112,26 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 
 		// Handlers never should return nil.
 		panic("handler should always return something")
-	} else if errors.Is(err, responseData{}) {
+	}
+
+	if respData, ok := errors.AsType[*responseData](err); ok {
 
 		// Return response from handler
-		respData := err.(responseData)
 		resp := response{
-			Id:           c.id,
-			responseData: respData,
+			Id:      c.id,
+			HasData: respData.HasData,
+			IsError: respData.IsError,
+			Data:    respData.Data,
 		}
 		return messageResponse(resp), c.runAfter
-	} else if errors.Is(err, noResponse{}) {
+	}
+
+	if _, ok := errors.AsType[*noResponse](err); ok {
 
 		// Return no response
 		return nil, c.runAfter
-	} else {
-
-		// Let user handle the error and decide what error message to send back to the client
-		return messageResponse(c.respondError(r.config.RunErrorHandler(err))), c.runAfter
 	}
+
+	// Let user handle the error and decide what error message to send back to the client
+	return messageResponse(c.respondError(r.config.RunErrorHandler(err))), c.runAfter
 }

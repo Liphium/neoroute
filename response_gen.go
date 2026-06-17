@@ -115,46 +115,23 @@ func (z *response) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Id")
 				return
 			}
-		case "responseData":
-			var zb0002 uint32
-			zb0002, err = dc.ReadMapHeader()
+		case "has_data":
+			z.HasData, err = dc.ReadBool()
 			if err != nil {
-				err = msgp.WrapError(err, "responseData")
+				err = msgp.WrapError(err, "HasData")
 				return
 			}
-			for zb0002 > 0 {
-				zb0002--
-				field, err = dc.ReadMapKeyPtr()
-				if err != nil {
-					err = msgp.WrapError(err, "responseData")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "has_data":
-					z.responseData.HasData, err = dc.ReadBool()
-					if err != nil {
-						err = msgp.WrapError(err, "responseData", "HasData")
-						return
-					}
-				case "error":
-					z.responseData.IsError, err = dc.ReadBool()
-					if err != nil {
-						err = msgp.WrapError(err, "responseData", "IsError")
-						return
-					}
-				case "data":
-					z.responseData.Data, err = dc.ReadBytes(z.responseData.Data)
-					if err != nil {
-						err = msgp.WrapError(err, "responseData", "Data")
-						return
-					}
-				default:
-					err = dc.Skip()
-					if err != nil {
-						err = msgp.WrapError(err, "responseData")
-						return
-					}
-				}
+		case "error":
+			z.IsError, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "IsError")
+				return
+			}
+		case "data":
+			z.Data, err = dc.ReadBytes(z.Data)
+			if err != nil {
+				err = msgp.WrapError(err, "Data")
+				return
 			}
 		default:
 			err = dc.Skip()
@@ -169,9 +146,9 @@ func (z *response) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *response) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
+	// map header, size 4
 	// write "id"
-	err = en.Append(0x82, 0xa2, 0x69, 0x64)
+	err = en.Append(0x84, 0xa2, 0x69, 0x64)
 	if err != nil {
 		return
 	}
@@ -180,20 +157,14 @@ func (z *response) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Id")
 		return
 	}
-	// write "responseData"
-	err = en.Append(0xac, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x44, 0x61, 0x74, 0x61)
-	if err != nil {
-		return
-	}
-	// map header, size 3
 	// write "has_data"
-	err = en.Append(0x83, 0xa8, 0x68, 0x61, 0x73, 0x5f, 0x64, 0x61, 0x74, 0x61)
+	err = en.Append(0xa8, 0x68, 0x61, 0x73, 0x5f, 0x64, 0x61, 0x74, 0x61)
 	if err != nil {
 		return
 	}
-	err = en.WriteBool(z.responseData.HasData)
+	err = en.WriteBool(z.HasData)
 	if err != nil {
-		err = msgp.WrapError(err, "responseData", "HasData")
+		err = msgp.WrapError(err, "HasData")
 		return
 	}
 	// write "error"
@@ -201,9 +172,9 @@ func (z *response) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = en.WriteBool(z.responseData.IsError)
+	err = en.WriteBool(z.IsError)
 	if err != nil {
-		err = msgp.WrapError(err, "responseData", "IsError")
+		err = msgp.WrapError(err, "IsError")
 		return
 	}
 	// write "data"
@@ -211,9 +182,9 @@ func (z *response) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = en.WriteBytes(z.responseData.Data)
+	err = en.WriteBytes(z.Data)
 	if err != nil {
-		err = msgp.WrapError(err, "responseData", "Data")
+		err = msgp.WrapError(err, "Data")
 		return
 	}
 	return
@@ -222,22 +193,19 @@ func (z *response) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *response) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
+	// map header, size 4
 	// string "id"
-	o = append(o, 0x82, 0xa2, 0x69, 0x64)
+	o = append(o, 0x84, 0xa2, 0x69, 0x64)
 	o = msgp.AppendInt(o, z.Id)
-	// string "responseData"
-	o = append(o, 0xac, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x44, 0x61, 0x74, 0x61)
-	// map header, size 3
 	// string "has_data"
-	o = append(o, 0x83, 0xa8, 0x68, 0x61, 0x73, 0x5f, 0x64, 0x61, 0x74, 0x61)
-	o = msgp.AppendBool(o, z.responseData.HasData)
+	o = append(o, 0xa8, 0x68, 0x61, 0x73, 0x5f, 0x64, 0x61, 0x74, 0x61)
+	o = msgp.AppendBool(o, z.HasData)
 	// string "error"
 	o = append(o, 0xa5, 0x65, 0x72, 0x72, 0x6f, 0x72)
-	o = msgp.AppendBool(o, z.responseData.IsError)
+	o = msgp.AppendBool(o, z.IsError)
 	// string "data"
 	o = append(o, 0xa4, 0x64, 0x61, 0x74, 0x61)
-	o = msgp.AppendBytes(o, z.responseData.Data)
+	o = msgp.AppendBytes(o, z.Data)
 	return
 }
 
@@ -265,46 +233,23 @@ func (z *response) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Id")
 				return
 			}
-		case "responseData":
-			var zb0002 uint32
-			zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
+		case "has_data":
+			z.HasData, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "responseData")
+				err = msgp.WrapError(err, "HasData")
 				return
 			}
-			for zb0002 > 0 {
-				zb0002--
-				field, bts, err = msgp.ReadMapKeyZC(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "responseData")
-					return
-				}
-				switch msgp.UnsafeString(field) {
-				case "has_data":
-					z.responseData.HasData, bts, err = msgp.ReadBoolBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "responseData", "HasData")
-						return
-					}
-				case "error":
-					z.responseData.IsError, bts, err = msgp.ReadBoolBytes(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "responseData", "IsError")
-						return
-					}
-				case "data":
-					z.responseData.Data, bts, err = msgp.ReadBytesBytes(bts, z.responseData.Data)
-					if err != nil {
-						err = msgp.WrapError(err, "responseData", "Data")
-						return
-					}
-				default:
-					bts, err = msgp.Skip(bts)
-					if err != nil {
-						err = msgp.WrapError(err, "responseData")
-						return
-					}
-				}
+		case "error":
+			z.IsError, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "IsError")
+				return
+			}
+		case "data":
+			z.Data, bts, err = msgp.ReadBytesBytes(bts, z.Data)
+			if err != nil {
+				err = msgp.WrapError(err, "Data")
+				return
 			}
 		default:
 			bts, err = msgp.Skip(bts)
@@ -320,7 +265,7 @@ func (z *response) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *response) Msgsize() (s int) {
-	s = 1 + 3 + msgp.IntSize + 13 + 1 + 9 + msgp.BoolSize + 6 + msgp.BoolSize + 5 + msgp.BytesPrefixSize + len(z.responseData.Data)
+	s = 1 + 3 + msgp.IntSize + 9 + msgp.BoolSize + 6 + msgp.BoolSize + 5 + msgp.BytesPrefixSize + len(z.Data)
 	return
 }
 
