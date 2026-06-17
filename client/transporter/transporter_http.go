@@ -3,6 +3,7 @@ package transporter
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -44,6 +45,11 @@ func NewHTTPTransporter(s client.Sender, method string, u *url.URL) *HTTPTranspo
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
+		}
+
+		// Check for non neoroute errors
+		if resp.StatusCode != http.StatusOK {
+			return errors.New("received non ok status " + resp.Status + ": " + string(bodyBytes))
 		}
 
 		// Let sender handle the response routing

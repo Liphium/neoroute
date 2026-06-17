@@ -45,11 +45,9 @@ type wsSession[D any] struct {
 	session   *neoroute.Session[D]
 }
 
-var _ neoroute.Transporter[any] = &WebSocketTransporter[any]{}
-
-func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebSocketTransporter[D]) {
+func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConfig[D]) (http.HandlerFunc, *WebSocketTransporter[D]) {
 	transporter := &WebSocketTransporter[D]{
-		router:          nil,
+		router:          router,
 		config:          config,
 		sessions:        make(map[string]*wsSession[D]),
 		mutex:           &sync.Mutex{},
@@ -57,11 +55,6 @@ func NewWebSocketTransporter[D any](config WSConfig[D]) (http.HandlerFunc, *WebS
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
-
-		if transporter.router == nil {
-			http.Error(w, "Router not set.", http.StatusInternalServerError)
-			return
-		}
 
 		// Perform handshake to get session data
 		sessionData, ok := transporter.config.HandshakeFunc(r)

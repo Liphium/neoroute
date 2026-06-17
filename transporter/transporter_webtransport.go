@@ -42,11 +42,9 @@ type wttSession[D any] struct {
 	session   *neoroute.Session[D]
 }
 
-var _ neoroute.Transporter[any] = &WebTransportTransporter[any]{}
-
-func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *WebTransportTransporter[D]) {
+func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config WTTConfig[D]) (http.HandlerFunc, *WebTransportTransporter[D]) {
 	transporter := &WebTransportTransporter[D]{
-		router:                    nil,
+		router:                    router,
 		config:                    config,
 		sessions:                  make(map[string]*wttSession[D]),
 		mutex:                     &sync.Mutex{},
@@ -55,11 +53,6 @@ func NewWebTransportTransporter[D any](config WTTConfig[D]) (http.HandlerFunc, *
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
-
-		if transporter.router == nil {
-			http.Error(w, "Router not set.", http.StatusInternalServerError)
-			return
-		}
 
 		// Perform handshake to get session data
 		sessionData, ok := transporter.config.HandshakeFunc(r)
