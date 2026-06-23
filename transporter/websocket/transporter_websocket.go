@@ -22,12 +22,7 @@ type WebSocketTransporter[D any] struct {
 	sessions        map[string]*wsSession[D]
 }
 
-type UpgradeFuncWS func(w http.ResponseWriter, r *http.Request, opts *websocket.AcceptOptions) (*websocket.Conn, error)
-
 type WSConfig[D any] struct {
-	UpgradeFunc          UpgradeFuncWS
-	OverwriteSessionFunc func(id string) bool
-
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 	HandshakeFunc neoroute.HandshakeFunc[D]
@@ -64,7 +59,7 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		}
 
 		// Upgrade to WebSocket session
-		conn, err := transporter.config.UpgradeFunc(w, r, nil)
+		conn, err := websocket.Accept(w, r, nil)
 		if err != nil {
 			neoroute.Logger.Info("Upgrade to WebSocket failed", "err", err)
 			return
