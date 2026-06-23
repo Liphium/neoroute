@@ -1,4 +1,4 @@
-package websocket_transporter
+package websocket
 
 import (
 	"context"
@@ -13,11 +13,11 @@ import (
 
 	"github.com/Liphium/neoroute/client"
 
-	"github.com/coder/websocket"
+	ws "github.com/coder/websocket"
 )
 
 type WebSocketTransporter struct {
-	conn      *websocket.Conn
+	conn      *ws.Conn
 	done      chan struct{}
 	receiver  *client.Receiver
 	sendMutex sync.Mutex
@@ -37,7 +37,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	// Connect to server
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
-	conn, resp, err := websocket.Dial(ctx, url.String(), nil)
+	conn, resp, err := ws.Dial(ctx, url.String(), nil)
 	if err != nil {
 
 		if resp != nil {
@@ -60,17 +60,17 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 		defer w.sendMutex.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
-		return w.conn.Write(ctx, websocket.MessageBinary, data)
+		return w.conn.Write(ctx, ws.MessageBinary, data)
 	})
 	go w.ws(conn)
 	return w.done, nil
 }
 
 func (w *WebSocketTransporter) Close() error {
-	return w.conn.Close(websocket.StatusNormalClosure, "")
+	return w.conn.Close(ws.StatusNormalClosure, "")
 }
 
-func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
+func (w *WebSocketTransporter) ws(conn *ws.Conn) {
 
 	// Get server URL with any handshake parameters applied.
 
@@ -90,7 +90,7 @@ func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
 	for {
 		messageType, msg, err := conn.Read(context.Background())
 		if err != nil {
-			var closeErr websocket.CloseError
+			var closeErr ws.CloseError
 			if errors.As(err, &closeErr) {
 				client.Logger.Info("websocket connection closed by remote",
 					"code", closeErr.Code,
@@ -103,7 +103,7 @@ func (w *WebSocketTransporter) ws(conn *websocket.Conn) {
 			return
 		}
 
-		if messageType != websocket.MessageBinary {
+		if messageType != ws.MessageBinary {
 			client.Logger.Info("wrong message type", "type", messageType)
 			return
 		}
