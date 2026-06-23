@@ -1,0 +1,22 @@
+# Changelog
+
+## [1.0.0](https://github.com/Liphium/neoroute/compare/v0.1.2...v1.0.0) (2026-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* move transporter to extra modules, to avoid unused imports
+
+### Features
+
+* **websocket:** remove unneeded config parameters ([0a8a9db](https://github.com/Liphium/neoroute/commit/0a8a9dbf7f703c9eda599cf9a5f89d94c4a20e9a))
+
+
+### Bug Fixes
+
+* **transporter:** make transporter importable ([4db8ba3](https://github.com/Liphium/neoroute/commit/4db8ba3bb97c690e57a5c98e7aaa212fc9b0dd42))
+
+
+### Code Refactoring
+
+* move transporter to extra modules, to avoid unused imports ([652ccd7](https://github.com/Liphium/neoroute/commit/652ccd7c425245255240e5a2918352bfc8f75d2f))
