@@ -11,20 +11,19 @@ import (
 	"github.com/quic-go/webtransport-go"
 )
 
-type WebTransportTransporter[D any] struct {
+type Transporter[D any] struct {
 	eventRegistriesUnreliable []*neoroute.EventRegistry
 	eventRegistriesReliable   []*neoroute.EventRegistry
 	router                    *neoroute.NeoRouter[D]
-	config                    WTTConfig[D]
+	config                    Config[D]
 	mutex                     *sync.Mutex
 	sessions                  map[string]*wttSession[D]
 }
 
-type UpgradeFuncWTT func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
+type UpgradeFunc func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
 
-type WTTConfig[D any] struct {
-	UpgradeFunc          UpgradeFuncWTT
-	OverwriteSessionFunc func(id string) bool
+type Config[D any] struct {
+	UpgradeFunc UpgradeFunc
 
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
@@ -42,8 +41,8 @@ type wttSession[D any] struct {
 	session   *neoroute.Session[D]
 }
 
-func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config WTTConfig[D]) (http.HandlerFunc, *WebTransportTransporter[D]) {
-	transporter := &WebTransportTransporter[D]{
+func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config Config[D]) (http.HandlerFunc, *Transporter[D]) {
+	transporter := &Transporter[D]{
 		router:                    router,
 		config:                    config,
 		sessions:                  make(map[string]*wttSession[D]),
@@ -83,23 +82,23 @@ func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config WTT
 // SetRouter sets the router for the transporter.
 // This should be done before starting to listen for connections.
 // This should only be done once and not changed later.
-func (t *WebTransportTransporter[D]) SetRouter(r *neoroute.NeoRouter[D]) {
+func (t *Transporter[D]) SetRouter(r *neoroute.NeoRouter[D]) {
 	t.router = r
 }
 
-func (t *WebTransportTransporter[D]) AddEventRegistryReliable(e *neoroute.EventRegistry) {
+func (t *Transporter[D]) AddEventRegistryReliable(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistriesReliable = append(t.eventRegistriesReliable, e)
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) AddEventRegistryUnreliable(e *neoroute.EventRegistry) {
+func (t *Transporter[D]) AddEventRegistryUnreliable(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistriesUnreliable = append(t.eventRegistriesUnreliable, e)
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) addSession(sessionData D, transportSession *webtransport.Session) *wttSession[D] {
+func (t *Transporter[D]) addSession(sessionData D, transportSession *webtransport.Session) *wttSession[D] {
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()
@@ -125,21 +124,21 @@ func (t *WebTransportTransporter[D]) addSession(sessionData D, transportSession 
 	return session
 }
 
-func (t *WebTransportTransporter[D]) removeSession(id string) {
+func (t *Transporter[D]) removeSession(id string) {
 	t.mutex.Lock()
 	delete(t.sessions, id)
 	t.mutex.Unlock()
 }
 
-func (t *WebTransportTransporter[D]) Adapt(session *neoroute.Session[D]) (neoroute.Adapter, error) {
+func (t *Transporter[D]) Adapt(session *neoroute.Session[D]) (neoroute.Adapter, error) {
 	return t.newAdapter(session.Id(), false)
 }
 
-func (t *WebTransportTransporter[D]) AdaptUnreliable(session *neoroute.Session[D]) (neoroute.Adapter, error) {
+func (t *Transporter[D]) AdaptUnreliable(session *neoroute.Session[D]) (neoroute.Adapter, error) {
 	return t.newAdapter(session.Id(), true)
 }
 
-func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (neoroute.Adapter, error) {
+func (t *Transporter[D]) newAdapter(id string, unreliable bool) (neoroute.Adapter, error) {
 	session, ok := t.getSession(id)
 	if !ok {
 		return nil, fmt.Errorf("session %s not found", id)
@@ -174,14 +173,14 @@ func (t *WebTransportTransporter[D]) newAdapter(id string, unreliable bool) (neo
 	return adapter, nil
 }
 
-func (t *WebTransportTransporter[D]) getSession(id string) (*wttSession[D], bool) {
+func (t *Transporter[D]) getSession(id string) (*wttSession[D], bool) {
 	t.mutex.Lock()
 	session, ok := t.sessions[id]
 	t.mutex.Unlock()
 	return session, ok
 }
 
-func (t *WebTransportTransporter[D]) handleSession(session *wttSession[D]) {
+func (t *Transporter[D]) handleSession(session *wttSession[D]) {
 
 	defer func() {
 		t.config.DisconnectHandler(session.session)
@@ -220,7 +219,7 @@ func (t *WebTransportTransporter[D]) handleSession(session *wttSession[D]) {
 
 }
 
-func (t *WebTransportTransporter[D]) listenStream(session *wttSession[D], done chan struct{}, otherDone chan struct{}) {
+func (t *Transporter[D]) listenStream(session *wttSession[D], done chan struct{}, otherDone chan struct{}) {
 	defer func() {
 		session.mutex.Lock()
 		if session.wtSession != nil {
@@ -278,7 +277,7 @@ func (t *WebTransportTransporter[D]) listenStream(session *wttSession[D], done c
 
 }
 
-func (t *WebTransportTransporter[D]) listenDatagram(session *wttSession[D], done chan struct{}, otherDone chan struct{}) {
+func (t *Transporter[D]) listenDatagram(session *wttSession[D], done chan struct{}, otherDone chan struct{}) {
 	defer func() {
 		session.mutex.Lock()
 		if session.wtSession != nil {
