@@ -1,4 +1,4 @@
-module github.com/Liphium/neoroute/transporter/websocket_transporter
+module github.com/Liphium/neoroute/transporter/websocket
 
 go 1.26.4
 

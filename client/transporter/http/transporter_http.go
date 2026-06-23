@@ -1,4 +1,4 @@
-package http_transporter
+package http
 
 import (
 	"bytes"

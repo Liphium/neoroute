@@ -1,4 +1,4 @@
-package wt_transporter
+package web_transport
 
 import (
 	"fmt"

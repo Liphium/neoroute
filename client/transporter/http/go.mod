@@ -1,4 +1,4 @@
-module github.com/Liphium/neoroute/client/transporter/http_transporter
+module github.com/Liphium/neoroute/client/transporter/http
 
 go 1.26.4
 

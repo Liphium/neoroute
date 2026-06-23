@@ -1,4 +1,4 @@
-module github.com/Liphium/neoroute/transporter/wt_transporter
+module github.com/Liphium/neoroute/transporter/web_transport
 
 go 1.26.4
 
