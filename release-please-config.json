@@ -1,0 +1,26 @@
+{
+    "packages": {
+        ".": {
+            "release-type": "go",
+            "include-v-in-tag": true
+        },
+        "client": {
+            "release-type": "go"
+        },
+        "client/transporter/http": {
+            "release-type": "go"
+        },
+        "client/transporter/websocket": {
+            "release-type": "go"
+        },
+        "transporter/http": {
+            "release-type": "go"
+        },
+        "transporter/websocket": {
+            "release-type": "go"
+        },
+        "transporter/web_transport": {
+            "release-type": "go"
+        }
+    }
+}
