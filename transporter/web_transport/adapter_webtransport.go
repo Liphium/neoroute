@@ -1,4 +1,4 @@
-package transporter
+package wt_transporter
 
 import (
 	"context"

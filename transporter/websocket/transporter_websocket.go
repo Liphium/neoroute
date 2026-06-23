@@ -1,4 +1,4 @@
-package transporter
+package websocket_transporter
 
 import (
 	"context"
@@ -59,7 +59,7 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		// Perform handshake to get session data
 		sessionData, ok := transporter.config.HandshakeFunc(r)
 		if !ok {
-			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
+			http.Error(w, neoroute.ErrHandshakeFailed, http.StatusUnauthorized)
 			return
 		}
 

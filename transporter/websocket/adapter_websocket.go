@@ -1,4 +1,4 @@
-package transporter
+package websocket_transporter
 
 import (
 	"context"

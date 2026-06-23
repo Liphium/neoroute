@@ -1,4 +1,4 @@
-package transporter
+package wt_transporter
 
 import (
 	"fmt"
@@ -57,7 +57,7 @@ func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config WTT
 		// Perform handshake to get session data
 		sessionData, ok := transporter.config.HandshakeFunc(r)
 		if !ok {
-			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
+			http.Error(w, neoroute.ErrHandshakeFailed, http.StatusUnauthorized)
 			return
 		}
 

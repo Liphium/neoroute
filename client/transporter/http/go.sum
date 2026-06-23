@@ -1,0 +1,6 @@
+github.com/Liphium/neoroute/client v0.1.1 h1:lX5QUaRKbFjhOMIj4Alt0q4wofLHIFtm+As7VS66SEA=
+github.com/Liphium/neoroute/client v0.1.1/go.mod h1:zEqXC5j5ydRQli2SvyZWmP4lYzHrLe9MTVZ+xn1EE7s=
+github.com/philhofer/fwd v1.2.0 h1:e6DnBTl7vGY+Gz322/ASL4Gyp1FspeMvx1RNDoToZuM=
+github.com/philhofer/fwd v1.2.0/go.mod h1:RqIHx9QI14HlwKwm98g9Re5prTQ6LdeRQn+gXJFxsJM=
+github.com/tinylib/msgp v1.6.4 h1:mOwYbyYDLPj35mkA2BjjYejgJk9BuHxDdvRnb6v2ZcQ=
+github.com/tinylib/msgp v1.6.4/go.mod h1:RSp0LW9oSxFut3KzESt5Voq4GVWyS+PSulT77roAqEA=

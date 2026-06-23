@@ -1,4 +1,4 @@
-package transporter
+package http_transporter
 
 import (
 	"io"
@@ -25,17 +25,17 @@ func NewHTTPTransporter[D any](router *neoroute.NeoRouter[D], handshake neoroute
 		// Perform handshake to get session data
 		sessionData, ok := handshake(r)
 		if !ok {
-			http.Error(w, "Handshake failed.", http.StatusUnauthorized)
+			http.Error(w, neoroute.ErrHandshakeFailed, http.StatusUnauthorized)
 			return
 		}
 
 		// Create session with handshake data
-		session := neoroute.NewSession[D](uuid.NewString(), sessionData)
+		session := neoroute.NewSession(uuid.NewString(), sessionData)
 
 		// Read body data
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body.", http.StatusInternalServerError)
+			http.Error(w, neoroute.ErrReadingBody, http.StatusInternalServerError)
 			return
 		}
 

@@ -1,4 +1,4 @@
-package transporter
+package http_transporter
 
 import (
 	"bytes"
@@ -47,7 +47,7 @@ func NewHTTPTransporter(s client.Sender, method string, u *url.URL) *HTTPTranspo
 			return err
 		}
 
-		// Check for non neoroute errors
+		// Check for transporter errors
 		if resp.StatusCode != http.StatusOK {
 			return errors.New("received non ok status " + resp.Status + ": " + string(bodyBytes))
 		}

@@ -1,9 +1,11 @@
-package transporter
+package websocket_transporter
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"runtime/debug"
 	"sync"
@@ -35,8 +37,21 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	// Connect to server
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
-	conn, _, err := websocket.Dial(ctx, url.String(), nil)
+	conn, resp, err := websocket.Dial(ctx, url.String(), nil)
 	if err != nil {
+
+		if resp != nil {
+			bodyBytes, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read response body: %v", err)
+			}
+
+			// Check for transporter errors
+			if resp.StatusCode != http.StatusOK {
+				return nil, errors.New("received non ok status " + resp.Status + ": " + string(bodyBytes))
+			}
+		}
+
 		return nil, fmt.Errorf("failed to connect to websocket server: %v", err)
 	}
 	w.conn = conn
