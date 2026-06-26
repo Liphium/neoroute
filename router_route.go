@@ -14,6 +14,10 @@ func (r *RouteRouter[D]) Group(route string) Router[D] {
 
 }
 
+func (r *RouteRouter[D]) BuildSchema() map[string]RouteData[D] {
+	return nil
+}
+
 func (r *RouteRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {
 	r.neos = append(r.neos, append([]*NeoRouter[D]{router}, routers...)...)
 	return r
