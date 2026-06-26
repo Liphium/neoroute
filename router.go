@@ -8,7 +8,6 @@ type Router[D any] interface {
 	Group(route string) Router[D]
 	AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D]
 	Use(route string, middleware func(c *Ctx[D]) bool)
-	BuildSchema() map[string]RouteData[D]
 	getRoute() string
 	getNeos() []*NeoRouter[D]
 }
@@ -40,8 +39,8 @@ func (r *NeoRouter[D]) Group(route string) Router[D] {
 	}
 }
 
-func (r *NeoRouter[D]) BuildSchema() map[string]RouteData[D] {
-	return nil
+func (r *NeoRouter[D]) GetRoutes() map[string]RouteData[D] {
+	return r.routes
 }
 
 func (r *NeoRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {

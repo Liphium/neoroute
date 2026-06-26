@@ -2,20 +2,23 @@ package neoroute
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/tinylib/msgp/msgp"
 )
 
 type EventRegistry struct {
-	mutex            *sync.Mutex
-	registeredEvents []string
+	mutex             *sync.Mutex
+	registeredEvents  []string
+	registeredSchemas []func() reflect.Type
 }
 
 func NewEventRegistry() *EventRegistry {
 	return &EventRegistry{
-		mutex:            &sync.Mutex{},
-		registeredEvents: []string{},
+		mutex:             &sync.Mutex{},
+		registeredEvents:  []string{},
+		registeredSchemas: []func() reflect.Type{},
 	}
 }
 
@@ -36,6 +39,9 @@ func Register[E any, EM interface {
 
 	e.mutex.Lock()
 	e.registeredEvents = append(e.registeredEvents, name)
+	e.registeredSchemas = append(e.registeredSchemas, func() reflect.Type {
+		return reflect.TypeFor[E]()
+	})
 	e.mutex.Unlock()
 
 	return func(eventData E) (event, error) {
