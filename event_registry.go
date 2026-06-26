@@ -30,6 +30,14 @@ func (er *EventRegistry) GetEvents() []string {
 	return er.registeredEvents
 }
 
+// GetSchemas returns the registered schemas for the registered events in the registry (same index as event names).
+// ONLY USE THIS WHEN IMPLEMENTING AN ADAPTER.
+func (er *EventRegistry) GetSchemas() []func() reflect.Type {
+	er.mutex.Lock()
+	defer er.mutex.Unlock()
+	return er.registeredSchemas
+}
+
 // Register returns a new event builder.
 // First register all events only then start creating adapters.
 func Register[E any, EM interface {

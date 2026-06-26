@@ -40,7 +40,7 @@ var Kinds = map[reflect.Kind]SchemaType{
 	reflect.Func:       NotSupported,
 }
 
-type PackedSchema interface {
+type PackedType interface {
 	Type() SchemaType
 }
 
@@ -55,26 +55,26 @@ func (bt BasicType) Type() SchemaType {
 type ArrayType struct {
 	BasicType
 
-	Element PackedSchema `json:"element"`
+	Element PackedType `json:"element"`
 }
 
 type StructType struct {
 	BasicType
 
-	Fields map[string]PackedSchema `json:"fields"`
+	Fields map[string]PackedType `json:"fields"`
 }
 
 func notSupportedError(st SchemaType) error {
 	return fmt.Errorf("the type %s is not supported", string(st))
 }
 
-func BuildPackedFor(t reflect.Type) (PackedSchema, error) {
+func BuildPackedFor(t reflect.Type) (PackedType, error) {
 	kind := t.Kind()
 	switch kind {
 	case reflect.Struct:
 		// Go through all struct fields and build their schemas
 		var err error
-		fields := map[string]PackedSchema{}
+		fields := map[string]PackedType{}
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 
@@ -88,7 +88,7 @@ func BuildPackedFor(t reflect.Type) (PackedSchema, error) {
 			BasicType: BasicType{
 				ActualType: Kinds[kind],
 			},
-			Fields: map[string]PackedSchema{},
+			Fields: map[string]PackedType{},
 		}, nil
 
 	case reflect.Array:
