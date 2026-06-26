@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/transporter"
-	"github.com/coder/websocket"
+	"github.com/Liphium/neoroute/neogen"
+	websocket_transport "github.com/Liphium/neoroute/transporter/websocket"
 )
 
 type Counter struct {
@@ -28,35 +28,6 @@ func main() {
 
 	adapterReg := neoroute.NewAdapterRegistry()
 
-	hook, t := transporter.NewWebSocketTransporter(transporter.WSConfig[struct{}]{
-		UpgradeFunc: websocket.Accept,
-		OverwriteSessionFunc: func(id string) bool {
-			return true
-		},
-		HandshakeFunc: func(r *http.Request) (struct{}, bool) {
-			return struct{}{}, true
-		},
-		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *transporter.WebSocketTransporter[struct{}]) {
-
-			log.Println("user connected")
-
-			// Add to adapter registry, in this case we don't have to manually unregister the adapter, because we want then in the registry until they disconnect.
-			// Then they will be removed automatically.
-			adapter, err := t.Adapt(session)
-			if err != nil {
-				log.Println("failed to create adapter for", session.Id(), "with error", err)
-				return
-			}
-			adapterReg.Register(session.Id(), adapter)
-		},
-		DisconnectHandler: func(session *neoroute.Session[struct{}]) {
-			log.Println("user disconnected")
-		},
-	})
-
-	// Add events to transporter
-	t.AddEventRegistry(eventReg)
-
 	// Setup routes
 	r := neoroute.NewNeoRouter[struct{}](neoroute.Config{
 		ErrorHandler: func(err error) string {
@@ -64,7 +35,6 @@ func main() {
 			return "Internal server error."
 		},
 	})
-	t.SetRouter(r)
 
 	neoroute.Route(r, "echo", func(c *neoroute.ResCtx[struct{}, EchoResponse, *EchoResponse], req EchoRequest) error {
 		log.Println("message received")
@@ -99,6 +69,36 @@ func main() {
 
 		return c.RespondOk()
 	})
+
+	hook, t := websocket_transport.NewWebSocketTransporter(r, websocket_transport.WSConfig[struct{}]{
+		HandshakeFunc: func(r *http.Request) (struct{}, bool) {
+			return struct{}{}, true
+		},
+		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *websocket_transport.WebSocketTransporter[struct{}]) {
+
+			log.Println("user connected")
+
+			// Add to adapter registry, in this case we don't have to manually unregister the adapter, because we want then in the registry until they disconnect.
+			// Then they will be removed automatically.
+			adapter, err := t.Adapt(session)
+			if err != nil {
+				log.Println("failed to create adapter for", session.Id(), "with error", err)
+				return
+			}
+			adapterReg.Register(session.Id(), adapter)
+		},
+		DisconnectHandler: func(session *neoroute.Session[struct{}]) {
+			log.Println("user disconnected")
+		},
+	})
+
+	// Add events to transporter
+	t.AddEventRegistry(eventReg)
+
+	// This will print a schema if you pass the --neo-generate flag
+	g := neogen.NewGenerator()
+	g.Transporter("puns", t)
+	g.PrintOrPanic()
 
 	// Create websocket transporter and host it
 	mux := http.NewServeMux()

@@ -78,7 +78,12 @@ func BuildPackedFor(t reflect.Type) (PackedType, error) {
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 
-			fields[field.Name], err = BuildPackedFor(field.Type)
+			msgTag := field.Tag.Get("msg")
+			if msgTag == "" {
+				msgTag = field.Name
+			}
+
+			fields[msgTag], err = BuildPackedFor(field.Type)
 			if err != nil {
 				return BasicType{}, err
 			}
@@ -88,7 +93,7 @@ func BuildPackedFor(t reflect.Type) (PackedType, error) {
 			BasicType: BasicType{
 				ActualType: Kinds[kind],
 			},
-			Fields: map[string]PackedType{},
+			Fields: fields,
 		}, nil
 
 	case reflect.Array:
