@@ -1,26 +1,33 @@
 {
+    "bump-minor-pre-major": true,
     "packages": {
         ".": {
             "release-type": "go",
             "include-v-in-tag": true
         },
         "client": {
-            "release-type": "go"
+            "release-type": "go",
+            "include-v-in-tag": true
         },
         "client/transporter/http": {
-            "release-type": "go"
+            "release-type": "go",
+            "include-v-in-tag": true
         },
         "client/transporter/websocket": {
-            "release-type": "go"
+            "release-type": "go",
+            "include-v-in-tag": true
         },
         "transporter/http": {
-            "release-type": "go"
+            "release-type": "go",
+            "include-v-in-tag": true
         },
         "transporter/websocket": {
-            "release-type": "go"
+            "release-type": "go",
+            "include-v-in-tag": true
         },
         "transporter/web_transport": {
-            "release-type": "go"
+            "release-type": "go",
+            "include-v-in-tag": true
         }
     }
 }
