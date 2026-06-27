@@ -8,32 +8,32 @@
         "client": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "/client"
+            "component": "client"
         },
         "client/transporter/http": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "/client/transporter/http"
+            "component": "client/transporter/http"
         },
         "client/transporter/websocket": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "/client/transporter/websocket"
+            "component": "client/transporter/websocket"
         },
         "transporter/http": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "/transporter/http"
+            "component": "transporter/http"
         },
         "transporter/websocket": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "/transporter/websocket"
+            "component": "transporter/websocket"
         },
         "transporter/web_transport": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "/transporter/web_transport"
+            "component": "transporter/web_transport"
         }
     }
 }
