@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/Liphium/neoroute/compare/client/transporter/websocket-v0.4.0...client/transporter/websocket/v0.4.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* trigger release manually to test it ([3f0c5ce](https://github.com/Liphium/neoroute/commit/3f0c5ce22a42fc95a757d204c8cb66d287a394ad))
+
 ## [0.4.0](https://github.com/Liphium/neoroute/compare/client/transporter/websocket-v0.3.0...client/transporter/websocket-v0.4.0) (2026-06-27)
 
 
