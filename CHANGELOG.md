@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/Liphium/neoroute/compare/v0.3.0...v0.3.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* force update root module files ([598938b](https://github.com/Liphium/neoroute/commit/598938b8a59898b0dcbf4da6adb5d1dadf7c55ca))
+
 ## [0.3.0](https://github.com/Liphium/neoroute/compare/v0.2.0...v0.3.0) (2026-06-27)
 
 
