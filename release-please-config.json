@@ -1,5 +1,6 @@
 {
     "bump-minor-pre-major": true,
+    "tag-separator": "/",
     "packages": {
         ".": {
             "release-type": "go",
