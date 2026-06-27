@@ -3,37 +3,45 @@
     "packages": {
         ".": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "exclude-paths": [
+                "client",
+                "transporter",
+                "examples"
+            ]
         },
         "client": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "client/v${version}"
+            "component": "client",
+            "exclude-paths": [
+                "client/transporter"
+            ]
         },
         "client/transporter/http": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "client/transporter/http/v${version}"
+            "component": "client/transporter/http"
         },
         "client/transporter/websocket": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "client/transporter/websocket/v${version}"
+            "component": "client/transporter/websocket"
         },
         "transporter/http": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "transporter/http/v${version}"
+            "component": "transporter/http"
         },
         "transporter/websocket": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "transporter/websocket/v${version}"
+            "component": "transporter/websocket"
         },
         "transporter/web_transport": {
             "release-type": "go",
             "include-v-in-tag": true,
-            "component": "transporter/web_transport/v${version}"
+            "component": "transporter/web_transport"
         }
     }
 }
