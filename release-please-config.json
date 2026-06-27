@@ -7,27 +7,33 @@
         },
         "client": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "component": "/client"
         },
         "client/transporter/http": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "component": "/client/transporter/http"
         },
         "client/transporter/websocket": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "component": "/client/transporter/websocket"
         },
         "transporter/http": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "component": "/transporter/http"
         },
         "transporter/websocket": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "component": "/transporter/websocket"
         },
         "transporter/web_transport": {
             "release-type": "go",
-            "include-v-in-tag": true
+            "include-v-in-tag": true,
+            "component": "/transporter/web_transport"
         }
     }
 }
