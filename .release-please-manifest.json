@@ -1,9 +1,9 @@
 {
     ".": "0.3.0",
     "client": "0.4.0",
-    "client/transporter/http": "0.4.0",
-    "client/transporter/websocket": "0.4.0",
-    "transporter/http": "0.4.0",
-    "transporter/websocket": "0.4.0",
-    "transporter/web_transport": "0.4.0"
+    "client/transporter/http": "0.4.1",
+    "client/transporter/websocket": "0.4.1",
+    "transporter/http": "0.4.1",
+    "transporter/websocket": "0.4.1",
+    "transporter/web_transport": "0.4.1"
 }
