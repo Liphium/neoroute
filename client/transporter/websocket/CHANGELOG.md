@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0](https://github.com/Liphium/neoroute/compare/client/transporter/websocket/v${version}-v0.4.0...client/transporter/websocket/v${version}-v0.5.0) (2026-06-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* move transporter to extra modules, to avoid unused imports
+
+### Bug Fixes
+
+* **client/websocket:** make module importable ([d2e3ea7](https://github.com/Liphium/neoroute/commit/d2e3ea7ec38fbdde1888e0a567cc4793192ae407))
+
+
+### Code Refactoring
+
+* move transporter to extra modules, to avoid unused imports ([652ccd7](https://github.com/Liphium/neoroute/commit/652ccd7c425245255240e5a2918352bfc8f75d2f))
+
 ## [0.4.0](https://github.com/Liphium/neoroute/compare/client/transporter/websocket-v0.3.0...client/transporter/websocket-v0.4.0) (2026-06-27)
 
 
