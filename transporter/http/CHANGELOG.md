@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Liphium/neoroute/compare/transporter/http/v0.4.1...transporter/http/v0.5.0) (2026-06-28)
+
+
+### Features
+
+* **http:** use replacer to always use the newest version of neoroute with new releases ([d00b204](https://github.com/Liphium/neoroute/commit/d00b204da765b1c55fdd7380e96131b97244563e))
+
 ## [0.4.1](https://github.com/Liphium/neoroute/compare/transporter/http-v0.4.0...transporter/http/v0.4.1) (2026-06-27)
 
 
