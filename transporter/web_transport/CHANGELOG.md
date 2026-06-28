@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Liphium/neoroute/compare/transporter/web_transport/v0.4.1...transporter/web_transport/v0.5.0) (2026-06-28)
+
+
+### Features
+
+* **web_transport:** use replacer to always use the newest version of neoroute with new releases ([aef29fe](https://github.com/Liphium/neoroute/commit/aef29fed90281d8072bce172dd6bb7ba5c2e14a7))
+
 ## [0.4.1](https://github.com/Liphium/neoroute/compare/transporter/web_transport-v0.4.0...transporter/web_transport/v0.4.1) (2026-06-27)
 
 

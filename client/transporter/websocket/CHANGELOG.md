@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Liphium/neoroute/compare/client/transporter/websocket/v0.4.1...client/transporter/websocket/v0.5.0) (2026-06-28)
+
+
+### Features
+
+* **client/websocket:** use replacer to always use the newest version of neoroute with new releases ([951f728](https://github.com/Liphium/neoroute/commit/951f728dec27256cb89b005275c601ebcac6ae63))
+
 ## [0.4.1](https://github.com/Liphium/neoroute/compare/client/transporter/websocket-v0.4.0...client/transporter/websocket/v0.4.1) (2026-06-27)
 
 
