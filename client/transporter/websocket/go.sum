@@ -1,5 +1,3 @@
-github.com/Liphium/neoroute/client v0.1.1 h1:lX5QUaRKbFjhOMIj4Alt0q4wofLHIFtm+As7VS66SEA=
-github.com/Liphium/neoroute/client v0.1.1/go.mod h1:zEqXC5j5ydRQli2SvyZWmP4lYzHrLe9MTVZ+xn1EE7s=
 github.com/coder/websocket v1.8.15 h1:6B2JPeOGlpff2Uz6vOEH1Vzpi0iUz20A+lPVhPHtNUA=
 github.com/coder/websocket v1.8.15/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
 github.com/philhofer/fwd v1.2.0 h1:e6DnBTl7vGY+Gz322/ASL4Gyp1FspeMvx1RNDoToZuM=
