@@ -7,8 +7,7 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/transporter"
-	"github.com/coder/websocket"
+	"github.com/Liphium/neoroute/transporter/websocket"
 )
 
 type Counter struct {
@@ -28,15 +27,19 @@ func main() {
 
 	adapterReg := neoroute.NewAdapterRegistry()
 
-	hook, t := transporter.NewWebSocketTransporter(transporter.WSConfig[struct{}]{
-		UpgradeFunc: websocket.Accept,
-		OverwriteSessionFunc: func(id string) bool {
-			return true
+	// Setup router
+	r := neoroute.NewNeoRouter[struct{}](neoroute.Config{
+		ErrorHandler: func(err error) string {
+			log.Println("error occurred: ", err)
+			return "Internal server error."
 		},
+	})
+
+	hook, t := websocket.NewWebSocketTransporter(r, websocket.WSConfig[struct{}]{
 		HandshakeFunc: func(r *http.Request) (struct{}, bool) {
 			return struct{}{}, true
 		},
-		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *transporter.WebSocketTransporter[struct{}]) {
+		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *websocket.WebSocketTransporter[struct{}]) {
 
 			log.Println("user connected")
 
@@ -58,14 +61,6 @@ func main() {
 	t.AddEventRegistry(eventReg)
 
 	// Setup routes
-	r := neoroute.NewNeoRouter[struct{}](neoroute.Config{
-		ErrorHandler: func(err error) string {
-			log.Println("error occurred: ", err)
-			return "Internal server error."
-		},
-	})
-	t.SetRouter(r)
-
 	neoroute.Route(r, "echo", func(c *neoroute.ResCtx[struct{}, EchoResponse, *EchoResponse], req EchoRequest) error {
 		log.Println("message received")
 		counter.mutex.Lock()
