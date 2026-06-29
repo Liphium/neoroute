@@ -1,4 +1,4 @@
-package neogen
+package neoschema
 
 import (
 	"encoding/json"

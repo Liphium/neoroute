@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neogen"
+	"github.com/Liphium/neoroute/neoschema"
 	"github.com/google/uuid"
 
 	"github.com/coder/websocket"
 )
 
-var _ neogen.Transporter = &WebSocketTransporter[any]{}
+var _ neoschema.Transporter = &WebSocketTransporter[any]{}
 
 type WebSocketTransporter[D any] struct {
 	eventRegistries []*neoroute.EventRegistry
@@ -25,19 +25,19 @@ type WebSocketTransporter[D any] struct {
 	sessions        map[string]*wsSession[D]
 }
 
-// GetRegistries implements neogen.Transporter.
+// GetRegistries implements neoschema.Transporter.
 func (t *WebSocketTransporter[D]) GetRegistries() []*neoroute.EventRegistry {
 	return t.eventRegistries
 }
 
-// GetSchema implements neogen.Transporter.
-func (t *WebSocketTransporter[D]) GetSchema() map[string]neogen.RequestResponse {
-	return neogen.ToRouteSchema(t.router.GetRoutes())
+// GetSchema implements neoschema.Transporter.
+func (t *WebSocketTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
+	return neoschema.ToRouteSchema(t.router.GetRoutes())
 }
 
-// Type implements neogen.Transporter.
+// Type implements neoschema.Transporter.
 func (t *WebSocketTransporter[D]) Type() int {
-	return neogen.TransporterWebTransport
+	return neoschema.TransporterWebTransport
 }
 
 type WSConfig[D any] struct {

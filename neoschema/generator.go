@@ -1,4 +1,4 @@
-package neogen
+package neoschema
 
 type Generator struct {
 	transporters map[string]Transporter
