@@ -12,7 +12,7 @@ import (
 
 type WebTransportAdapter struct {
 	session         *webtransport.Session
-	mutex           *sync.Mutex
+	mutex           sync.Mutex
 	transporterType string
 	eventRegistries []*neoroute.EventRegistry
 	isUnreliable    bool

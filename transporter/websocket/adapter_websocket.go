@@ -12,7 +12,7 @@ import (
 
 type WebSocketAdapter struct {
 	conn            *websocket.Conn
-	mutex           *sync.Mutex
+	mutex           sync.Mutex
 	sendMutex       *sync.Mutex
 	ctx             context.Context
 	transporterType string

@@ -11,7 +11,7 @@ import (
 )
 
 type Counter struct {
-	mutex       *sync.Mutex
+	mutex       sync.Mutex
 	echoCounter int
 	puns        []string
 }
@@ -22,7 +22,7 @@ var CreateNewPunSubmittedEvent = neoroute.Register[NewPunEvent](eventReg, "new_p
 
 func main() {
 	counter := Counter{
-		mutex: &sync.Mutex{},
+		puns: []string{},
 	}
 
 	adapterReg := neoroute.NewAdapterRegistry()

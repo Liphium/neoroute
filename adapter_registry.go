@@ -8,13 +8,12 @@ import (
 )
 
 type AdapterRegistry struct {
-	mutex    *sync.RWMutex
+	mutex    sync.RWMutex
 	adapters map[string]Adapter
 }
 
 func NewAdapterRegistry() *AdapterRegistry {
 	return &AdapterRegistry{
-		mutex:    &sync.RWMutex{},
 		adapters: make(map[string]Adapter),
 	}
 }

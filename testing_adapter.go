@@ -10,8 +10,8 @@ import (
 
 type TestingAdapter struct {
 	eventRegistries []*EventRegistry
-	mutex           *sync.Mutex
-	sendMutex       *sync.Mutex
+	mutex           sync.Mutex
+	sendMutex       sync.Mutex
 	removeFunc      func()
 	closed          bool
 	transporterType string
@@ -29,8 +29,6 @@ func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
 	adapter := &TestingAdapter{
 		transporterType: "TestingAdapter",
 		eventRegistries: eventRegistries,
-		mutex:           &sync.Mutex{},
-		sendMutex:       &sync.Mutex{},
 	}
 	return adapter
 }

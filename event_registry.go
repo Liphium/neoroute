@@ -8,13 +8,12 @@ import (
 )
 
 type EventRegistry struct {
-	mutex            *sync.Mutex
+	mutex            sync.Mutex
 	registeredEvents []string
 }
 
 func NewEventRegistry() *EventRegistry {
 	return &EventRegistry{
-		mutex:            &sync.Mutex{},
 		registeredEvents: []string{},
 	}
 }
