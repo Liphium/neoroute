@@ -64,10 +64,7 @@ func (r *AdapterRegistry) Send(name string, event event) error {
 	if !exists {
 		return fmt.Errorf("adapter with name %s not found", name)
 	}
-	eventBytes, err := messageEvent(event)
-	if err != nil {
-		return fmt.Errorf("marshal event for adapter %s: %v", name, err)
-	}
+	eventBytes := messageEvent(event)
 
 	// Check the event is registered with transporter or exit
 	if ok := adapter.IsEventRegistered(event.Name); !ok {
@@ -95,10 +92,7 @@ func (r *AdapterRegistry) Broadcast(event event) error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, len(adapters))
 
-	eventBytes, err := messageEvent(event)
-	if err != nil {
-		return fmt.Errorf("marshal event for broadcast: %v", err)
-	}
+	eventBytes := messageEvent(event)
 
 	// Send event to all adapters concurrently
 	for _, adapter := range adapters {
