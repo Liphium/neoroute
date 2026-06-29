@@ -59,7 +59,7 @@ func (r *NeoRouter[D]) getRoute() string {
 }
 
 func (r *NeoRouter[D]) getNeos() []*NeoRouter[D] {
-	return []*NeoRouter[D]{r}
+	return append(r.neos, r)
 }
 
 // Handle is called by transporters to handle incoming requests.
