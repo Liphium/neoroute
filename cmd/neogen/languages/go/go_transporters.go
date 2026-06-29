@@ -62,7 +62,7 @@ func GenerateTransporters(schema neoschema.Schema) (map[string]string, error) {
 	return transporterFiles, nil
 }
 
-const eventHandler = `func (c *%s) Handle%s(handler func(event %s)) {
+const eventHandler = `func (c *%s) Receive%s(handler func(event %s)) {
 	fmt.Println("Handling some event!")
 }`
 

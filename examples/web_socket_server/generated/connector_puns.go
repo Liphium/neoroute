@@ -13,7 +13,7 @@ func (c *PunsConnector) Connect() {
 	fmt.Println("Hello, neogen!")
 }
 
-func (c *PunsConnector) HandleNewPunSubmitted(handler func(event NewPunEvent)) {
+func (c *PunsConnector) ReceiveNewPunSubmitted(handler func(event NewPunEvent)) {
 	fmt.Println("Handling some event!")
 }
 
@@ -26,4 +26,3 @@ func (c *PunsConnector) SendSubmitPun(payload SubmitPunRequest) error {
 	fmt.Println("Sending some event!")
 	// TODO: Return
 }
-
