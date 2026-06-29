@@ -4,10 +4,6 @@ import (
 	"strings"
 )
 
-func containsSeparator(route string) bool {
-	return strings.ContainsRune(route, RouteSeparator)
-}
-
 func splitRoute(route string) []string {
 	return strings.Split(route, string(RouteSeparator))
 }
