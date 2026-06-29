@@ -5,123 +5,127 @@ import (
 	"reflect"
 )
 
-type SchemaType string
-
-const NotSupported SchemaType = "-"
-
-var Kinds = map[reflect.Kind]SchemaType{
-
-	// No need to map all of these types to different stuff (for compatability reasons)
-	reflect.Int8:   "int32",
-	reflect.Int16:  "int32",
-	reflect.Int32:  "int32",
-	reflect.Int:    "int32",
-	reflect.Uint:   "int32",
-	reflect.Uint16: "int32",
-	reflect.Uint32: "int32",
-
-	// Big integers should be separate
-	reflect.Uint64: "int64",
-	reflect.Int64:  "int64",
-
-	// Simple types
-	reflect.Array:   "array",
-	reflect.Float32: "float32",
-	reflect.Float64: "float64",
-	reflect.Bool:    "bool",
-	reflect.Uint8:   "byte", // This is a special case because this is often used for bytes in Go (therefore should also be that in another languages, it's just a type alias, but the reflect package does not have it)
-	reflect.String:  "string",
-	reflect.Struct:  "struct",
-
-	// Not supported currently
-	reflect.Chan:       NotSupported,
-	reflect.Complex128: NotSupported,
-	reflect.Complex64:  NotSupported,
-	reflect.Func:       NotSupported,
+func notSupportedError(kind reflect.Kind) error {
+	return fmt.Errorf("the type %s is not supported", kind.String())
 }
 
-type PackedType interface {
-	Type() SchemaType
-}
-
-type BasicType struct {
-	ActualType SchemaType `json:"type"`
-}
-
-func (bt BasicType) Type() SchemaType {
-	return bt.ActualType
-}
-
-type ArrayType struct {
-	BasicType
-
-	Element PackedType `json:"element"`
-}
-
-type StructType struct {
-	BasicType
-
-	Fields map[string]PackedType `json:"fields"`
-}
-
-func notSupportedError(st SchemaType) error {
-	return fmt.Errorf("the type %s is not supported", string(st))
-}
-
+// BuildPackedFor generates a schema from a Golang type using the reflect package.
 func BuildPackedFor(t reflect.Type) (PackedType, error) {
+	generated, err := buildPackedFor(t, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	generated.CleanRegistries(true)
+	return generated, nil
+}
+
+// buildPackedFor is the internal recursive function.
+func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
+	var err error
+	var generated PackedType
 	kind := t.Kind()
 	switch kind {
 	case reflect.Struct:
+
+		// If the struct is already in the registry, use that instead
+		if current != nil && current.ObjectRegistry()[t.Name()] != nil {
+			generated = RegistryType{
+				BasicType: &BasicType{
+					ActualType: TypeReference,
+					Objects:    current.ObjectRegistry(),
+				},
+				Object: t.Name(),
+			}
+			break
+		}
+
+		st := &StructType{
+			Name: t.Name(),
+			BasicType: &BasicType{
+				ActualType: Kinds[kind],
+			},
+			Fields: map[string]PackedType{},
+		}
+		if current != nil && current.ObjectRegistry() != nil {
+			st.BasicType.Objects = current.ObjectRegistry()
+		} else {
+			st.BasicType.Objects = map[string]PackedType{}
+		}
+		st.BasicType.Objects[st.Name] = st
+
 		// Go through all struct fields and build their schemas
-		var err error
-		fields := map[string]PackedType{}
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 
 			msgTag := field.Tag.Get("msg")
+			if msgTag == "-" {
+				continue
+			}
 			if msgTag == "" {
 				msgTag = field.Name
 			}
 
-			fields[msgTag], err = BuildPackedFor(field.Type)
+			st.Fields[msgTag], err = buildPackedFor(field.Type, st)
 			if err != nil {
-				return BasicType{}, err
+				return &BasicType{}, err
 			}
 		}
 
-		return StructType{
-			BasicType: BasicType{
-				ActualType: Kinds[kind],
+		generated = RegistryType{
+			BasicType: &BasicType{
+				ActualType: TypeReference,
+				Objects:    st.Objects,
 			},
-			Fields: fields,
-		}, nil
+			Object: st.Name,
+		}
 
 	case reflect.Array:
 		// Build the type for the array
-		arrayElem, err := BuildPackedFor(t.Elem())
+		arrayElem, err := buildPackedFor(t.Elem(), current)
 		if err != nil {
-			return BasicType{}, err
+			return &BasicType{}, err
 		}
 
-		return ArrayType{
-			BasicType: BasicType{
+		generated = &ArrayType{
+			BasicType: &BasicType{
 				ActualType: Kinds[kind],
 			},
 			Element: arrayElem,
-		}, nil
+		}
 
 	case reflect.Pointer:
 		// With msgp pointers just become the regular type
-		return BuildPackedFor(t.Elem())
+		generated, err = buildPackedFor(t.Elem(), current)
+		if err != nil {
+			return &BasicType{}, err
+		}
 
 	default:
 		st := Kinds[kind]
-		if st == NotSupported {
-			return BasicType{}, notSupportedError(st)
+		if st == TypeNotSupported {
+			return &BasicType{}, notSupportedError(kind)
+		} else if st == "" {
+			generated = &BasicType{
+				ActualType: TypeAny,
+			}
+			break
 		}
 
-		return BasicType{
+		generated = &BasicType{
 			ActualType: Kinds[kind],
-		}, nil
+		}
 	}
+
+	// Fix registry
+	if generated.ObjectRegistry() == nil {
+		if current != nil && current.ObjectRegistry() != nil {
+			generated.SetRegistry(current.ObjectRegistry())
+		} else {
+			generated.SetRegistry(map[string]PackedType{})
+		}
+	}
+
+	// Remove all registries from children
+	return generated, nil
 }

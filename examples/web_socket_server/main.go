@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neogen"
+	"github.com/Liphium/neoroute/neoschema"
 	websocket_transport "github.com/Liphium/neoroute/transporter/websocket"
 )
 
@@ -96,7 +96,7 @@ func main() {
 	t.AddEventRegistry(eventReg)
 
 	// This will print a schema if you pass the --neo-generate flag
-	g := neogen.NewGenerator()
+	g := neoschema.NewGenerator()
 	g.Transporter("puns", t)
 	g.PrintOrPanic()
 

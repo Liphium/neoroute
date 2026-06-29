@@ -1,0 +1,17 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+	{
+		"adapter": "Delve",
+		"label": "go run ./examples/web_socket_server --neo-generate",
+		"request": "launch",
+		"mode": "debug",
+		"program": "./examples/web_socket_server",
+		"cwd": "$ZED_CUSTOM_GO_MODULE_ROOT",
+		"args": ["--neo-generate"],
+		"buildFlags": [],
+		"env": {},
+	},
+]

@@ -21,5 +21,6 @@ type EchoResponse struct {
 
 // Event
 type NewPunEvent struct {
-	Pun string `msg:"pun"`
+	Pun        string       `msg:"pun"`
+	AnotherOne *NewPunEvent `msg:"another_one"`
 }
