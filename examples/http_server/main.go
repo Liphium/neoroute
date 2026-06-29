@@ -1,22 +1,12 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/tls"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
 	"log"
-	"math/big"
-	"net"
 	"net/http"
-	"time"
 
 	"github.com/Liphium/neoroute"
-	"github.com/google/uuid"
-	"github.com/quic-go/quic-go/http3"
+	http_transporter "github.com/Liphium/neoroute/transporter/http"
 )
 
 //go:generate msgp
@@ -37,41 +27,36 @@ type SessionData struct {
 
 func main() {
 
-	// Create HTTP transporter
-	hook, t := neoroute.NewHTTPTransporter(func(r *http.Request) (*neoroute.Session[SessionData], bool) {
-
-		// Create session with randomly generated id for session
-		session := neoroute.NewSession[SessionData](uuid.NewString())
-
-		// Set token if one provided as session data
-		session.SetData(SessionData{
-			Token: r.URL.Query().Get("token"),
-		})
-
-		return session, true
-	})
-
 	// Create router and set it for transporter
 	router := neoroute.NewNeoRouter[SessionData](neoroute.Config{
 		ErrorHandler: func(err error) string {
 			return fmt.Sprintf("error: %v", err)
 		},
 	})
+
+	// Create HTTP transporter
+	hook, _ := http_transporter.NewHTTPTransporter(router, func(r *http.Request) (SessionData, bool) {
+
+		// Set token if one provided as session data
+		return SessionData{
+			Token: r.URL.Query().Get("token"),
+		}, true
+	})
+
 	router2 := neoroute.NewNeoRouter[SessionData](neoroute.Config{
 		ErrorHandler: func(err error) string {
 			return fmt.Sprintf("error: %v", err)
 		},
 	})
-	t.SetRouter(router)
 
 	// Create a router group, any function used with this router will be applied to all neo routes it contains.
 	// This is useful when you want to apply certain groups, routes or middle ware to multiple routers at once.
 	// You could use router2 for example for WebTransport and apply shared routes to both and add the WebTransport specific routes only to router2.
-	rGroup := neoroute.NewRouterGroup(router, router2)
+	rGroup := router.AddRouters(router2)
 
 	// Route: simple.route
 	// Wrap the RouteResponse call with a Use to directly apply a middleware to that route specifically.
-	neoroute.Use(neoroute.RouteResponse(rGroup, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
+	neoroute.Use(neoroute.RouteNoRequest(rGroup, "simple.route", func(c *neoroute.ResCtx[SessionData, Response, *Response]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
 	}), "", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Println("middleware mounted directly on route was used")
@@ -95,7 +80,7 @@ func main() {
 
 	// Create subroute for group1
 	// Route: group1.route1
-	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[Response, SessionData], req Request) error {
+	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[SessionData, Response, *Response], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 1,
@@ -107,7 +92,7 @@ func main() {
 
 	// Create subroute for group2
 	// Route: group1.group2.route1
-	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[Response, SessionData], req Request) error {
+	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[SessionData, Response, *Response], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 2,
@@ -116,60 +101,12 @@ func main() {
 
 	// Create server
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
-		_, _ = w.Write([]byte("hello over HTTP/3\n"))
-	})
 
-	// Hook transporter into /neo route
-	mux.HandleFunc("/neo", hook)
+	// Hook http transporter into / route
+	mux.HandleFunc("/", hook)
 
-	// Load TLS certificate and serve server over HTTP/3
-	cert, err := selfSignedCert()
-	if err != nil {
+	log.Println("listening on http://localhost:6121")
+	if err := http.ListenAndServe(":6121", mux); err != nil {
 		log.Fatal(err)
 	}
-
-	server := &http3.Server{
-		Addr:    ":6121",
-		Handler: mux,
-		TLSConfig: http3.ConfigureTLSConfig(&tls.Config{
-			Certificates: []tls.Certificate{cert},
-		}),
-	}
-
-	log.Println("listening on https://localhost:6121 over HTTP/3")
-	log.Fatal(server.ListenAndServe())
-}
-
-func selfSignedCert() (tls.Certificate, error) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return tls.Certificate{}, err
-	}
-
-	tmpl := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject: pkix.Name{
-			CommonName:   "localhost",
-			Organization: []string{"neoroute"},
-		},
-		NotBefore:             time.Now().Add(-time.Hour),
-		NotAfter:              time.Now().Add(24 * time.Hour),
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
-		DNSNames:              []string{"localhost"},
-		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
-	}
-
-	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
-	if err != nil {
-		return tls.Certificate{}, err
-	}
-
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-
-	return tls.X509KeyPair(certPEM, keyPEM)
 }
