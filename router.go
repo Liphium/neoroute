@@ -49,11 +49,7 @@ func (r *NeoRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.middleware[route] = func(c *Ctx[D]) bool {
-
-			// Run middleware
-			return middleware(c)
-		}
+		neo.middleware[route] = middleware
 	}
 }
 
