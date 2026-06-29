@@ -2,6 +2,7 @@ package neoroute
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -86,6 +87,39 @@ func Test_buildSubroutes(t *testing.T) {
 			got := buildSubroutes(tt.route)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("buildSubroutes() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_splitRoute(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for target function.
+		route string
+		want  []string
+	}{
+		{
+			name:  "split empty route",
+			route: "",
+			want:  []string{""},
+		},
+		{
+			name:  "split single route",
+			route: "single_route",
+			want:  []string{"single_route"},
+		},
+		{
+			name:  "split multiple routes",
+			route: "first_route" + string(RouteSeparator) + "second_route" + string(RouteSeparator) + "third_route",
+			want:  []string{"first_route", "second_route", "third_route"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := splitRoute(tt.route)
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("splitRoute() = %v, want %v", got, tt.want)
 			}
 		})
 	}
