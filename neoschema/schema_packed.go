@@ -30,7 +30,7 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 
 		// If the struct is already in the registry, use that instead
 		if current != nil && current.ObjectRegistry()[t.Name()] != nil {
-			generated = RegistryType{
+			generated = ReferenceType{
 				BasicType: &BasicType{
 					ActualType: TypeReference,
 					Objects:    current.ObjectRegistry(),
@@ -72,7 +72,7 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 			}
 		}
 
-		generated = RegistryType{
+		generated = ReferenceType{
 			BasicType: &BasicType{
 				ActualType: TypeReference,
 				Objects:    st.Objects,

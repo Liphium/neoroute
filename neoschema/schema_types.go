@@ -27,7 +27,7 @@ var Kinds = map[reflect.Kind]SchemaType{
 	reflect.Int8:   TypeInt32,
 	reflect.Int16:  TypeInt32,
 	reflect.Int32:  TypeInt32,
-	reflect.Int:    TypeInt32,
+	reflect.Int:    TypeInt64, // At least 32 bits in size, meaning it could also be 64 bit, so we're doing this for safety
 	reflect.Uint:   TypeInt32,
 	reflect.Uint16: TypeInt32,
 	reflect.Uint32: TypeInt32,
@@ -135,7 +135,7 @@ func (ot *OrType) CleanRegistries(root bool) {
 	ot.BasicType.CleanRegistries(root)
 }
 
-type RegistryType struct {
+type ReferenceType struct {
 	*BasicType
 
 	Object string `json:"object"`
