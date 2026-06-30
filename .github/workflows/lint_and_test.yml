@@ -54,7 +54,7 @@ jobs:
       - name: Generate Go Coverage Badge
         uses: tj-actions/coverage-badge-go@v3
         with:
-          filename: coverage.out
+          filename: c.out
 
       - name: Verify Changed Files
         uses: tj-actions/verify-changed-files@v16
