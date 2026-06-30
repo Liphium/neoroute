@@ -1,0 +1,59 @@
+name: Go Lint and Test
+
+# Triggers the workflow on push or pull request to the main branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-code:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.4'
+          cache: true 
+
+      - name: Lint with release build tag
+        run: go vet ./...
+
+      - name: Formatting check
+        run: test -z "$(find . -path './.cache' -prune -o -name '*.go' -exec gofmt -l {} +)"
+
+  test-code:
+    name: Test Code
+    runs-on: ubuntu-latest
+    needs: lint-code 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+
+      - name: Clean caches
+        run: |
+          rm -f c.out
+          go clean -cache -testcache
+
+      - name: Run tests and generate coverage
+        run: |
+          COVERPKG=$(go list ./... | grep -v "/tests" | paste -sd, -)
+          go test -count=1 -covermode=atomic -coverprofile=c.out -coverpkg="$COVERPKG" ./...
+      
+      - name: Produce Test Coverage Badge
+        uses: vscodedev/gocov-xml-badge@v1
+        with:
+          coverage-file: c.out
+          # This automatically pushes the badge svg to a branch named 'badges'
+          badge-branch: badges
