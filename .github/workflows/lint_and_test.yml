@@ -31,6 +31,8 @@ jobs:
     name: Test Code
     runs-on: ubuntu-latest
     needs: lint-code 
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
