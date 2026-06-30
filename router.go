@@ -2,6 +2,7 @@ package neoroute
 
 import (
 	"errors"
+	"slices"
 )
 
 type Router[D any] interface {
@@ -9,7 +10,7 @@ type Router[D any] interface {
 	AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D]
 	Use(route string, middleware func(c *Ctx[D]) bool)
 	getRoute() string
-	getNeos() []*NeoRouter[D]
+	getNeos(...*NeoRouter[D]) []*NeoRouter[D]
 }
 
 type NeoRouter[D any] struct {
@@ -24,6 +25,7 @@ func NewNeoRouter[D any](config Config) *NeoRouter[D] {
 		routes:     make(map[string]RouteData[D]),
 		middleware: make(map[string]func(c *Ctx[D]) bool),
 		config:     config,
+		neos:       make([]*NeoRouter[D], 0),
 	}
 }
 
@@ -53,11 +55,7 @@ func (r *NeoRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.middleware[route] = func(c *Ctx[D]) bool {
-
-			// Run middleware
-			return middleware(c)
-		}
+		neo.middleware[route] = middleware
 	}
 }
 
@@ -65,8 +63,23 @@ func (r *NeoRouter[D]) getRoute() string {
 	return ""
 }
 
-func (r *NeoRouter[D]) getNeos() []*NeoRouter[D] {
-	return []*NeoRouter[D]{r}
+func (r *NeoRouter[D]) getNeos(collectedRouters ...*NeoRouter[D]) []*NeoRouter[D] {
+	neos := []*NeoRouter[D]{r}
+
+	collectedRouters = append(collectedRouters, r)
+
+	for _, neo := range r.neos {
+		if slices.Contains(collectedRouters, neo) {
+			continue
+		}
+
+		childNeos := neo.getNeos(collectedRouters...)
+
+		neos = append(neos, childNeos...)
+
+		collectedRouters = append(collectedRouters, childNeos...)
+	}
+	return neos
 }
 
 // Handle is called by transporters to handle incoming requests.

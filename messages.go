@@ -16,12 +16,13 @@ type message struct {
 	Data []byte `msg:"data"`
 }
 
-func messageEvent(event event) ([]byte, error) {
+func messageEvent(event event) []byte {
 
 	// Marshal event data
 	eventData, err := event.MarshalMsg(nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal event data: %v", err)
+		// This should never happen. If this fails for you please open a bug report on our github.
+		panic(fmt.Sprintf("failed to marshal event data: %v, This should never happen. If this fails for you please open a bug report on our github.", err))
 	}
 
 	msg := message{
@@ -31,10 +32,11 @@ func messageEvent(event event) ([]byte, error) {
 
 	msgBytes, err := msg.MarshalMsg(nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal message: %v", err)
+		// This should never happen. If this fails for you please open a bug report on our github.
+		panic(fmt.Sprintf("failed to marshal event message: %v, This should never happen. If this fails for you please open a bug report on our github.", err))
 	}
 
-	return msgBytes, nil
+	return msgBytes
 }
 
 func messageResponse(resp response) []byte {
@@ -43,7 +45,7 @@ func messageResponse(resp response) []byte {
 	respData, err := resp.MarshalMsg(nil)
 	if err != nil {
 		// This should never happen. If this fails for you please open a bug report on our github.
-		panic(fmt.Sprintf("failed to marshal response: %v", err))
+		panic(fmt.Sprintf("failed to marshal response: %v, This should never happen. If this fails for you please open a bug report on our github.", err))
 	}
 
 	msg := message{
@@ -55,7 +57,7 @@ func messageResponse(resp response) []byte {
 	if err != nil {
 
 		// This should never happen. If this fails for you please open a bug report on our github.
-		panic(fmt.Sprintf("failed to marshal response message: %v", err))
+		panic(fmt.Sprintf("failed to marshal response message: %v, This should never happen. If this fails for you please open a bug report on our github.", err))
 	}
 
 	return msgBytes

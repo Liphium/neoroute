@@ -29,6 +29,6 @@ func (r *RouteRouter[D]) getRoute() string {
 	return r.route
 }
 
-func (r *RouteRouter[D]) getNeos() []*NeoRouter[D] {
+func (r *RouteRouter[D]) getNeos(_ ...*NeoRouter[D]) []*NeoRouter[D] {
 	return r.neos
 }

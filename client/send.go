@@ -13,18 +13,18 @@ func Send[RS any, RSP interface {
 }, RQ any, RQP interface {
 	*RQ
 	msgp.Marshaler
-}](r Sender, route string, req RQ) (RS, string, error) {
+}](r Sender, route string, req RQ) (RS, error) {
 
 	var resp RS
 
 	reqBytes, err := marshalRequestData[RQ, RQP](req)
 	if err != nil {
-		return resp, "", err
+		return resp, err
 	}
 
 	respChan, reqId, err := r.sendRequest(route, reqBytes, true)
 	if err != nil {
-		return resp, "", err
+		return resp, err
 	}
 
 	// Wait for time out duration for a response and remove chan after
@@ -33,15 +33,15 @@ func Send[RS any, RSP interface {
 		r.removeResponseWaiter(reqId)
 
 		if res.IsError {
-			return resp, string(res.Data), nil
+			return resp, NewUserError(string(res.Data))
 		}
 
 		resp, err = unmarshalResponseData[RS, RSP](r, res.Data)
-		return resp, "", err
+		return resp, err
 
 	case <-time.After(r.getConfig().RequestTimeout):
 		r.removeResponseWaiter(reqId)
-		return resp, "", fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
+		return resp, fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
 	}
 
 }
@@ -49,16 +49,16 @@ func Send[RS any, RSP interface {
 func SendOk[RQ any, RQP interface {
 	*RQ
 	msgp.Marshaler
-}](r Sender, route string, req RQ) (string, error) {
+}](r Sender, route string, req RQ) error {
 
 	reqBytes, err := marshalRequestData[RQ, RQP](req)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	respChan, reqId, err := r.sendRequest(route, reqBytes, true)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Wait fpr time out duration for a response and remove chan after
@@ -67,23 +67,23 @@ func SendOk[RQ any, RQP interface {
 		r.removeResponseWaiter(reqId)
 
 		if res.IsError {
-			return string(res.Data), nil
+			return NewUserError(string(res.Data))
 		}
 
-		return "", nil
+		return nil
 
 	case <-time.After(r.getConfig().RequestTimeout):
 		r.removeResponseWaiter(reqId)
-		return "", fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
+		return fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
 	}
 
 }
 
-func SendOkNoRequest(r Sender, route string) (string, error) {
+func SendOkNoRequest(r Sender, route string) error {
 
 	respChan, reqId, err := r.sendRequest(route, []byte{}, true)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Wait fpr time out duration for a response and remove chan after
@@ -92,14 +92,14 @@ func SendOkNoRequest(r Sender, route string) (string, error) {
 		r.removeResponseWaiter(reqId)
 
 		if res.IsError {
-			return string(res.Data), nil
+			return NewUserError(string(res.Data))
 		}
 
-		return "", nil
+		return nil
 
 	case <-time.After(r.getConfig().RequestTimeout):
 		r.removeResponseWaiter(reqId)
-		return "", fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
+		return fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
 	}
 
 }
@@ -107,13 +107,13 @@ func SendOkNoRequest(r Sender, route string) (string, error) {
 func SendNoRequest[RS any, RSP interface {
 	*RS
 	msgp.Unmarshaler
-}](r Sender, route string) (RS, string, error) {
+}](r Sender, route string) (RS, error) {
 
 	var resp RS
 
 	respChan, reqId, err := r.sendRequest(route, []byte{}, true)
 	if err != nil {
-		return resp, "", err
+		return resp, err
 	}
 
 	// Wait fpr time out duration for a response and remove chan after
@@ -122,17 +122,16 @@ func SendNoRequest[RS any, RSP interface {
 		r.removeResponseWaiter(reqId)
 
 		if res.IsError {
-			return resp, string(res.Data), nil
+			return resp, NewUserError(string(res.Data))
 		}
 
 		resp, err = unmarshalResponseData[RS, RSP](r, res.Data)
-		return resp, "", err
+		return resp, err
 
 	case <-time.After(r.getConfig().RequestTimeout):
 		r.removeResponseWaiter(reqId)
-		return resp, "", fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
+		return resp, fmt.Errorf("waiting for response timed out after %v", r.getConfig().RequestTimeout)
 	}
-
 }
 
 func SendNoResponse[RQ any, RQP interface {

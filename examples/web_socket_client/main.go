@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Liphium/neoroute/client"
-	"github.com/Liphium/neoroute/client/transporter"
+	"github.com/Liphium/neoroute/client/transporter/websocket"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 
 	registerReceiver(r)
 
-	t := transporter.NewWebSocketTransporter(r)
+	t := websocket.NewWebSocketTransporter(r)
 
 	u, err := url.Parse("ws://localhost:6121/")
 	if err != nil {

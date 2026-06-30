@@ -32,6 +32,6 @@ func (m *Group[D]) getRoute() string {
 	return m.parent.getRoute() + string(RouteSeparator) + m.prefix
 }
 
-func (m *Group[D]) getNeos() []*NeoRouter[D] {
+func (m *Group[D]) getNeos(_ ...*NeoRouter[D]) []*NeoRouter[D] {
 	return m.neos
 }

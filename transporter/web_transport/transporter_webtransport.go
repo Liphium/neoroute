@@ -19,7 +19,7 @@ type Transporter[D any] struct {
 	eventRegistriesReliable   []*neoroute.EventRegistry
 	router                    *neoroute.NeoRouter[D]
 	config                    Config[D]
-	mutex                     *sync.Mutex
+	mutex                     sync.Mutex
 	sessions                  map[string]*wttSession[D]
 }
 
@@ -54,7 +54,7 @@ type Config[D any] struct {
 }
 
 type wttSession[D any] struct {
-	mutex     *sync.Mutex
+	mutex     sync.Mutex
 	wtSession *webtransport.Session
 	session   *neoroute.Session[D]
 }
@@ -64,7 +64,6 @@ func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config Con
 		router:                    router,
 		config:                    config,
 		sessions:                  make(map[string]*wttSession[D]),
-		mutex:                     &sync.Mutex{},
 		eventRegistriesReliable:   []*neoroute.EventRegistry{},
 		eventRegistriesUnreliable: []*neoroute.EventRegistry{},
 	}
@@ -133,7 +132,6 @@ func (t *Transporter[D]) addSession(sessionData D, transportSession *webtranspor
 
 	// Create new session entry
 	session := &wttSession[D]{
-		mutex:     &sync.Mutex{},
 		wtSession: transportSession,
 		session:   userSession,
 	}
@@ -184,7 +182,6 @@ func (t *Transporter[D]) newAdapter(id string, unreliable bool) (neoroute.Adapte
 		transporterType: transporterType,
 		eventRegistries: eventRegistries,
 		session:         wtSession,
-		mutex:           &sync.Mutex{},
 		isUnreliable:    unreliable,
 	}
 	go adapter.waitClosed()

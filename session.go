@@ -5,7 +5,7 @@ import (
 )
 
 type Session[D any] struct {
-	mutex       *sync.Mutex
+	mutex       sync.Mutex
 	id          string
 	sessionData D
 }
@@ -14,7 +14,6 @@ type Session[D any] struct {
 // ONLY USE THIS FUNCTION IF YOU ARE IMPLEMENTING A TRANSPORTER.
 func NewSession[D any](id string, data D) *Session[D] {
 	return &Session[D]{
-		mutex:       &sync.Mutex{},
 		sessionData: data,
 		id:          id,
 	}

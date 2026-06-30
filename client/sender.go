@@ -19,7 +19,7 @@ type Sender interface {
 }
 
 type sender struct {
-	mutex     *sync.Mutex
+	mutex     sync.Mutex
 	config    Config
 	sendFunc  func(data []byte) error
 	requestId int
@@ -34,7 +34,6 @@ func NewSender(config Config) Sender {
 		config.RequestTimeout = 5 * time.Second
 	}
 	return &sender{
-		mutex:     &sync.Mutex{},
 		config:    config,
 		requestId: 0,
 		waiters:   make(map[int]chan response),
@@ -164,7 +163,7 @@ func (s *sender) sendRequest(route string, reqData []byte, wantResponse bool) (c
 	return respChan, reqId, sendFunc(reqBytes)
 }
 
-func (s sender) getConfig() Config {
+func (s *sender) getConfig() Config {
 	return s.config
 }
 

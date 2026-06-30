@@ -47,19 +47,18 @@ func GetTestingResponse[RQ any, PQ interface {
 	*RQ
 	msgp.Unmarshaler
 }](err error) (RQ, string, error) {
-	var respErr responseData
 	var resp RQ
-	if errors.As(err, &respErr) {
-		if respErr.IsError {
-			return resp, string(respErr.Data), nil
+	if respData, ok := errors.AsType[*responseData](err); ok {
+		if respData.IsError {
+			return resp, string(respData.Data), nil
 		}
-		if !respErr.HasData {
+		if !respData.HasData {
 			return resp, "", fmt.Errorf("response has no data")
 		}
 
 		// Unmarshal response data into struct
 		unmarshaler := any(&resp).(msgp.Unmarshaler)
-		_, err := unmarshaler.UnmarshalMsg(respErr.Data)
+		_, err := unmarshaler.UnmarshalMsg(respData.Data)
 		if err != nil {
 			return resp, "", fmt.Errorf("failed to unmarshal response data: %v", err)
 		}
@@ -75,13 +74,12 @@ func GetTestingResponse[RQ any, PQ interface {
 // GetTestingResponseOk return the error message or an error from the handler or
 // an error from the handler or an error if the response is not correct.
 func GetTestingResponseOk(err error) (string, error) {
-	var respErr responseData
 
-	if errors.As(err, &respErr) {
-		if respErr.IsError {
-			return string(respErr.Data), nil
+	if respData, ok := errors.AsType[*responseData](err); ok {
+		if respData.IsError {
+			return string(respData.Data), nil
 		}
-		if respErr.HasData {
+		if respData.HasData {
 			return "", fmt.Errorf("ok response without error should not have any data")
 		}
 		return "", nil

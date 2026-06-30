@@ -21,7 +21,7 @@ type WebSocketTransporter[D any] struct {
 	eventRegistries []*neoroute.EventRegistry
 	router          *neoroute.NeoRouter[D]
 	config          WSConfig[D]
-	mutex           *sync.Mutex
+	mutex           sync.Mutex
 	sessions        map[string]*wsSession[D]
 }
 
@@ -50,7 +50,7 @@ type WSConfig[D any] struct {
 }
 
 type wsSession[D any] struct {
-	mutex     *sync.Mutex
+	mutex     sync.Mutex
 	sendMutex *sync.Mutex
 	ctx       context.Context
 	cancel    context.CancelFunc
@@ -63,7 +63,6 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		router:          router,
 		config:          config,
 		sessions:        make(map[string]*wsSession[D]),
-		mutex:           &sync.Mutex{},
 		eventRegistries: []*neoroute.EventRegistry{},
 	}
 
@@ -127,7 +126,6 @@ func (t *WebSocketTransporter[D]) addSession(sessionData D, conn *websocket.Conn
 
 	// Create new session entry
 	session := &wsSession[D]{
-		mutex:     &sync.Mutex{},
 		conn:      conn,
 		session:   userSession,
 		ctx:       ctx,
@@ -165,7 +163,6 @@ func (t *WebSocketTransporter[D]) Adapt(session *neoroute.Session[D]) (neoroute.
 		transporterType: "WebSocket",
 		eventRegistries: t.eventRegistries,
 		conn:            conn,
-		mutex:           &sync.Mutex{},
 		sendMutex:       sendMutex,
 		ctx:             ctx,
 	}

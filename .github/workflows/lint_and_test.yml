@@ -1,0 +1,74 @@
+name: Go Lint and Test
+
+# Triggers the workflow on push or pull request to the main branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-code:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.4'
+          cache: true 
+
+      - name: Lint with release build tag
+        run: go vet ./...
+
+      - name: Formatting check
+        run: test -z "$(find . -path './.cache' -prune -o -name '*.go' -exec gofmt -l {} +)"
+
+  test-code:
+    name: Test Code
+    runs-on: ubuntu-latest
+    needs: lint-code 
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.6'
+          cache: true
+
+      - name: Clean caches
+        run: |
+          rm -f c.out
+          go clean -cache -testcache
+
+      - name: Run tests and generate coverage
+        run: |
+          COVERPKG=$(go list ./... | grep -v "/tests" | grep -v "examples" | paste -sd, -)
+          go test -count=1 -covermode=atomic -coverprofile=c.out -coverpkg="$COVERPKG" ./...
+      
+      - name: Generate Go Coverage Badge
+        uses: tj-actions/coverage-badge-go@v3
+        with:
+          filename: c.out
+
+      - name: Verify Changed Files
+        uses: tj-actions/verify-changed-files@v16
+        id: verify-changed-files
+        with:
+          files: README.md # The action updates the README or badge file dynamically
+
+      - name: Commit and Push Badge Changes
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git commit -m "docs: update test coverage badge [skip ci]"
+          git push
