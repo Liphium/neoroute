@@ -56,9 +56,9 @@ func main() {
 
 	// Route: simple.route
 	// Wrap the RouteResponse call with a Use to directly apply a middleware to that route specifically.
-	neoroute.Use(neoroute.RouteNoRequest(rGroup, "simple.route", func(c *neoroute.ResCtx[SessionData, Response, *Response]) error {
+	neoroute.RouteNoRequest(rGroup, "simple.route", func(c *neoroute.ResCtx[SessionData, Response, *Response]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
-	}), "", func(c *neoroute.Ctx[SessionData]) bool {
+	}).Use("", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Println("middleware mounted directly on route was used")
 		return true
 	})
@@ -69,7 +69,7 @@ func main() {
 	// Apply auth middleware to group1
 	// If the token provided in the handshake is not `secret_token` this wont let the user continue.
 	// Now only simple.route can be accessed without a token.
-	neoroute.Use(group1, "", func(c *neoroute.Ctx[SessionData]) bool {
+	group1.Use("", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Printf("middleware for group1 used with route %v by userId %v\n", c.Route(), c.Session().Id())
 		fmt.Printf("session data: %+v\n", c.Session().Data().Token)
 		if c.Session().Data().Token == "" {
