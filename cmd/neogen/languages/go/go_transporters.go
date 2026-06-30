@@ -3,6 +3,7 @@ package go_gen
 import (
 	"fmt"
 	"strings"
+	"text/template"
 
 	"github.com/Liphium/neoroute/cmd/neogen/util"
 	"github.com/Liphium/neoroute/neoschema"
@@ -41,23 +42,32 @@ func GenerateTransporters(schema neoschema.Schema) (map[string]string, error) {
 	return transporterFiles, nil
 }
 
-const eventHandler = `func (c *%s) Receive%s(handler func(event %s)) {
-	fmt.Println("Handling some event!")
-}`
+var eventHandler = template.Must(template.New("").Parse(`func (c *{{ .transporterName }}) Receive{{ .eventCamelCase }}(handler func(event {{ .eventType }})) {
+	client.Receive[{{ .eventType }}, *{{ .eventType }}](c.{{ .receiver }}, "{{ .event }}", func(c *client.Ctx, event {{ .eventType }}) {
+		handler(event)
+	})
+}`))
 
-func GenerateEvent(transporterName, event string, packed neoschema.PackedType) (string, error) {
+func GenerateEvent(transporterName, receiverName, event string, packed neoschema.PackedType) (string, error) {
 	eventType, err := GetType("", packed)
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf(eventHandler, transporterName, util.ToCamelCase(event, true), eventType), nil
+	result := strings.Builder{}
+	eventHandler.Execute(&result, map[string]string{
+		"transporterName": transporterName,
+		"receiver":        receiverName,
+		"eventCamelCase":  util.ToCamelCase(event, true),
+		"eventType":       eventType,
+		"event":           event,
+	})
+	return result.String(), nil
 }
 
-const routeCaller = `func (c *%s) Send%s(%s) %s {
-	fmt.Println("Sending some event!")
-	// TODO: Return
-}`
+var routeCaller = template.Must(template.New("").Parse(`func (c *{{ .transporterName }}) Send{{ .routeName }}({{ .requestType }}) /* {{ .responseType }} */ {
+	// TODO: Implement
+}`))
 
 func GenerateRoutes(transporterName, name string, schema neoschema.RouteSchema) (string, error) {
 	var requestType, responseType string = "", ""
@@ -81,5 +91,12 @@ func GenerateRoutes(transporterName, name string, schema neoschema.RouteSchema) 
 		responseType = "error"
 	}
 
-	return fmt.Sprintf(routeCaller, transporterName, util.ToCamelCase(name, true), requestType, responseType), nil
+	builder := strings.Builder{}
+	routeCaller.Execute(&builder, map[string]string{
+		"transporterName": transporterName,
+		"routeName":       util.ToCamelCase(name, true),
+		"requestType":     requestType,
+		"responseType":    responseType,
+	})
+	return builder.String(), nil
 }

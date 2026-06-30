@@ -13,14 +13,23 @@ import (
 var webSocketStart = template.Must(template.New("start").Parse(`{{ .generationLine }}
 package {{ .packageName }}
 
-type {{ .transporterName }} struct{}
+import (
+	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/transporter/websocket"
+)
 
-func New{{ .transporterName }}() *{{ .transporterName }} {
-	return &{{ .transporterName }}{}
+type {{ .transporterName }} struct {
+	*websocket.WebSocketTransporter
+	receiver    *client.Receiver
 }
 
-func (c *{{ .transporterName }}) SetURL() {
-	fmt.Println("Hello, neogen!")
+func New{{ .transporterName }}(config client.Config) *{{ .transporterName }} {
+	r := client.NewReceiver(config)
+
+	return &{{ .transporterName }}{
+		WebSocketTransporter: websocket.NewWebSocketTransporter(r),
+		receiver:    r,
+	}
 }
 
 `))
@@ -38,7 +47,7 @@ func GenerateWebSocketTransporter(name string, genLine string, transporter neosc
 
 	// Generate the stuff for all the events
 	for event, packed := range transporter.Events {
-		generated, err := GenerateEvent(transporterName, event, packed)
+		generated, err := GenerateEvent(transporterName, "receiver", event, packed)
 		if err != nil {
 			return file, fmt.Errorf("Couldn't generate event %s: %v", name, err)
 		}

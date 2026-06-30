@@ -1,27 +1,35 @@
+// Code generated with neogen-generated v1 schema by neogen. DO NOT EDIT.
 package main
 
-import "fmt"
+import (
+	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/transporter/websocket"
+)
 
-type PunsConnector struct{}
-
-func NewPunsConnector() *PunsConnector {
-	return &PunsConnector{}
+type PunsConnector struct {
+	*websocket.WebSocketTransporter
+	receiver *client.Receiver
 }
 
-func (c *PunsConnector) SetURL() {
-	fmt.Println("Hello, neogen!")
+func NewPunsConnector(config client.Config) *PunsConnector {
+	r := client.NewReceiver(config)
+
+	return &PunsConnector{
+		WebSocketTransporter: websocket.NewWebSocketTransporter(r),
+		receiver:             r,
+	}
 }
 
 func (c *PunsConnector) ReceiveNewPunSubmitted(handler func(event NewPunEvent)) {
-	fmt.Println("Handling some event!")
+	client.Receive[NewPunEvent, *NewPunEvent](c.receiver, "new_pun_submitted", func(c *client.Ctx, event NewPunEvent) {
+		handler(event)
+	})
 }
 
-func (c *PunsConnector) SendEcho(payload EchoRequest) (EchoResponse, error) {
-	fmt.Println("Sending some event!")
-	// TODO: Return
+func (c *PunsConnector) SendEcho(payload EchoRequest) /* (EchoResponse, error) */ {
+	// TODO: Implement
 }
 
-func (c *PunsConnector) SendSubmitPun(payload SubmitPunRequest) error {
-	fmt.Println("Sending some event!")
-	// TODO: Return
+func (c *PunsConnector) SendSubmitPun(payload SubmitPunRequest) /* error */ {
+	// TODO: Implement
 }

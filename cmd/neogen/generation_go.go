@@ -30,6 +30,12 @@ func GenerateGo() {
 	// Generate object and transporters
 	goObjectFile(schema)
 	goTransporters(schema)
+
+	// Run the go formatter to make sure it's all nice and clean
+	cmd = exec.Command("go", "fmt", ".")
+	if err := cmd.Run(); err != nil {
+		panic(fmt.Errorf("couldn't fmt: %v", err))
+	}
 }
 
 func goObjectFile(schema neoschema.Schema) {
@@ -69,6 +75,14 @@ package ` + os.Getenv("GOPACKAGE") + `
 
 	if err := os.WriteFile(fileName, []byte(code), os.ModePerm); err != nil {
 		panic(fmt.Errorf("couldn't write objects file: %v", err))
+	}
+
+	// Run message pack generation
+	cmd := exec.Command("msgp")
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "GOFILE="+fileName)
+	if err := cmd.Run(); err != nil {
+		panic(fmt.Errorf("couldn't run message pack: %v", err))
 	}
 }
 

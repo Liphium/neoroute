@@ -28,16 +28,6 @@ func GenerateHTTPTransporter(name string, genLine string, transporter neoschema.
 
 	file := fmt.Sprintf(httpStart, genLine, os.Getenv("GOPACKAGE"), transporterName, transporterName, transporterName, transporterName, transporterName)
 
-	// Generate the stuff for all the events
-	for event, packed := range transporter.Events {
-		generated, err := GenerateEvent(transporterName, event, packed)
-		if err != nil {
-			return file, fmt.Errorf("Couldn't generate event %s: %v", name, err)
-		}
-
-		file += generated + "\n\n"
-	}
-
 	// Generate the stuff for all route schemas
 	for name, schema := range transporter.Routes {
 		generated, err := GenerateRoutes(transporterName, name, schema)

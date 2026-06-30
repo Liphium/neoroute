@@ -2,7 +2,7 @@
 package main
 
 type NewPunEvent struct {
-	Pun string `msg:"pun"`
+	Pun        string       `msg:"pun"`
 	AnotherOne *NewPunEvent `msg:"another_one"`
 }
 
@@ -11,8 +11,8 @@ type EchoRequest struct {
 }
 
 type EchoResponse struct {
-	Message string `msg:"message"`
-	RequestNumber int64 `msg:"requestNumber"`
+	Message       string `msg:"message"`
+	RequestNumber int64  `msg:"requestNumber"`
 }
 
 type SubmitPunRequest struct {
