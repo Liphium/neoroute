@@ -2,7 +2,6 @@ package go_gen
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/Liphium/neoroute/cmd/neogen/util"
@@ -13,50 +12,30 @@ func GenerationLine(schema neoschema.Schema) string {
 	return fmt.Sprintf("// Code generated with %s-generated v%d schema by neogen. DO NOT EDIT.", schema.Generator, schema.Version)
 }
 
-const transporterStart = `%s
-package %s
-
-import "fmt"
-
-type %s struct{}
-
-func New%s() *%s {
-	return &%s{}
-}
-
-func (c *%s) Connect() {
-	fmt.Println("Hello, neogen!")
-}
-
-`
-
 func GenerateTransporters(schema neoschema.Schema) (map[string]string, error) {
 	transporterFiles := map[string]string{}
 	for name, transporter := range schema.Transporters {
-		transporterName := util.ToCamelCase(name+".Connector", true)
-		file := fmt.Sprintf(transporterStart, GenerationLine(schema), os.Getenv("GOPACKAGE"), transporterName, transporterName, transporterName, transporterName, transporterName)
+		var err error
+		var generated string
 
-		// Generate the stuff for all the events
-		for event, packed := range transporter.Events {
-			generated, err := GenerateEvent(transporterName, event, packed)
+		switch transporter.Type {
+		case neoschema.TransporterHTTP:
+			generated, err = GenerateHTTPTransporter(name, GenerationLine(schema), transporter)
 			if err != nil {
-				return transporterFiles, fmt.Errorf("Couldn't generate event %s: %v", name, err)
+				return transporterFiles, fmt.Errorf("Couldn't generate HTTP transporter %s: %v", name, err)
 			}
 
-			file += generated + "\n\n"
-		}
-
-		// Generate the stuff for all route schemas
-		for name, schema := range transporter.Routes {
-			generated, err := GenerateRoutes(transporterName, name, schema)
+		case neoschema.TransporterWebSocket:
+			generated, err = GenerateWebSocketTransporter(name, GenerationLine(schema), transporter)
 			if err != nil {
-				return transporterFiles, fmt.Errorf("Couldn't generate route %s: %v", name, err)
+				return transporterFiles, fmt.Errorf("Couldn't generate WebSocket transporter %s: %v", name, err)
 			}
 
-			file += generated + "\n\n"
+		case neoschema.TransporterWebTransport:
+			return transporterFiles, fmt.Errorf("WebTransport is not yet supported for Go")
 		}
 
-		transporterFiles["connector_"+strings.ToLower(name)+".go"] = file
+		transporterFiles["connector_"+strings.ToLower(name)+".go"] = generated
 	}
 
 	return transporterFiles, nil

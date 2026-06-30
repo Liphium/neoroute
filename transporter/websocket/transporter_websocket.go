@@ -37,7 +37,7 @@ func (t *WebSocketTransporter[D]) GetSchema() map[string]neoschema.RequestRespon
 
 // Type implements neoschema.Transporter.
 func (t *WebSocketTransporter[D]) Type() int {
-	return neoschema.TransporterWebTransport
+	return neoschema.TransporterWebSocket
 }
 
 type WSConfig[D any] struct {

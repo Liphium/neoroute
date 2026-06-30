@@ -1,4 +1,3 @@
-// Code generated with neogen-generated v1 schema by neogen. DO NOT EDIT.
 package main
 
 import "fmt"
@@ -9,7 +8,7 @@ func NewPunsConnector() *PunsConnector {
 	return &PunsConnector{}
 }
 
-func (c *PunsConnector) Connect() {
+func (c *PunsConnector) SetURL() {
 	fmt.Println("Hello, neogen!")
 }
 

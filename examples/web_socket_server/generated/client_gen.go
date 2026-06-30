@@ -2,8 +2,8 @@
 package main
 
 type NewPunEvent struct {
-	AnotherOne *NewPunEvent `msg:"another_one"`
 	Pun string `msg:"pun"`
+	AnotherOne *NewPunEvent `msg:"another_one"`
 }
 
 type EchoRequest struct {
