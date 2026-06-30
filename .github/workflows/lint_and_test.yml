@@ -50,7 +50,7 @@ jobs:
 
       - name: Run tests and generate coverage
         run: |
-          COVERPKG=$(go list ./... | grep -v "/tests" | paste -sd, -)
+          COVERPKG=$(go list ./... | grep -v "/tests" | grep -v "examples" | paste -sd, -)
           go test -count=1 -covermode=atomic -coverprofile=c.out -coverpkg="$COVERPKG" ./...
       
       - name: Generate Go Coverage Badge
