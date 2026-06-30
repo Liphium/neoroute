@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/Liphium/neoroute/compare/client-v0.4.0...client/v0.5.0) (2026-06-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* **client:** return only one error instead of an user error string and  an error and use a custom error for user errors instead
+
+### Features
+
+* **client:** return only one error instead of an user error string and  an error and use a custom error for user errors instead ([5e76825](https://github.com/Liphium/neoroute/commit/5e76825a63e5a21df34bd93289f5ec71cbf81404))
+
 ## [0.4.0](https://github.com/Liphium/neoroute/compare/client-v0.3.0...client-v0.4.0) (2026-06-27)
 
 

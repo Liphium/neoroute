@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0](https://github.com/Liphium/neoroute/compare/v0.3.1...v0.4.0) (2026-06-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* **neogate:** change messageEvent to panic instead of returning an error, as the error should never occur
+
+### Features
+
+* **neoroute:** remove Use function as use is implemented on each router ([bfafc73](https://github.com/Liphium/neoroute/commit/bfafc735c9dfeb523f02ab81e118d95f1607b740))
+
+
+### Bug Fixes
+
+* **neoroute:** actually initialize neos slice to avoid nil pointer ([bff3e79](https://github.com/Liphium/neoroute/commit/bff3e79048fb0cc45acd410db117c7e5f53700dd))
+* **neoroute:** return self as well when getNeos is called on NeoRouter ([a6c8863](https://github.com/Liphium/neoroute/commit/a6c886352af34531b724a070005015767031f3e4))
+* **neoroute:** the getNeos now return all neos even of sub neos ([cc9e839](https://github.com/Liphium/neoroute/commit/cc9e8392eea70e3d71ff67a9597b9fd902936820))
+
+
+### Code Refactoring
+
+* **neogate:** change messageEvent to panic instead of returning an error, as the error should never occur ([a553392](https://github.com/Liphium/neoroute/commit/a55339242954191544b267bc0e987588f48838ee))
+
 ## [0.3.1](https://github.com/Liphium/neoroute/compare/v0.3.0...v0.3.1) (2026-06-27)
 
 
