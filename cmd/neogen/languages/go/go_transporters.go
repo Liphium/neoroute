@@ -65,38 +65,66 @@ func GenerateEvent(transporterName, receiverName, event string, packed neoschema
 	return result.String(), nil
 }
 
-var routeCaller = template.Must(template.New("").Parse(`func (c *{{ .transporterName }}) Send{{ .routeName }}({{ .requestType }}) /* {{ .responseType }} */ {
-	// TODO: Implement
+var routeCaller = template.Must(template.New("").Parse(`func (c *{{ .transporterName }}) Send{{ .routeCamelCase }}({{ .requestType }}) {{ .responseType }} {
+	{{ if eq .sendType .const.SendRequestResponse }}
+
+	return client.Send[{{ .responseStruct }}]({{ .receiverName }}, "{{ .route }}", payload)
+
+	{{ else if eq .sendType .const.SendOK }}
+
+	return client.SendOk({{ .receiverName }}, "{{ .route }}", payload)
+
+	{{ else if eq .sendType .const.SendOKNoRequest }}
+
+	return client.SendOkNoRequest({{ .receiverName }}, "{{ .route }}")
+
+	{{ else if eq .sendType .const.SendNoRequest }}
+
+	return client.SendNoRequest[{{ .responseStruct }}](r, "{{ .route }}")
+
+	{{ else if eq .sendType .const.SendNoResponse }}
+
+	return client.SendNoResponse({{ .receiverName }}, "{{ .route }}", payload)
+
+	{{ else if eq .sendType .const.SendSignal }}
+
+	return client.SendNoop({{ .receiverName }}, "{{ .route }}")
+
+	{{ end }}
 }`))
 
-func GenerateRoutes(transporterName, name string, schema neoschema.RouteSchema) (string, error) {
-	var requestType, responseType string = "", ""
+func GenerateRoutes(transporterName, receiverName, name string, schema neoschema.RouteSchema) (string, error) {
+	var requestType, requestStruct, responseType, responseStruct string = "", "", "error", ""
 	var err error
+
 	if schema.HasRequest {
-		requestType, err = GetType("", schema.Request)
+		requestStruct, err = GetType("", schema.Request)
 		if err != nil {
 			return "", fmt.Errorf("couldn't generate request type: %v", err)
 		}
-		requestType = "payload " + requestType
+		requestType = "payload " + requestStruct
 	}
 
 	if schema.HasResponse {
-		responseType, err = GetType("", schema.Response)
+		responseStruct, err = GetType("", schema.Response)
 		if err != nil {
 			return "", fmt.Errorf("couldn't generate response type: %v", err)
 		}
-		responseType = "(" + responseType + ", error)"
-	}
-	if schema.CanReturnError && responseType == "" {
-		responseType = "error"
+		responseType = "(" + responseStruct + ", error)"
 	}
 
 	builder := strings.Builder{}
-	routeCaller.Execute(&builder, map[string]string{
+	routeCaller.Execute(&builder, map[string]any{
+		"receiverName":    receiverName,
 		"transporterName": transporterName,
-		"routeName":       util.ToCamelCase(name, true),
+		"route":           name,
+		"routeCamelCase":  util.ToCamelCase(name, true),
 		"requestType":     requestType,
+		"requestStruct":   requestStruct,
 		"responseType":    responseType,
+		"responseStruct":  responseStruct,
+		"sendType":        schema.GetSendType(),
+		"const":           neoschema.SendTypeMap(),
 	})
 	return builder.String(), nil
 }

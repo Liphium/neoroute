@@ -26,10 +26,14 @@ func (c *PunsConnector) ReceiveNewPunSubmitted(handler func(event NewPunEvent)) 
 	})
 }
 
-func (c *PunsConnector) SendEcho(payload EchoRequest) /* (EchoResponse, error) */ {
-	// TODO: Implement
+func (c *PunsConnector) SendEcho(payload EchoRequest) (EchoResponse, error) {
+
+	return client.Send[EchoResponse](c.receiver, "echo", payload)
+
 }
 
-func (c *PunsConnector) SendSubmitPun(payload SubmitPunRequest) /* error */ {
-	// TODO: Implement
+func (c *PunsConnector) SendSubmitPun(payload SubmitPunRequest) error {
+
+	return client.SendOk(c.receiver, "submit_pun", payload)
+
 }

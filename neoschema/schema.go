@@ -39,6 +39,47 @@ type RouteSchema struct {
 	Response       PackedType `json:"response"`
 }
 
+type SendType int
+
+const (
+	SendRequestResponse SendType = iota // Has a typed request and response, so the client can send a request and get back a typed response or an error
+	SendOK                              // Typed request with the possibility to get back an error, but no typed response
+	SendOKNoRequest                     // Same as SendNoRequest, but can only get back an error
+	SendNoRequest                       // Has no typed request, just sends a signal and gets back a typed response or an error
+	SendNoResponse                      // Has a typed request but no response, so nothing will be confirming this one (can be used for sending movement stuff, etc.)
+	SendSignal                          // Has no typed request and response, as well as no error (rarely used)
+)
+
+// SendTypeMap gives you a map of strings ot the relevant SendType, this can be useful for text/template templates.
+func SendTypeMap() map[string]SendType {
+	return map[string]SendType{
+		"SendRequestResponse": SendRequestResponse,
+		"SendOK":              SendOK,
+		"SendOKNoRequest":     SendOKNoRequest,
+		"SendNoRequest":       SendNoRequest,
+		"SendNoResponse":      SendNoResponse,
+		"SendSignal":          SendSignal,
+	}
+}
+
+// GetSendType gives you the send type for a function, the 8 possibilties of the schema translated to the 6 functions we usually have for neoroute in any SDK.
+func (rs RouteSchema) GetSendType() SendType {
+	switch {
+	case rs.HasRequest && rs.HasResponse:
+		return SendRequestResponse
+	case rs.HasRequest && !rs.HasResponse && rs.CanReturnError:
+		return SendOK
+	case !rs.HasRequest && !rs.HasResponse && rs.CanReturnError:
+		return SendOKNoRequest
+	case !rs.HasRequest && rs.HasResponse:
+		return SendNoRequest
+	case rs.HasRequest && !rs.HasResponse:
+		return SendNoResponse
+	default:
+		return SendSignal
+	}
+}
+
 func (g *Generator) Generate() (Schema, error) {
 	var err error
 

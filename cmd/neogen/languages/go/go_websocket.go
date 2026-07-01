@@ -57,7 +57,7 @@ func GenerateWebSocketTransporter(name string, genLine string, transporter neosc
 
 	// Generate the stuff for all route schemas
 	for name, schema := range transporter.Routes {
-		generated, err := GenerateRoutes(transporterName, name, schema)
+		generated, err := GenerateRoutes(transporterName, "c.receiver", name, schema)
 		if err != nil {
 			return file, fmt.Errorf("Couldn't generate route %s: %v", name, err)
 		}
