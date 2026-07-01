@@ -128,7 +128,7 @@ func (z *EchoResponse) DecodeMsg(dc *msgp.Reader) (err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "requestNumber":
-			z.RequestNumber, err = dc.ReadInt()
+			z.RequestNumber, err = dc.ReadInt64()
 			if err != nil {
 				err = msgp.WrapError(err, "RequestNumber")
 				return
@@ -158,7 +158,7 @@ func (z EchoResponse) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = en.WriteInt(z.RequestNumber)
+	err = en.WriteInt64(z.RequestNumber)
 	if err != nil {
 		err = msgp.WrapError(err, "RequestNumber")
 		return
@@ -182,7 +182,7 @@ func (z EchoResponse) MarshalMsg(b []byte) (o []byte, err error) {
 	// map header, size 2
 	// string "requestNumber"
 	o = append(o, 0x82, 0xad, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72)
-	o = msgp.AppendInt(o, z.RequestNumber)
+	o = msgp.AppendInt64(o, z.RequestNumber)
 	// string "message"
 	o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
 	o = msgp.AppendString(o, z.Message)
@@ -208,7 +208,7 @@ func (z *EchoResponse) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		}
 		switch msgp.UnsafeString(field) {
 		case "requestNumber":
-			z.RequestNumber, bts, err = msgp.ReadIntBytes(bts)
+			z.RequestNumber, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "RequestNumber")
 				return
@@ -233,7 +233,7 @@ func (z *EchoResponse) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z EchoResponse) Msgsize() (s int) {
-	s = 1 + 14 + msgp.IntSize + 8 + msgp.StringPrefixSize + len(z.Message)
+	s = 1 + 14 + msgp.Int64Size + 8 + msgp.StringPrefixSize + len(z.Message)
 	return
 }
 

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/neoschema"
 	"github.com/Liphium/neoroute/transporter/websocket"
 )
 
@@ -57,9 +58,6 @@ func main() {
 		},
 	})
 
-	// Add events to transporter
-	t.AddEventRegistry(eventReg)
-
 	// Setup routes
 	neoroute.Route(r, "echo", func(c *neoroute.ResCtx[struct{}, EchoResponse, *EchoResponse], req EchoRequest) error {
 		log.Println("message received")
@@ -94,6 +92,14 @@ func main() {
 
 		return c.RespondOk()
 	})
+
+	// Add events to transporter
+	t.AddEventRegistry(eventReg)
+
+	// This will print a schema if you pass the --neo-generate flag
+	g := neoschema.NewGenerator()
+	g.Transporter("main", t)
+	g.PrintOrPanic()
 
 	// Create websocket transporter and host it
 	mux := http.NewServeMux()

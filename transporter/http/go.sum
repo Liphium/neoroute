@@ -1,5 +1,3 @@
-github.com/Liphium/neoroute v0.2.0 h1:/yFakePtm00s6FKrXy03j1V2Yleo/YN2pg4wsdYGCYU=
-github.com/Liphium/neoroute v0.2.0/go.mod h1:SxqB4cS3Ga35Kepu/kJg+bHB5PqsUGpR8iHXHay6Vb0=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=

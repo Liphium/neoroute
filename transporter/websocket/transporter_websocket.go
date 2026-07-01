@@ -9,10 +9,13 @@ import (
 	"time"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/neoschema"
 	"github.com/google/uuid"
 
 	"github.com/coder/websocket"
 )
+
+var _ neoschema.Transporter = &WebSocketTransporter[any]{}
 
 type WebSocketTransporter[D any] struct {
 	eventRegistries []*neoroute.EventRegistry
@@ -20,6 +23,21 @@ type WebSocketTransporter[D any] struct {
 	config          WSConfig[D]
 	mutex           sync.Mutex
 	sessions        map[string]*wsSession[D]
+}
+
+// GetRegistries implements neoschema.Transporter.
+func (t *WebSocketTransporter[D]) GetRegistries() []*neoroute.EventRegistry {
+	return t.eventRegistries
+}
+
+// GetSchema implements neoschema.Transporter.
+func (t *WebSocketTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
+	return neoschema.ToRouteSchema(t.router.GetRoutes())
+}
+
+// Type implements neoschema.Transporter.
+func (t *WebSocketTransporter[D]) Type() neoschema.TransporterType {
+	return neoschema.TransporterWebSocket
 }
 
 type WSConfig[D any] struct {
