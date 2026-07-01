@@ -6,8 +6,8 @@ import (
 	"github.com/Liphium/neoroute/client"
 )
 
-func SendSubmitPunRequest(r *client.Receiver, pun string) {
-	sendErr := client.SendOk(r, "submit_pun", SubmitPunRequest{Pun: pun})
+func SendSubmitPunRequest(c *MainConnector, pun string) {
+	sendErr := c.SendSubmitPun(SubmitPunRequest{Pun: pun})
 	if sendErr != nil {
 		if reqErr, ok := sendErr.(*client.UserError); ok {
 			log.Println("Couldn't submit pun because", reqErr)
@@ -17,8 +17,8 @@ func SendSubmitPunRequest(r *client.Receiver, pun string) {
 	}
 }
 
-func SendEchoRequest(r *client.Receiver, message string) {
-	resp, sendErr := client.Send[EchoResponse](r, "echo", EchoRequest{Message: message})
+func SendEchoRequest(c *MainConnector, message string) {
+	resp, sendErr := c.SendEcho(EchoRequest{Message: message})
 	if sendErr != nil {
 		if reqErr, ok := sendErr.(*client.UserError); ok {
 			log.Println("Echo failed because", reqErr)

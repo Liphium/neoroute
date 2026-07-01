@@ -80,7 +80,7 @@ var routeCaller = template.Must(template.New("").Parse(`func (c *{{ .transporter
 
 	{{ else if eq .sendType .const.SendNoRequest }}
 
-	return client.SendNoRequest[{{ .responseStruct }}](r, "{{ .route }}")
+	return client.SendNoRequest[{{ .responseStruct }}]({{ .receiverName }}, "{{ .route }}")
 
 	{{ else if eq .sendType .const.SendNoResponse }}
 

@@ -6,33 +6,33 @@ import (
 	"github.com/Liphium/neoroute/client/transporter/websocket"
 )
 
-type PunsConnector struct {
+type MainConnector struct {
 	*websocket.WebSocketTransporter
 	receiver *client.Receiver
 }
 
-func NewPunsConnector(config client.Config) *PunsConnector {
+func NewMainConnector(config client.Config) *MainConnector {
 	r := client.NewReceiver(config)
 
-	return &PunsConnector{
+	return &MainConnector{
 		WebSocketTransporter: websocket.NewWebSocketTransporter(r),
 		receiver:             r,
 	}
 }
 
-func (c *PunsConnector) ReceiveNewPunSubmitted(handler func(event NewPunEvent)) {
+func (c *MainConnector) ReceiveNewPunSubmitted(handler func(event NewPunEvent)) {
 	client.Receive[NewPunEvent, *NewPunEvent](c.receiver, "new_pun_submitted", func(c *client.Ctx, event NewPunEvent) {
 		handler(event)
 	})
 }
 
-func (c *PunsConnector) SendEcho(payload EchoRequest) (EchoResponse, error) {
+func (c *MainConnector) SendEcho(payload EchoRequest) (EchoResponse, error) {
 
 	return client.Send[EchoResponse](c.receiver, "echo", payload)
 
 }
 
-func (c *PunsConnector) SendSubmitPun(payload SubmitPunRequest) error {
+func (c *MainConnector) SendSubmitPun(payload SubmitPunRequest) error {
 
 	return client.SendOk(c.receiver, "submit_pun", payload)
 

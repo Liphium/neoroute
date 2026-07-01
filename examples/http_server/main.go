@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/neoschema"
 	http_transporter "github.com/Liphium/neoroute/transporter/http"
 )
 
@@ -15,7 +16,6 @@ type Request struct {
 	Field2 int    `msg:"field2"`
 }
 
-//go:generate msgp
 type Response struct {
 	Field1 string `msg:"field1"`
 	Field2 int    `msg:"field2"`
@@ -35,7 +35,7 @@ func main() {
 	})
 
 	// Create HTTP transporter
-	hook, _ := http_transporter.NewHTTPTransporter(router, func(r *http.Request) (SessionData, bool) {
+	hook, t := http_transporter.NewHTTPTransporter(router, func(r *http.Request) (SessionData, bool) {
 
 		// Set token if one provided as session data
 		return SessionData{
@@ -98,6 +98,11 @@ func main() {
 			Field2: req.Field2 + 2,
 		})
 	})
+
+	// This will print a schema if you pass the --neo-generate flag
+	g := neoschema.NewGenerator()
+	g.Transporter("main", t)
+	g.PrintOrPanic()
 
 	// Create server
 	mux := http.NewServeMux()

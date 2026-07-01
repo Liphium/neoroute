@@ -20,7 +20,7 @@ type RequestResponse struct {
 
 type Transporter interface {
 	// Should return the transporter type (defined in the neogen package).
-	Type() int
+	Type() TransporterType
 
 	// Should return the request response schemas for this transporter.
 	GetSchema() map[string]RequestResponse

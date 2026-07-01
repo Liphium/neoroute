@@ -18,14 +18,16 @@ type Schema struct {
 	Transporters map[string]TransporterSchema `json:"transporters"`
 }
 
+type TransporterType string
+
 const (
-	TransporterHTTP = iota
-	TransporterWebTransport
-	TransporterWebSocket
+	TransporterHTTP         = "http"
+	TransporterWebTransport = "web_transport"
+	TransporterWebSocket    = "web_socket"
 )
 
 type TransporterSchema struct {
-	Type   int                    `json:"type"`
+	Type   TransporterType        `json:"type"`
 	Events map[string]PackedType  `json:"events"`
 	Routes map[string]RouteSchema `json:"routes"`
 }

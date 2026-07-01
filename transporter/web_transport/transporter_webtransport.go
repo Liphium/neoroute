@@ -34,7 +34,7 @@ func (t *Transporter[D]) GetSchema() map[string]neoschema.RequestResponse {
 }
 
 // Type implements neoschema.Transporter.
-func (t *Transporter[D]) Type() int {
+func (t *Transporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterWebTransport
 }
 

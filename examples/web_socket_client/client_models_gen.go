@@ -127,16 +127,16 @@ func (z *EchoResponse) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "message":
-			z.Message, err = dc.ReadString()
-			if err != nil {
-				err = msgp.WrapError(err, "Message")
-				return
-			}
 		case "requestNumber":
 			z.RequestNumber, err = dc.ReadInt64()
 			if err != nil {
 				err = msgp.WrapError(err, "RequestNumber")
+				return
+			}
+		case "message":
+			z.Message, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Message")
 				return
 			}
 		default:
@@ -153,24 +153,24 @@ func (z *EchoResponse) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z EchoResponse) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 2
-	// write "message"
-	err = en.Append(0x82, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
-	if err != nil {
-		return
-	}
-	err = en.WriteString(z.Message)
-	if err != nil {
-		err = msgp.WrapError(err, "Message")
-		return
-	}
 	// write "requestNumber"
-	err = en.Append(0xad, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72)
+	err = en.Append(0x82, 0xad, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72)
 	if err != nil {
 		return
 	}
 	err = en.WriteInt64(z.RequestNumber)
 	if err != nil {
 		err = msgp.WrapError(err, "RequestNumber")
+		return
+	}
+	// write "message"
+	err = en.Append(0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Message)
+	if err != nil {
+		err = msgp.WrapError(err, "Message")
 		return
 	}
 	return
@@ -180,12 +180,12 @@ func (z EchoResponse) EncodeMsg(en *msgp.Writer) (err error) {
 func (z EchoResponse) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 2
-	// string "message"
-	o = append(o, 0x82, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
-	o = msgp.AppendString(o, z.Message)
 	// string "requestNumber"
-	o = append(o, 0xad, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72)
+	o = append(o, 0x82, 0xad, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72)
 	o = msgp.AppendInt64(o, z.RequestNumber)
+	// string "message"
+	o = append(o, 0xa7, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65)
+	o = msgp.AppendString(o, z.Message)
 	return
 }
 
@@ -207,16 +207,16 @@ func (z *EchoResponse) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "message":
-			z.Message, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Message")
-				return
-			}
 		case "requestNumber":
 			z.RequestNumber, bts, err = msgp.ReadInt64Bytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "RequestNumber")
+				return
+			}
+		case "message":
+			z.Message, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Message")
 				return
 			}
 		default:
@@ -233,7 +233,7 @@ func (z *EchoResponse) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z EchoResponse) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Message) + 14 + msgp.Int64Size
+	s = 1 + 14 + msgp.Int64Size + 8 + msgp.StringPrefixSize + len(z.Message)
 	return
 }
 
@@ -261,24 +261,6 @@ func (z *NewPunEvent) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Pun")
 				return
 			}
-		case "another_one":
-			if dc.IsNil() {
-				err = dc.ReadNil()
-				if err != nil {
-					err = msgp.WrapError(err, "AnotherOne")
-					return
-				}
-				z.AnotherOne = nil
-			} else {
-				if z.AnotherOne == nil {
-					z.AnotherOne = new(NewPunEvent)
-				}
-				err = z.AnotherOne.DecodeMsg(dc)
-				if err != nil {
-					err = msgp.WrapError(err, "AnotherOne")
-					return
-				}
-			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -291,10 +273,10 @@ func (z *NewPunEvent) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *NewPunEvent) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
+func (z NewPunEvent) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 1
 	// write "pun"
-	err = en.Append(0x82, 0xa3, 0x70, 0x75, 0x6e)
+	err = en.Append(0x81, 0xa3, 0x70, 0x75, 0x6e)
 	if err != nil {
 		return
 	}
@@ -303,44 +285,16 @@ func (z *NewPunEvent) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Pun")
 		return
 	}
-	// write "another_one"
-	err = en.Append(0xab, 0x61, 0x6e, 0x6f, 0x74, 0x68, 0x65, 0x72, 0x5f, 0x6f, 0x6e, 0x65)
-	if err != nil {
-		return
-	}
-	if z.AnotherOne == nil {
-		err = en.WriteNil()
-		if err != nil {
-			return
-		}
-	} else {
-		err = z.AnotherOne.EncodeMsg(en)
-		if err != nil {
-			err = msgp.WrapError(err, "AnotherOne")
-			return
-		}
-	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *NewPunEvent) MarshalMsg(b []byte) (o []byte, err error) {
+func (z NewPunEvent) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
+	// map header, size 1
 	// string "pun"
-	o = append(o, 0x82, 0xa3, 0x70, 0x75, 0x6e)
+	o = append(o, 0x81, 0xa3, 0x70, 0x75, 0x6e)
 	o = msgp.AppendString(o, z.Pun)
-	// string "another_one"
-	o = append(o, 0xab, 0x61, 0x6e, 0x6f, 0x74, 0x68, 0x65, 0x72, 0x5f, 0x6f, 0x6e, 0x65)
-	if z.AnotherOne == nil {
-		o = msgp.AppendNil(o)
-	} else {
-		o, err = z.AnotherOne.MarshalMsg(o)
-		if err != nil {
-			err = msgp.WrapError(err, "AnotherOne")
-			return
-		}
-	}
 	return
 }
 
@@ -368,23 +322,6 @@ func (z *NewPunEvent) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Pun")
 				return
 			}
-		case "another_one":
-			if msgp.IsNil(bts) {
-				bts, err = msgp.ReadNilBytes(bts)
-				if err != nil {
-					return
-				}
-				z.AnotherOne = nil
-			} else {
-				if z.AnotherOne == nil {
-					z.AnotherOne = new(NewPunEvent)
-				}
-				bts, err = z.AnotherOne.UnmarshalMsg(bts)
-				if err != nil {
-					err = msgp.WrapError(err, "AnotherOne")
-					return
-				}
-			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -398,13 +335,8 @@ func (z *NewPunEvent) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *NewPunEvent) Msgsize() (s int) {
-	s = 1 + 4 + msgp.StringPrefixSize + len(z.Pun) + 12
-	if z.AnotherOne == nil {
-		s += msgp.NilSize
-	} else {
-		s += z.AnotherOne.Msgsize()
-	}
+func (z NewPunEvent) Msgsize() (s int) {
+	s = 1 + 4 + msgp.StringPrefixSize + len(z.Pun)
 	return
 }
 

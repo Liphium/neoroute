@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/Liphium/neoroute/cmd/neogen/languages"
@@ -15,7 +16,12 @@ import (
 func GenerateGo() {
 
 	// Run the other thingy
-	cmd := exec.Command("go", append([]string{"run", *path}, strings.Split(*args, " ")...)...)
+	cmd := exec.Command("go", append([]string{"run", "."}, strings.Split(*args, " ")...)...)
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Errorf("couldn't get working directory: %v", err))
+	}
+	cmd.Dir = filepath.Clean(filepath.Join(wd, *path))
 
 	bytes, err := cmd.Output()
 	if err != nil {
@@ -43,7 +49,7 @@ func goObjectFile(schema neoschema.Schema) {
 	if fileName == "" {
 		fileName = "models.go"
 	} else {
-		fileName = strings.TrimSuffix(fileName, ".go") + "_gen.go"
+		fileName = strings.TrimSuffix(fileName, ".go") + "_models.go"
 	}
 
 	code := go_gen.GenerationLine(schema) + `

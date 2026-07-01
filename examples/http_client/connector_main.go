@@ -1,0 +1,41 @@
+// Code generated with neogen-generated v1 schema by neogen. DO NOT EDIT.
+package main
+
+import (
+	"net/url"
+
+	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/transporter/http"
+)
+
+type MainConnector struct {
+	*http.HTTPTransporter
+	receiver *client.Receiver
+}
+
+func NewMainConnector(config client.Config, method string, u *url.URL) *MainConnector {
+	r := client.NewReceiver(config)
+
+	return &MainConnector{
+		HTTPTransporter: http.NewHTTPTransporter(r, method, u),
+		receiver:        r,
+	}
+}
+
+func (c *MainConnector) SendGroup1Group2Route1(payload Request) (Response, error) {
+
+	return client.Send[Response](c.receiver, "group1.group2.route1", payload)
+
+}
+
+func (c *MainConnector) SendGroup1Route1(payload Request) (Response, error) {
+
+	return client.Send[Response](c.receiver, "group1.route1", payload)
+
+}
+
+func (c *MainConnector) SendSimpleRoute() (Response, error) {
+
+	return client.SendNoRequest[Response](c.receiver, "simple.route")
+
+}

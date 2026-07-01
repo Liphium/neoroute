@@ -3,30 +3,49 @@ package go_gen
 import (
 	"fmt"
 	"os"
+	"strings"
+	"text/template"
 
 	"github.com/Liphium/neoroute/cmd/neogen/util"
 	"github.com/Liphium/neoroute/neoschema"
 )
 
-const httpStart = `{{ .generationLine }}
+var httpStart = template.Must(template.New("").Parse(`{{ .generationLine }}
 package {{ .packageName }}
 
-type {{ .transporterName }} struct{}
+import (
+	"net/url"
 
-func New{{ .transporterName }}() *{{ .transporterName }} {
-	return &{{ .transporterName }}{}
+	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/transporter/http"
+)
+
+type {{ .transporterName }} struct{
+	*http.HTTPTransporter
+	receiver *client.Receiver
 }
 
-func (c *{{ .transporterName }}) SetURL() {
-	fmt.Println("Hello, neogen!")
+func New{{ .transporterName }}(config client.Config, method string, u *url.URL) *{{ .transporterName }} {
+	r := client.NewReceiver(config)
+
+	return &{{ .transporterName }}{
+		HTTPTransporter: http.NewHTTPTransporter(r, method, u),
+		receiver: r,
+	}
 }
 
-`
+`))
 
 func GenerateHTTPTransporter(name string, genLine string, transporter neoschema.TransporterSchema) (string, error) {
 	transporterName := util.ToCamelCase(name+".Connector", true)
 
-	file := fmt.Sprintf(httpStart, genLine, os.Getenv("GOPACKAGE"), transporterName, transporterName, transporterName, transporterName, transporterName)
+	var builder strings.Builder
+	httpStart.Execute(&builder, map[string]string{
+		"generationLine":  genLine,
+		"packageName":     os.Getenv("GOPACKAGE"),
+		"transporterName": transporterName,
+	})
+	file := builder.String()
 
 	// Generate the stuff for all route schemas
 	for name, schema := range transporter.Routes {

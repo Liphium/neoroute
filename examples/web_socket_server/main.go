@@ -98,7 +98,7 @@ func main() {
 
 	// This will print a schema if you pass the --neo-generate flag
 	g := neoschema.NewGenerator()
-	g.Transporter("puns", t)
+	g.Transporter("main", t)
 	g.PrintOrPanic()
 
 	// Create websocket transporter and host it

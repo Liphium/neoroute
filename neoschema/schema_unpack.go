@@ -204,7 +204,7 @@ func (rt *ReferenceType) UnmarshalJSON(data []byte) error {
 // UnmarshalJSON decodes events and routes on TransporterSchema.
 func (t *TransporterSchema) UnmarshalJSON(data []byte) error {
 	var aux struct {
-		Type   int                        `json:"type"`
+		Type   TransporterType            `json:"type"`
 		Events map[string]json.RawMessage `json:"events"`
 		Routes map[string]RouteSchema     `json:"routes"`
 	}

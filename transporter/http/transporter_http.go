@@ -26,7 +26,7 @@ func (h *HTTPTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
 }
 
 // Type implements neoschema.Transporter.
-func (h *HTTPTransporter[D]) Type() int {
+func (h *HTTPTransporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterHTTP
 }
 
