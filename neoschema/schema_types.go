@@ -1,6 +1,19 @@
 package neoschema
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/tinylib/msgp/msgp"
+)
+
+// Interface that bundles all of the interfaces for a proper message that can be sent by neoroute.
+type UsableMessage interface {
+	msgp.Marshaler
+	msgp.Unmarshaler
+	msgp.Decodable
+	msgp.Encodable
+	msgp.Sizer
+}
 
 type SchemaType string
 
@@ -44,6 +57,9 @@ var Kinds = map[reflect.Kind]SchemaType{
 	reflect.Uint8:   TypeByte, // This is a special case because this is often used for bytes in Go (therefore should also be that in another languages, it's just a type alias, but the reflect package does not have it)
 	reflect.String:  TypeString,
 	reflect.Struct:  TypeStruct,
+
+	// For interfaces, we do special generation over a Type function that can be set using the "common" struct tag
+	reflect.Interface: TypeOr,
 
 	// Not supported currently
 	reflect.Chan:       TypeNotSupported,
