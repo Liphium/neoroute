@@ -49,7 +49,7 @@ var eventHandler = template.Must(template.New("").Parse(`func (c *{{ .transporte
 }`))
 
 func GenerateEvent(transporterName, receiverName, event string, packed neoschema.PackedType) (string, error) {
-	eventType, err := GetType("", packed)
+	eventType, err := GetType(packed)
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +98,7 @@ func GenerateRoutes(transporterName, receiverName, name string, schema neoschema
 	var err error
 
 	if schema.HasRequest {
-		requestStruct, err = GetType("", schema.Request)
+		requestStruct, err = GetType(schema.Request)
 		if err != nil {
 			return "", fmt.Errorf("couldn't generate request type: %v", err)
 		}
@@ -106,7 +106,7 @@ func GenerateRoutes(transporterName, receiverName, name string, schema neoschema
 	}
 
 	if schema.HasResponse {
-		responseStruct, err = GetType("", schema.Response)
+		responseStruct, err = GetType(schema.Response)
 		if err != nil {
 			return "", fmt.Errorf("couldn't generate response type: %v", err)
 		}

@@ -38,7 +38,7 @@ func CreateObjects(registry map[string]neoschema.PackedType) (string, error) {
 
 			// Parse the fields of the struct and add them by their types
 			for fieldName, packedType := range structType.Fields {
-				goType, err := GetType(name, packedType)
+				goType, err := GetType(packedType)
 				if err != nil {
 					return "", fmt.Errorf("failed to get Go type for field %s in object %s: %v", fieldName, name, err)
 				}
@@ -54,7 +54,7 @@ func CreateObjects(registry map[string]neoschema.PackedType) (string, error) {
 }
 
 // GetType implements getting the basic type for any packed schema (assuming object generation has been completed)
-func GetType(ownStruct string, packed neoschema.PackedType) (string, error) {
+func GetType(packed neoschema.PackedType) (string, error) {
 	switch schema := packed.(type) {
 
 	case *neoschema.StructType:
@@ -69,13 +69,10 @@ func GetType(ownStruct string, packed neoschema.PackedType) (string, error) {
 			return "", fmt.Errorf("packed schema does not have an object field for reference type")
 		}
 
-		if ownStruct == schema.Object {
-			return "*" + util.ToCamelCase(schema.Object, true), nil
-		}
 		return util.ToCamelCase(schema.Object, true), nil
 
 	case *neoschema.ArrayType:
-		elemGoType, err := GetType("", schema.Element)
+		elemGoType, err := GetType(schema.Element)
 		if err != nil {
 			return "", err
 		}
@@ -83,7 +80,7 @@ func GetType(ownStruct string, packed neoschema.PackedType) (string, error) {
 		return "[]" + elemGoType, nil
 
 	case *neoschema.NullableType:
-		elemGoType, err := GetType("", schema.Element)
+		elemGoType, err := GetType(schema.Element)
 		if err != nil {
 			return "", err
 		}

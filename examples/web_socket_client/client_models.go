@@ -5,15 +5,15 @@ type NewPunEvent struct {
 	Pun string `msg:"pun"`
 }
 
-type SubmitPunRequest struct {
-	Pun string `msg:"pun"`
-}
-
 type EchoRequest struct {
 	Message string `msg:"message"`
 }
 
 type EchoResponse struct {
-	RequestNumber int64  `msg:"requestNumber"`
 	Message       string `msg:"message"`
+	RequestNumber int64  `msg:"requestNumber"`
+}
+
+type SubmitPunRequest struct {
+	Pun string `msg:"pun"`
 }
