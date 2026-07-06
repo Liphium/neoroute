@@ -141,6 +141,7 @@ func (st *StructType) CleanRegistries(root bool) {
 type OrType struct {
 	BasicType
 
+	Name   string       `json:"name"`
 	Others []PackedType `json:"others"`
 }
 

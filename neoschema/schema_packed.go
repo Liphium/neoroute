@@ -11,7 +11,7 @@ func notSupportedError(kind reflect.Kind) error {
 
 // BuildPackedFor generates a schema from a Golang type using the reflect package.
 func BuildPackedFor(t reflect.Type) (PackedType, error) {
-	generated, err := buildPackedFor(t, nil)
+	generated, err := buildPackedFor(t, nil, nil, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func BuildPackedFor(t reflect.Type) (PackedType, error) {
 }
 
 // buildPackedFor is the internal recursive function.
-func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
+func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fieldIndex int) (PackedType, error) {
 	var err error
 	var generated PackedType
 	kind := t.Kind()
@@ -66,7 +66,7 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 				msgTag = field.Name
 			}
 
-			st.Fields[msgTag], err = buildPackedFor(field.Type, st)
+			st.Fields[msgTag], err = buildPackedFor(field.Type, st, t, i)
 			if err != nil {
 				return &BasicType{}, err
 			}
@@ -80,9 +80,38 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 			Object: st.Name,
 		}
 
+	case reflect.Interface:
+
+		// If the interface is already in the registry, use that instead
+		if current != nil && current.ObjectRegistry()[t.Name()] != nil {
+			generated = ReferenceType{
+				BasicType: &BasicType{
+					ActualType: TypeReference,
+					Objects:    current.ObjectRegistry(),
+				},
+				Object: t.Name(),
+			}
+			break
+		}
+
+		if parent == nil || parent.Field(fieldIndex).Tag.Get("common") == "" {
+			return &BasicType{}, fmt.Errorf("generating interface definitions is only supported in structs where the interface %s must have a 'common' tag to specify the function returning the shared types", t.Name())
+		}
+
+		// TODO: Call the function and stuff
+		field := parent.Field(fieldIndex)
+		method, ok := parent.MethodByName(field.Tag.Get("common"))
+		if !ok {
+			return &BasicType{}, fmt.Errorf("the function %s specified in the 'common' tag for the interface %s does not exist", field.Tag.Get("common"), t.Name())
+		}
+
+		if method.Type.NumOut() != 1 {
+			return &BasicType{}, fmt.Errorf("the function %s specified in the 'common' tag for the interface %s must return exactly one value", field.Tag.Get("common"), t.Name())
+		}
+
 	case reflect.Array:
 		// Build the type for the array
-		arrayElem, err := buildPackedFor(t.Elem(), current)
+		arrayElem, err := buildPackedFor(t.Elem(), current, nil, 0)
 		if err != nil {
 			return &BasicType{}, err
 		}
@@ -96,7 +125,7 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 
 	case reflect.Pointer:
 		// With msgp pointers just become the regular type
-		generated, err = buildPackedFor(t.Elem(), current)
+		generated, err = buildPackedFor(t.Elem(), current, nil, 0)
 		if err != nil {
 			return &BasicType{}, err
 		}

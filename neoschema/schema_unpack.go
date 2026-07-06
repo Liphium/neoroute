@@ -146,6 +146,7 @@ func (ot *OrType) UnmarshalJSON(data []byte) error {
 	var aux struct {
 		ActualType SchemaType                 `json:"type"`
 		Objects    map[string]json.RawMessage `json:"objects,omitempty"`
+		Name       string                     `json:"name"`
 		Others     []json.RawMessage          `json:"others"`
 	}
 	if err := json.Unmarshal(data, &aux); err != nil {
