@@ -10,8 +10,8 @@ var typeRegistry = map[string]func() PackedType{
 	string(TypeNotSupported): func() PackedType { return &BasicType{} }, // Catch-all for basic types like "string", "int32", etc.
 	string(TypeArray):        func() PackedType { return &ArrayType{} },
 	string(TypeStruct):       func() PackedType { return &StructType{} },
-	string(TypeOr):           func() PackedType { return &OrType{} },
 	string(TypeReference):    func() PackedType { return &ReferenceType{} },
+	string(TypeNullable):     func() PackedType { return &NullableType{} },
 }
 
 type rawPackedType struct {
@@ -141,42 +141,6 @@ func (st *StructType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// UnmarshalJSON safely decodes OrType and resolves the nested Others slice of interfaces.
-func (ot *OrType) UnmarshalJSON(data []byte) error {
-	var aux struct {
-		ActualType SchemaType                 `json:"type"`
-		Objects    map[string]json.RawMessage `json:"objects,omitempty"`
-		Name       string                     `json:"name"`
-		Others     []json.RawMessage          `json:"others"`
-	}
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	ot.BasicType = BasicType{ActualType: aux.ActualType}
-	if aux.Objects != nil {
-		decoded, err := decodePackedMap(aux.Objects)
-		if err != nil {
-			return err
-		}
-		ot.BasicType.Objects = decoded
-	}
-
-	if aux.Others != nil {
-		decoded := make([]PackedType, len(aux.Others))
-		for i, raw := range aux.Others {
-			item, err := UnmarshalPackedType(raw)
-			if err != nil {
-				return err
-			}
-			decoded[i] = item
-		}
-		ot.Others = decoded
-	}
-
-	return nil
-}
-
 // UnmarshalJSON safely decodes ReferenceType.
 func (rt *ReferenceType) UnmarshalJSON(data []byte) error {
 	var aux struct {
@@ -258,6 +222,38 @@ func (r *RouteSchema) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		r.Response = res
+	}
+
+	return nil
+}
+
+// UnmarshalJSON safely decodes NullableType and resolves the nested Element interface.
+func (at *NullableType) UnmarshalJSON(data []byte) error {
+	var aux struct {
+		ActualType SchemaType                 `json:"type"`
+		Objects    map[string]json.RawMessage `json:"objects,omitempty"`
+		Element    json.RawMessage            `json:"element"`
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	bt := &BasicType{ActualType: aux.ActualType}
+	if aux.Objects != nil {
+		decoded, err := decodePackedMap(aux.Objects)
+		if err != nil {
+			return err
+		}
+		bt.Objects = decoded
+	}
+	at.BasicType = bt
+
+	if aux.Element != nil {
+		elem, err := UnmarshalPackedType(aux.Element)
+		if err != nil {
+			return err
+		}
+		at.Element = elem
 	}
 
 	return nil

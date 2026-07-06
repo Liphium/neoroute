@@ -10,14 +10,14 @@ import (
 
 // We don't need to handle
 var goTypeMap = map[neoschema.SchemaType]string{
-	neoschema.TypeBool:    "bool",
-	neoschema.TypeByte:    "byte",
-	neoschema.TypeInt32:   "int32",
-	neoschema.TypeInt64:   "int64",
-	neoschema.TypeFloat32: "float32",
-	neoschema.TypeFloat64: "float64",
-	neoschema.TypeString:  "string",
-	neoschema.TypeAny:     "any",
+	neoschema.TypeBool:         "bool",
+	neoschema.TypeByte:         "byte",
+	neoschema.TypeInt32:        "int32",
+	neoschema.TypeInt64:        "int64",
+	neoschema.TypeFloat32:      "float32",
+	neoschema.TypeFloat64:      "float64",
+	neoschema.TypeString:       "string",
+	neoschema.TypeSerializable: "neoschema.UsableMessage",
 }
 
 // Converts any neoschema.PackedType to a Go struct / type that matches it (in case needed)
@@ -81,6 +81,14 @@ func GetType(ownStruct string, packed neoschema.PackedType) (string, error) {
 		}
 
 		return "[]" + elemGoType, nil
+
+	case *neoschema.NullableType:
+		elemGoType, err := GetType("", schema.Element)
+		if err != nil {
+			return "", err
+		}
+
+		return "*" + elemGoType, nil
 
 	default:
 		t, ok := goTypeMap[schema.Type()]

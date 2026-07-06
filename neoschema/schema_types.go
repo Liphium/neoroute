@@ -28,9 +28,9 @@ const (
 	TypeString       SchemaType = "string"
 	TypeArray        SchemaType = "array"
 	TypeStruct       SchemaType = "struct"
-	TypeAny          SchemaType = "any"
+	TypeSerializable SchemaType = "serializable"
+	TypeNullable     SchemaType = "nullable"
 	TypeReference    SchemaType = "reference"
-	TypeOr           SchemaType = "or"
 	TypeNotSupported SchemaType = "-"
 )
 
@@ -58,14 +58,14 @@ var Kinds = map[reflect.Kind]SchemaType{
 	reflect.String:  TypeString,
 	reflect.Struct:  TypeStruct,
 
-	// For interfaces, we do special generation over a Type function that can be set using the "common" struct tag
-	reflect.Interface: TypeOr,
+	// For interfaces, we can't do anything special, but we can just give them straight to the thing anyway
+	reflect.Interface: TypeSerializable,
 
 	// Not supported currently
 	reflect.Chan:       TypeNotSupported,
-	reflect.Complex128: TypeAny,
-	reflect.Complex64:  TypeAny,
-	reflect.Func:       TypeAny,
+	reflect.Complex128: TypeNotSupported,
+	reflect.Complex64:  TypeNotSupported,
+	reflect.Func:       TypeNotSupported,
 }
 
 type PackedType interface {
@@ -138,22 +138,19 @@ func (st *StructType) CleanRegistries(root bool) {
 	st.BasicType.CleanRegistries(root)
 }
 
-type OrType struct {
-	BasicType
-
-	Name   string       `json:"name"`
-	Others []PackedType `json:"others"`
-}
-
-func (ot *OrType) CleanRegistries(root bool) {
-	for _, v := range ot.Others {
-		v.CleanRegistries(false)
-	}
-	ot.BasicType.CleanRegistries(root)
-}
-
 type ReferenceType struct {
 	*BasicType
 
 	Object string `json:"object"`
+}
+
+type NullableType struct {
+	*BasicType
+
+	Element PackedType `json:"element"`
+}
+
+func (at *NullableType) CleanRegistries(root bool) {
+	at.Element.CleanRegistries(false)
+	at.BasicType.CleanRegistries(root)
 }

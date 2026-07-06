@@ -80,35 +80,6 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			Object: st.Name,
 		}
 
-	case reflect.Interface:
-
-		// If the interface is already in the registry, use that instead
-		if current != nil && current.ObjectRegistry()[t.Name()] != nil {
-			generated = ReferenceType{
-				BasicType: &BasicType{
-					ActualType: TypeReference,
-					Objects:    current.ObjectRegistry(),
-				},
-				Object: t.Name(),
-			}
-			break
-		}
-
-		if parent == nil || parent.Field(fieldIndex).Tag.Get("common") == "" {
-			return &BasicType{}, fmt.Errorf("generating interface definitions is only supported in structs where the interface %s must have a 'common' tag to specify the function returning the shared types", t.Name())
-		}
-
-		// TODO: Call the function and stuff
-		field := parent.Field(fieldIndex)
-		method, ok := parent.MethodByName(field.Tag.Get("common"))
-		if !ok {
-			return &BasicType{}, fmt.Errorf("the function %s specified in the 'common' tag for the interface %s does not exist", field.Tag.Get("common"), t.Name())
-		}
-
-		if method.Type.NumOut() != 1 {
-			return &BasicType{}, fmt.Errorf("the function %s specified in the 'common' tag for the interface %s must return exactly one value", field.Tag.Get("common"), t.Name())
-		}
-
 	case reflect.Array:
 		// Build the type for the array
 		arrayElem, err := buildPackedFor(t.Elem(), current, nil, 0)
@@ -124,10 +95,17 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 		}
 
 	case reflect.Pointer:
-		// With msgp pointers just become the regular type
-		generated, err = buildPackedFor(t.Elem(), current, nil, 0)
+		// Build the type for the nullable
+		nullableElem, err := buildPackedFor(t.Elem(), current, nil, 0)
 		if err != nil {
 			return &BasicType{}, err
+		}
+
+		generated = &NullableType{
+			BasicType: &BasicType{
+				ActualType: TypeNullable,
+			},
+			Element: nullableElem,
 		}
 
 	default:
@@ -136,7 +114,7 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			return &BasicType{}, notSupportedError(kind)
 		} else if st == "" {
 			generated = &BasicType{
-				ActualType: TypeAny,
+				ActualType: TypeSerializable,
 			}
 			break
 		}
