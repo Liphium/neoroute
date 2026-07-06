@@ -4,6 +4,5 @@
     "client/transporter/http": "0.5.0",
     "client/transporter/websocket": "0.5.0",
     "transporter/http": "0.5.0",
-    "transporter/websocket": "0.5.0",
-    "transporter/web_transport": "0.5.0"
+    "transporter/websocket": "0.5.0"
 }

@@ -38,11 +38,6 @@
             "release-type": "go",
             "include-v-in-tag": true,
             "component": "transporter/websocket"
-        },
-        "transporter/web_transport": {
-            "release-type": "go",
-            "include-v-in-tag": true,
-            "component": "transporter/web_transport"
         }
     }
 }
