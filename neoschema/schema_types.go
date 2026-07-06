@@ -27,6 +27,7 @@ const (
 	TypeByte         SchemaType = "byte" // This does not exist in MessagePack, but helps us let message pack identify byte arrays
 	TypeString       SchemaType = "string"
 	TypeArray        SchemaType = "array"
+	TypeMap          SchemaType = "map"
 	TypeStruct       SchemaType = "struct"
 	TypeSerializable SchemaType = "serializable"
 	TypeNullable     SchemaType = "nullable"
@@ -57,6 +58,7 @@ var Kinds = map[reflect.Kind]SchemaType{
 	reflect.Uint8:   TypeByte, // This is a special case because this is often used for bytes in Go (therefore should also be that in another languages, it's just a type alias, but the reflect package does not have it)
 	reflect.String:  TypeString,
 	reflect.Struct:  TypeStruct,
+	reflect.Map:     TypeMap,
 
 	// For interfaces, we can't do anything special, but we can just give them straight to the thing anyway
 	reflect.Interface: TypeSerializable,
@@ -152,5 +154,18 @@ type NullableType struct {
 
 func (at *NullableType) CleanRegistries(root bool) {
 	at.Element.CleanRegistries(false)
+	at.BasicType.CleanRegistries(root)
+}
+
+type MapType struct {
+	*BasicType
+
+	Key   PackedType `json:"key"`
+	Value PackedType `json:"value"`
+}
+
+func (at *MapType) CleanRegistries(root bool) {
+	at.Key.CleanRegistries(false)
+	at.Value.CleanRegistries(false)
 	at.BasicType.CleanRegistries(root)
 }

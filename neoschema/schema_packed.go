@@ -94,6 +94,25 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			Element: arrayElem,
 		}
 
+	case reflect.Map:
+		// Build the type for key and map of the array
+		mapKey, err := buildPackedFor(t.Key(), current, nil, 0)
+		if err != nil {
+			return &BasicType{}, err
+		}
+		mapElem, err := buildPackedFor(t.Elem(), current, nil, 0)
+		if err != nil {
+			return &BasicType{}, err
+		}
+
+		generated = &MapType{
+			BasicType: &BasicType{
+				ActualType: TypeMap,
+			},
+			Key:   mapKey,
+			Value: mapElem,
+		}
+
 	case reflect.Pointer:
 		// Build the type for the nullable
 		nullableElem, err := buildPackedFor(t.Elem(), current, nil, 0)

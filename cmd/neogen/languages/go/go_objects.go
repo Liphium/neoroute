@@ -79,6 +79,19 @@ func GetType(packed neoschema.PackedType) (string, error) {
 
 		return "[]" + elemGoType, nil
 
+	case *neoschema.MapType:
+		keyGoType, err := GetType(schema.Key)
+		if err != nil {
+			return "", err
+		}
+
+		valueGoType, err := GetType(schema.Value)
+		if err != nil {
+			return "", err
+		}
+
+		return "map[" + keyGoType + "]" + valueGoType, nil
+
 	case *neoschema.NullableType:
 		elemGoType, err := GetType(schema.Element)
 		if err != nil {

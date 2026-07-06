@@ -12,6 +12,7 @@ var typeRegistry = map[string]func() PackedType{
 	string(TypeStruct):       func() PackedType { return &StructType{} },
 	string(TypeReference):    func() PackedType { return &ReferenceType{} },
 	string(TypeNullable):     func() PackedType { return &NullableType{} },
+	string(TypeMap):          func() PackedType { return &MapType{} },
 }
 
 type rawPackedType struct {
@@ -254,6 +255,47 @@ func (at *NullableType) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		at.Element = elem
+	}
+
+	return nil
+}
+
+// UnmarshalJSON safely decodes MapType and resolves the nested Key and Element interface.
+func (at *MapType) UnmarshalJSON(data []byte) error {
+	var aux struct {
+		ActualType SchemaType                 `json:"type"`
+		Objects    map[string]json.RawMessage `json:"objects,omitempty"`
+		Key        json.RawMessage            `json:"key"`
+		Value      json.RawMessage            `json:"value"`
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	bt := &BasicType{ActualType: aux.ActualType}
+	if aux.Objects != nil {
+		decoded, err := decodePackedMap(aux.Objects)
+		if err != nil {
+			return err
+		}
+		bt.Objects = decoded
+	}
+	at.BasicType = bt
+
+	if aux.Value != nil {
+		elem, err := UnmarshalPackedType(aux.Value)
+		if err != nil {
+			return err
+		}
+		at.Value = elem
+	}
+
+	if aux.Key != nil {
+		key, err := UnmarshalPackedType(aux.Key)
+		if err != nil {
+			return err
+		}
+		at.Key = key
 	}
 
 	return nil
