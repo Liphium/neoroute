@@ -88,7 +88,7 @@ func (s *sender) handleResponse(respBytes []byte) {
 	}
 
 	if resp.Id == -1 && resp.IsError {
-		s.config.ErrorHandler(fmt.Errorf("%s", string(resp.Data)))
+		s.config.RunErrorHandler(fmt.Errorf("%s", string(resp.Data)))
 		return
 	}
 
