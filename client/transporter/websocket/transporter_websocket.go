@@ -41,9 +41,9 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	if err != nil {
 
 		if resp != nil {
-			bodyBytes, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read response body: %v", err)
+			bodyBytes, readErr := io.ReadAll(resp.Body)
+			if readErr != nil {
+				return nil, fmt.Errorf("failed to read response body: %v (dialErr: %v)", readErr, err)
 			}
 
 			// Check for transporter errors
