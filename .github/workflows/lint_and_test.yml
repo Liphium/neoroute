@@ -50,30 +50,26 @@ jobs:
 
       - name: Run tests and generate coverage
         run: |
-          go test -count=1 -covermode=atomic -coverprofile=c.out -coverpkg=./... ./...
+          COVERPKG=$(go list ./... | grep -v "/tests" | grep -v "examples" | paste -sd, -)
+          go test -count=1 -covermode=atomic -coverprofile=c.out -coverpkg="$COVERPKG" ./...
 
       - name: Generate Go Coverage Badge
         uses: tj-actions/coverage-badge-go@v3
         with:
           filename: c.out
 
-      - name: Verify Changed files
+      - name: Verify Changed Files
         uses: tj-actions/verify-changed-files@v16
         id: verify-changed-files
         with:
-          files: README.md
+          files: README.md # The action updates the README or badge file dynamically
 
-      - name: Commit changes
+      - name: Commit and Push Badge Changes
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
-          git commit -m "chore: Updated coverage badge."
-
-      - name: Push changes
-        if: steps.verify-changed-files.outputs.files_changed == 'true'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ github.token }}
-          branch: ${{ github.head_ref }}
+          git commit -m "docs: update test coverage badge [skip ci]"
+          git pull --rebase origin ${{ github.head_ref || github.ref_name }}
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
