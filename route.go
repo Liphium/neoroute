@@ -169,9 +169,9 @@ func RouteNoResponse[D any, RQ any, PQ interface {
 	}
 }
 
-// RouteNoop is the same as Route but the handler does not receive a request struct, only the context.
+// RoutePing is the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteNoop[D any](r Router[D], route string, handler func(c *Ctx[D])) Router[D] {
+func RoutePing[D any](r Router[D], route string, handler func(c *Ctx[D])) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
