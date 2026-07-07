@@ -88,7 +88,7 @@ var routeCaller = template.Must(template.New("").Parse(`func (c *{{ .transporter
 
 	{{ else if eq .sendType .const.SendSignal }}
 
-	return client.SendNoop({{ .receiverName }}, "{{ .route }}")
+	return client.SendPing({{ .receiverName }}, "{{ .route }}")
 
 	{{ end }}
 }`))
