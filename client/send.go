@@ -148,7 +148,7 @@ func SendNoResponse[RQ any, RQP interface {
 	return err
 }
 
-func SendNoop(r Sender, route string) error {
+func SendPing(r Sender, route string) error {
 	_, _, err := r.sendRequest(route, []byte{}, false)
 	return err
 }

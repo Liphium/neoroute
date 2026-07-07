@@ -1,5 +1,13 @@
 package neoroute
 
+func NewRouterGroup[D any](router *NeoRouter[D], routers ...*NeoRouter[D]) *Group[D] {
+	return &Group[D]{
+		neos:   append([]*NeoRouter[D]{router}, routers...),
+		prefix: "",
+		parent: router,
+	}
+}
+
 type Group[D any] struct {
 	neos   []*NeoRouter[D]
 	prefix string

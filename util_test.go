@@ -26,12 +26,12 @@ func Test_cleanRoute(t *testing.T) {
 		{
 			name:  "remove multiple separators in a row",
 			route: "legal" + string(RouteSeparator) + string(RouteSeparator) + "route",
-			want:  "legal.route",
+			want:  "legal/route",
 		},
 		{
 			name:  "remove multiple separators in a row with first illegal characters in between",
-			route: "legal" + string(RouteSeparator) + "@/$" + string(RouteSeparator) + "route",
-			want:  "legal.route",
+			route: "legal" + string(RouteSeparator) + "@$" + string(RouteSeparator) + "route",
+			want:  "legal/route",
 		},
 		{
 			name:  "empty route",
@@ -58,18 +58,18 @@ func Test_buildSubroutes(t *testing.T) {
 	}{
 		{
 			name:  "3 level route",
-			route: "group1.group2.route",
-			want:  []string{"group1", "group1.group2", "group1.group2.route"},
+			route: "group1/group2/route",
+			want:  []string{"group1", "group1/group2", "group1/group2/route"},
 		},
 		{
 			name:  "route with leading and trailing separators",
-			route: string(RouteSeparator) + "group1.group2.route" + string(RouteSeparator),
-			want:  []string{"group1", "group1.group2", "group1.group2.route"},
+			route: string(RouteSeparator) + "group1/group2/route" + string(RouteSeparator),
+			want:  []string{"group1", "group1/group2", "group1/group2/route"},
 		},
 		{
 			name:  "route with multiple separators in a row",
 			route: "group_1" + string(RouteSeparator) + string(RouteSeparator) + "group2" + string(RouteSeparator) + "route",
-			want:  []string{"group_1", "group_1.group2", "group_1.group2.route"},
+			want:  []string{"group_1", "group_1/group2", "group_1/group2/route"},
 		},
 		{
 			name:  "empty route",
