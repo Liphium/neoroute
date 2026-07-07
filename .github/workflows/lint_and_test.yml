@@ -71,4 +71,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add README.md
           git commit -m "docs: update test coverage badge [skip ci]"
+          git pull --rebase origin ${{ github.head_ref || github.ref_name }}
           git push origin HEAD:${{ github.head_ref || github.ref_name }}
