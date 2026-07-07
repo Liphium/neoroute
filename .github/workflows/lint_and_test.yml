@@ -49,7 +49,9 @@ jobs:
           go clean -cache -testcache
 
       - name: Run tests and generate coverage
-        run: go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
+        run: |
+          go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
+          go tool cover -func=c.out -o=c.out
 
       - name: Generate Go Coverage Badge
         uses: tj-actions/coverage-badge-go@v3
