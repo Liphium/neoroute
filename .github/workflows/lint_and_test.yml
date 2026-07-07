@@ -49,9 +49,7 @@ jobs:
           go clean -cache -testcache
 
       - name: Run tests and generate coverage
-        run: |
-          COVERPKG=$(go list ./... | grep -v "/tests" | grep -v "examples" | paste -sd, -)
-          go test -count=1 -covermode=atomic -coverprofile=c.out -coverpkg="$COVERPKG" ./...
+        run: go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
 
       - name: Generate Go Coverage Badge
         uses: tj-actions/coverage-badge-go@v3
