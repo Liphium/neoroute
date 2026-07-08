@@ -18,7 +18,7 @@ import (
 var _ neoschema.Transporter = &WebSocketTransporter[any]{}
 
 type WebSocketTransporter[D any] struct {
-	eventRegistries []*neoroute.EventRegistry
+	eventRegistries []neoroute.IEventRegistry
 	router          *neoroute.NeoRouter[D]
 	config          WSConfig[D]
 	mutex           sync.Mutex
@@ -26,7 +26,7 @@ type WebSocketTransporter[D any] struct {
 }
 
 // GetRegistries implements neoschema.Transporter.
-func (t *WebSocketTransporter[D]) GetRegistries() []*neoroute.EventRegistry {
+func (t *WebSocketTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
 	return t.eventRegistries
 }
 
@@ -63,7 +63,7 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		router:          router,
 		config:          config,
 		sessions:        make(map[string]*wsSession[D]),
-		eventRegistries: []*neoroute.EventRegistry{},
+		eventRegistries: []neoroute.IEventRegistry{},
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {

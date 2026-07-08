@@ -26,7 +26,7 @@ type Transporter interface {
 	GetSchema() map[string]RequestResponse
 
 	// Should return the event registries for this transporter (can also be none).
-	GetRegistries() []*neoroute.EventRegistry
+	GetRegistries() []neoroute.IEventRegistry
 }
 
 // Convert a route map returned by a router into a request response schema as used by neogen.

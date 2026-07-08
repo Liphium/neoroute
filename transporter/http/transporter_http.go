@@ -16,8 +16,8 @@ type HTTPTransporter[D any] struct {
 }
 
 // GetRegistries implements neoschema.Transporter.
-func (h *HTTPTransporter[D]) GetRegistries() []*neoroute.EventRegistry {
-	return []*neoroute.EventRegistry{} // No events over HTTP
+func (h *HTTPTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
+	return []neoroute.IEventRegistry{} // No events over HTTP
 }
 
 // GetSchema implements neoschema.Transporter.

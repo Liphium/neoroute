@@ -8,6 +8,13 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
+type IEventRegistry interface {
+	GetEvents() []string
+	GetSchemas() []func() reflect.Type
+}
+
+var _ IEventRegistry = &EventRegistry{}
+
 type EventRegistry struct {
 	mutex             sync.Mutex
 	registeredEvents  []string

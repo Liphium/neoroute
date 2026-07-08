@@ -1,5 +1,6 @@
 c.out
 .magic
+.testing
 workspace
 sender
 sender_ws

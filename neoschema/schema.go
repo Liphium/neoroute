@@ -50,7 +50,7 @@ const (
 	SendOKNoRequest                     // Same as SendNoRequest, but can only get back an error
 	SendNoRequest                       // Has no typed request, just sends a signal and gets back a typed response or an error
 	SendNoResponse                      // Has a typed request but no response, so nothing will be confirming this one (can be used for sending movement stuff, etc.)
-	SendSignal                          // Has no typed request and response, as well as no error (rarely used)
+	SendPing                            // Has no typed request and response, as well as no error (rarely used)
 )
 
 // SendTypeMap gives you a map of strings ot the relevant SendType, this can be useful for text/template templates.
@@ -61,7 +61,7 @@ func SendTypeMap() map[string]SendType {
 		"SendOKNoRequest":     SendOKNoRequest,
 		"SendNoRequest":       SendNoRequest,
 		"SendNoResponse":      SendNoResponse,
-		"SendSignal":          SendSignal,
+		"SendPing":            SendPing,
 	}
 }
 
@@ -103,7 +103,7 @@ func (rs RouteSchema) GetSendType() SendType {
 	case rs.HasRequest && !rs.HasResponse:
 		return SendNoResponse
 	default:
-		return SendSignal
+		return SendPing
 	}
 }
 

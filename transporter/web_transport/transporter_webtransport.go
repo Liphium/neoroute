@@ -15,8 +15,8 @@ import (
 var _ neoschema.Transporter = &Transporter[any]{}
 
 type Transporter[D any] struct {
-	eventRegistriesUnreliable []*neoroute.EventRegistry
-	eventRegistriesReliable   []*neoroute.EventRegistry
+	eventRegistriesUnreliable []neoroute.IEventRegistry
+	eventRegistriesReliable   []neoroute.IEventRegistry
 	router                    *neoroute.NeoRouter[D]
 	config                    Config[D]
 	mutex                     sync.Mutex
@@ -24,7 +24,7 @@ type Transporter[D any] struct {
 }
 
 // GetRegistries implements neoschema.Transporter.
-func (t *Transporter[D]) GetRegistries() []*neoroute.EventRegistry {
+func (t *Transporter[D]) GetRegistries() []neoroute.IEventRegistry {
 	return append(t.eventRegistriesReliable, t.eventRegistriesUnreliable...)
 }
 
@@ -64,8 +64,8 @@ func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config Con
 		router:                    router,
 		config:                    config,
 		sessions:                  make(map[string]*wttSession[D]),
-		eventRegistriesReliable:   []*neoroute.EventRegistry{},
-		eventRegistriesUnreliable: []*neoroute.EventRegistry{},
+		eventRegistriesReliable:   []neoroute.IEventRegistry{},
+		eventRegistriesUnreliable: []neoroute.IEventRegistry{},
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
