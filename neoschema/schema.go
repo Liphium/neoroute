@@ -3,6 +3,7 @@ package neoschema
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 )
@@ -62,6 +63,30 @@ func SendTypeMap() map[string]SendType {
 		"SendNoResponse":      SendNoResponse,
 		"SendSignal":          SendSignal,
 	}
+}
+
+// GetCombinedObjectRegistry is a helper function to get a combined object registry from all transporters.
+func (s Schema) GetCombinedObjectRegistry() map[string]PackedType {
+
+	// Collect all of the objects together
+	registry := map[string]PackedType{}
+	for _, t := range s.Transporters {
+		for _, event := range t.Events {
+			if event.ObjectRegistry() != nil {
+				maps.Insert(registry, maps.All(event.ObjectRegistry()))
+			}
+		}
+		for _, route := range t.Routes {
+			if route.Request != nil && route.Request.ObjectRegistry() != nil {
+				maps.Insert(registry, maps.All(route.Request.ObjectRegistry()))
+			}
+			if route.Response != nil && route.Response.ObjectRegistry() != nil {
+				maps.Insert(registry, maps.All(route.Response.ObjectRegistry()))
+			}
+		}
+	}
+
+	return registry
 }
 
 // GetSendType gives you the send type for a function, the 8 possibilties of the schema translated to the 6 functions we usually have for neoroute in any SDK.

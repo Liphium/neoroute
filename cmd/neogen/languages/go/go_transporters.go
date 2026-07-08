@@ -67,29 +67,17 @@ func GenerateEvent(transporterName, receiverName, event string, packed neoschema
 
 var routeCaller = template.Must(template.New("").Parse(`func (c *{{ .transporterName }}) Send{{ .routeCamelCase }}({{ .requestType }}) {{ .responseType }} {
 	{{ if eq .sendType .const.SendRequestResponse }}
-
 	return client.Send[{{ .responseStruct }}]({{ .receiverName }}, "{{ .route }}", payload)
-
 	{{ else if eq .sendType .const.SendOK }}
-
 	return client.SendOk({{ .receiverName }}, "{{ .route }}", payload)
-
 	{{ else if eq .sendType .const.SendOKNoRequest }}
-
 	return client.SendOkNoRequest({{ .receiverName }}, "{{ .route }}")
-
 	{{ else if eq .sendType .const.SendNoRequest }}
-
 	return client.SendNoRequest[{{ .responseStruct }}]({{ .receiverName }}, "{{ .route }}")
-
 	{{ else if eq .sendType .const.SendNoResponse }}
-
 	return client.SendNoResponse({{ .receiverName }}, "{{ .route }}", payload)
-
 	{{ else if eq .sendType .const.SendSignal }}
-
 	return client.SendPing({{ .receiverName }}, "{{ .route }}")
-
 	{{ end }}
 }`))
 
