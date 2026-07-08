@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"web_socket/definitions"
 )
 
 func registerReceiver(r *definitions.MainConnector) {

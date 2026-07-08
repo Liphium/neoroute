@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"web_socket/definitions"
 
 	"github.com/Liphium/neoroute/client"
 )

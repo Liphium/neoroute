@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Liphium/neoroute/cmd/neogen/engine"
-	"github.com/Liphium/neoroute/cmd/neogen/languages/go_new"
+	"github.com/Liphium/neoroute/cmd/neogen/languages"
 	"github.com/Liphium/neoroute/neoschema"
 )
 
@@ -51,7 +51,8 @@ func goFiles(schema neoschema.Schema) {
 		fileName = strings.TrimSuffix(fileName, ".go") + "_models.go"
 	}
 
-	engine := engine.NewGenerationEngine(go_new.NewGoConfig())
+	modelFileName, config := languages.NewGoConfig()
+	engine := engine.NewGenerationEngine(config)
 
 	files, err := engine.Generate(schema)
 	if err != nil {
@@ -67,7 +68,7 @@ func goFiles(schema neoschema.Schema) {
 	// Run message pack generation
 	cmd := exec.Command("msgp")
 	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "GOFILE="+fileName)
+	cmd.Env = append(cmd.Env, "GOFILE="+modelFileName)
 	if err := cmd.Run(); err != nil {
 		panic(fmt.Errorf("couldn't run message pack: %v", err))
 	}
