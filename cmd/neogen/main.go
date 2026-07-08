@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
+
+	"github.com/Liphium/neoroute/cmd/neogen/generator"
 )
 
 var (
@@ -15,13 +16,10 @@ var (
 func main() {
 	flag.Parse()
 
-	switch *target {
-	case "go":
-		GenerateGo()
-	default:
-		fmt.Println("Unsupported target language: " + *target)
-		fmt.Println(" ")
-		fmt.Println("Try one of the following:")
-		fmt.Println("- go")
-	}
+	generator.Generate(generator.GeneratorConfig{
+		ServerPath:        *path,
+		ArgsForGeneration: *args,
+		TargetLanguage:    *target,
+		Verbose:           *verbose,
+	})
 }
