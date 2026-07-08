@@ -2,10 +2,12 @@ module github.com/Liphium/neoroute
 
 go 1.26
 
-require github.com/tinylib/msgp v1.6.4
+require (
+	github.com/Liphium/magic/v3 v3.0.0-rc.1
+	github.com/tinylib/msgp v1.6.4
+)
 
 require (
-	github.com/Liphium/magic/v3 v3.0.0-rc.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
