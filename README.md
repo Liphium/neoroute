@@ -1,2 +1,2 @@
 # neoroute
-![Coverage](https://img.shields.io/badge/Coverage-29.9%25-red)
+![Coverage](https://img.shields.io/badge/Coverage-31.2%25-yellow)
