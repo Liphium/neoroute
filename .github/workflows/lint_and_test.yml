@@ -48,6 +48,9 @@ jobs:
           rm -f c.out
           go clean -cache -testcache
 
+      - name: Install msgp for code generator testing
+        run: go install github.com/tinylib/msgp@latest
+
       - name: Run tests and generate coverage
         run: |
           go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
