@@ -44,13 +44,6 @@ func GenerateGo() {
 }
 
 func goFiles(schema neoschema.Schema) {
-	fileName := os.Getenv("GOFILE")
-	if fileName == "" {
-		fileName = "models.go"
-	} else {
-		fileName = strings.TrimSuffix(fileName, ".go") + "_models.go"
-	}
-
 	modelFileName, config := languages.NewGoConfig()
 	engine := engine.NewGenerationEngine(config)
 
