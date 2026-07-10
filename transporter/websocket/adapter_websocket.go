@@ -16,7 +16,7 @@ type WebSocketAdapter struct {
 	sendMutex       *sync.Mutex
 	ctx             context.Context
 	transporterType string
-	eventRegistries []*neoroute.EventRegistry
+	eventRegistries []neoroute.IEventRegistry
 	removeFunc      func()
 	closed          bool
 	removeOnce      sync.Once

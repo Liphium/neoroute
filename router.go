@@ -15,14 +15,14 @@ type Router[D any] interface {
 
 type NeoRouter[D any] struct {
 	neos       []*NeoRouter[D]
-	routes     map[string]func(c *Ctx[D]) error
+	routes     map[string]RouteData[D]
 	middleware map[string]func(c *Ctx[D]) bool
 	config     Config
 }
 
 func NewNeoRouter[D any](config Config) *NeoRouter[D] {
 	return &NeoRouter[D]{
-		routes:     make(map[string]func(c *Ctx[D]) error),
+		routes:     make(map[string]RouteData[D]),
 		middleware: make(map[string]func(c *Ctx[D]) bool),
 		config:     config,
 		neos:       make([]*NeoRouter[D], 0),
@@ -39,6 +39,10 @@ func (r *NeoRouter[D]) Group(route string) Router[D] {
 		prefix: route,
 		parent: nil,
 	}
+}
+
+func (r *NeoRouter[D]) GetRoutes() map[string]RouteData[D] {
+	return r.routes
 }
 
 func (r *NeoRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {
@@ -104,7 +108,7 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	c.route = route
 
 	// Check if handler for route exists
-	handler, exists := r.routes[route]
+	routeData, exists := r.routes[route]
 	if !exists {
 		return messageResponse(c.respondError(ErrRouteNotExists)), nil
 	}
@@ -120,7 +124,7 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	}
 
 	// Handle request
-	err = handler(c) // TODO: add panic protection
+	err = routeData.handler(c) // TODO: add panic protection
 	if err == nil {
 
 		// Handlers never should return nil.

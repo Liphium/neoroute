@@ -2,9 +2,20 @@ package neoroute
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/tinylib/msgp/msgp"
 )
+
+type RouteData[D any] struct {
+	handler func(c *Ctx[D]) error
+
+	// Should return the request type for schema generation, return false if no request.
+	RequestType func() (bool, reflect.Type)
+
+	// Should return the response type for schema generation, return false for custom if no response.
+	ResponseType func() (error bool, custom bool, response reflect.Type)
+}
 
 // Route saves a handler for a given route.
 // Be aware that only a-z, A-Z, 0-9, "-", "_", "~" can be used as characters for a route.
@@ -24,23 +35,31 @@ func Route[D any, RS any, PS interface {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.routes[route] = func(c *Ctx[D]) error {
+		neo.routes[route] = RouteData[D]{
+			handler: func(c *Ctx[D]) error {
 
-			// Parse request data into struct
-			var data RQ
-			unmarshaler := any(&data).(msgp.Unmarshaler)
+				// Parse request data into struct
+				var data RQ
+				unmarshaler := any(&data).(msgp.Unmarshaler)
 
-			_, err := unmarshaler.UnmarshalMsg(c.reqData)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal struct: %v", err)
-			}
+				_, err := unmarshaler.UnmarshalMsg(c.reqData)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal struct: %v", err)
+				}
 
-			ctx := &ResCtx[D, RS, PS]{
-				Ctx: c,
-			}
+				ctx := &ResCtx[D, RS, PS]{
+					Ctx: c,
+				}
 
-			// Let the handler handle it
-			return handler(ctx, data)
+				// Let the handler handle it
+				return handler(ctx, data)
+			},
+			RequestType: func() (bool, reflect.Type) {
+				return true, reflect.TypeFor[RQ]()
+			},
+			ResponseType: func() (bool, bool, reflect.Type) {
+				return true, true, reflect.TypeFor[RS]()
+			},
 		}
 	}
 
@@ -60,14 +79,22 @@ func RouteNoRequest[D any, RS any, PS interface {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.routes[route] = func(c *Ctx[D]) error {
+		neo.routes[route] = RouteData[D]{
+			handler: func(c *Ctx[D]) error {
 
-			ctx := &ResCtx[D, RS, PS]{
-				Ctx: c,
-			}
+				ctx := &ResCtx[D, RS, PS]{
+					Ctx: c,
+				}
 
-			// Let the handler handle it
-			return handler(ctx)
+				// Let the handler handle it
+				return handler(ctx)
+			},
+			RequestType: func() (bool, reflect.Type) {
+				return false, nil
+			},
+			ResponseType: func() (bool, bool, reflect.Type) {
+				return true, true, reflect.TypeFor[RS]()
+			},
 		}
 	}
 
@@ -87,23 +114,31 @@ func RouteOk[D any, RQ any, PQ interface {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.routes[route] = func(c *Ctx[D]) error {
+		neo.routes[route] = RouteData[D]{
+			handler: func(c *Ctx[D]) error {
 
-			// Parse request data into struct
-			var data RQ
-			unmarshaler := any(&data).(msgp.Unmarshaler)
+				// Parse request data into struct
+				var data RQ
+				unmarshaler := any(&data).(msgp.Unmarshaler)
 
-			_, err := unmarshaler.UnmarshalMsg(c.reqData)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal request data in RouteRequestOk for route %s: %v", route, err)
-			}
+				_, err := unmarshaler.UnmarshalMsg(c.reqData)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal request data in RouteRequestOk for route %s: %v", route, err)
+				}
 
-			ctx := &OkCtx[D]{
-				Ctx: c,
-			}
+				ctx := &OkCtx[D]{
+					Ctx: c,
+				}
 
-			// Let the handler handle it
-			return handler(ctx, data)
+				// Let the handler handle it
+				return handler(ctx, data)
+			},
+			RequestType: func() (bool, reflect.Type) {
+				return true, reflect.TypeFor[RQ]()
+			},
+			ResponseType: func() (bool, bool, reflect.Type) {
+				return true, false, nil
+			},
 		}
 	}
 
@@ -120,13 +155,21 @@ func RouteOkNoRequest[D any](r Router[D], route string, handler func(c *OkCtx[D]
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.routes[route] = func(c *Ctx[D]) error {
-			ctx := &OkCtx[D]{
-				Ctx: c,
-			}
+		neo.routes[route] = RouteData[D]{
+			handler: func(c *Ctx[D]) error {
+				ctx := &OkCtx[D]{
+					Ctx: c,
+				}
 
-			// Let the handler handle it
-			return handler(ctx)
+				// Let the handler handle it
+				return handler(ctx)
+			},
+			RequestType: func() (bool, reflect.Type) {
+				return false, nil
+			},
+			ResponseType: func() (bool, bool, reflect.Type) {
+				return true, false, nil
+			},
 		}
 	}
 
@@ -146,20 +189,28 @@ func RouteNoResponse[D any, RQ any, PQ interface {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.routes[route] = func(c *Ctx[D]) error {
+		neo.routes[route] = RouteData[D]{
+			handler: func(c *Ctx[D]) error {
 
-			// Parse request data into struct
-			var data RQ
-			unmarshaler := any(&data).(msgp.Unmarshaler)
+				// Parse request data into struct
+				var data RQ
+				unmarshaler := any(&data).(msgp.Unmarshaler)
 
-			_, err := unmarshaler.UnmarshalMsg(c.reqData)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal request data in RouteRequest for route %s: %v", route, err)
-			}
+				_, err := unmarshaler.UnmarshalMsg(c.reqData)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal request data in RouteRequest for route %s: %v", route, err)
+				}
 
-			// Let the handler handle it
-			handler(c, data)
-			return &noResponse{}
+				// Let the handler handle it
+				handler(c, data)
+				return &noResponse{}
+			},
+			RequestType: func() (bool, reflect.Type) {
+				return true, reflect.TypeFor[RQ]()
+			},
+			ResponseType: func() (bool, bool, reflect.Type) {
+				return false, false, nil
+			},
 		}
 	}
 
@@ -176,11 +227,19 @@ func RoutePing[D any](r Router[D], route string, handler func(c *Ctx[D])) Router
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.routes[route] = func(c *Ctx[D]) error {
+		neo.routes[route] = RouteData[D]{
+			handler: func(c *Ctx[D]) error {
 
-			// Let the handler handle it
-			handler(c)
-			return &noResponse{}
+				// Let the handler handle it
+				handler(c)
+				return &noResponse{}
+			},
+			RequestType: func() (bool, reflect.Type) {
+				return false, nil
+			},
+			ResponseType: func() (bool, bool, reflect.Type) {
+				return false, false, nil
+			},
 		}
 	}
 

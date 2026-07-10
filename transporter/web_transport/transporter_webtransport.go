@@ -7,17 +7,35 @@ import (
 	"sync"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/neoschema"
 	"github.com/google/uuid"
 	"github.com/quic-go/webtransport-go"
 )
 
+var _ neoschema.Transporter = &Transporter[any]{}
+
 type Transporter[D any] struct {
-	eventRegistriesUnreliable []*neoroute.EventRegistry
-	eventRegistriesReliable   []*neoroute.EventRegistry
+	eventRegistriesUnreliable []neoroute.IEventRegistry
+	eventRegistriesReliable   []neoroute.IEventRegistry
 	router                    *neoroute.NeoRouter[D]
 	config                    Config[D]
 	mutex                     sync.Mutex
 	sessions                  map[string]*wttSession[D]
+}
+
+// GetRegistries implements neoschema.Transporter.
+func (t *Transporter[D]) GetRegistries() []neoroute.IEventRegistry {
+	return append(t.eventRegistriesReliable, t.eventRegistriesUnreliable...)
+}
+
+// GetSchema implements neoschema.Transporter.
+func (t *Transporter[D]) GetSchema() map[string]neoschema.RequestResponse {
+	return neoschema.ToRouteSchema(t.router.GetRoutes())
+}
+
+// Type implements neoschema.Transporter.
+func (t *Transporter[D]) Type() neoschema.TransporterType {
+	return neoschema.TransporterWebTransport
 }
 
 type UpgradeFunc func(w http.ResponseWriter, r *http.Request) (*webtransport.Session, error)
@@ -46,8 +64,8 @@ func NewWebTransportTransporter[D any](router *neoroute.NeoRouter[D], config Con
 		router:                    router,
 		config:                    config,
 		sessions:                  make(map[string]*wttSession[D]),
-		eventRegistriesReliable:   []*neoroute.EventRegistry{},
-		eventRegistriesUnreliable: []*neoroute.EventRegistry{},
+		eventRegistriesReliable:   []neoroute.IEventRegistry{},
+		eventRegistriesUnreliable: []neoroute.IEventRegistry{},
 	}
 
 	hook := func(w http.ResponseWriter, r *http.Request) {

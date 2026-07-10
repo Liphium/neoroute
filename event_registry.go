@@ -2,19 +2,30 @@ package neoroute
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/tinylib/msgp/msgp"
 )
 
+type IEventRegistry interface {
+	GetEvents() []string
+	GetSchemas() []func() reflect.Type
+}
+
+var _ IEventRegistry = &EventRegistry{}
+
 type EventRegistry struct {
-	mutex            sync.Mutex
-	registeredEvents []string
+	mutex             sync.Mutex
+	registeredEvents  []string
+	registeredSchemas []func() reflect.Type
 }
 
 func NewEventRegistry() *EventRegistry {
 	return &EventRegistry{
-		registeredEvents: []string{},
+		mutex:             sync.Mutex{},
+		registeredEvents:  []string{},
+		registeredSchemas: []func() reflect.Type{},
 	}
 }
 
@@ -26,6 +37,14 @@ func (er *EventRegistry) GetEvents() []string {
 	return er.registeredEvents
 }
 
+// GetSchemas returns the registered schemas for the registered events in the registry (same index as event names).
+// ONLY USE THIS WHEN IMPLEMENTING AN ADAPTER.
+func (er *EventRegistry) GetSchemas() []func() reflect.Type {
+	er.mutex.Lock()
+	defer er.mutex.Unlock()
+	return er.registeredSchemas
+}
+
 // Register returns a new event builder.
 // First register all events only then start creating adapters.
 func Register[E any, EM interface {
@@ -35,6 +54,9 @@ func Register[E any, EM interface {
 
 	e.mutex.Lock()
 	e.registeredEvents = append(e.registeredEvents, name)
+	e.registeredSchemas = append(e.registeredSchemas, func() reflect.Type {
+		return reflect.TypeFor[E]()
+	})
 	e.mutex.Unlock()
 
 	return func(eventData E) (event, error) {

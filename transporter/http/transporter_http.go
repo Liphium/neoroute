@@ -5,11 +5,29 @@ import (
 	"net/http"
 
 	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/neoschema"
 	"github.com/google/uuid"
 )
 
+var _ neoschema.Transporter = &HTTPTransporter[any]{}
+
 type HTTPTransporter[D any] struct {
 	router *neoroute.NeoRouter[D]
+}
+
+// GetRegistries implements neoschema.Transporter.
+func (h *HTTPTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
+	return []neoroute.IEventRegistry{} // No events over HTTP
+}
+
+// GetSchema implements neoschema.Transporter.
+func (h *HTTPTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
+	return neoschema.ToRouteSchema(h.router.GetRoutes())
+}
+
+// Type implements neoschema.Transporter.
+func (h *HTTPTransporter[D]) Type() neoschema.TransporterType {
+	return neoschema.TransporterHTTP
 }
 
 // NewHTTPTransporter creates a new HTTP transporter with the given handshake function and returns it along with an http.HandlerFunc that can be used to handle incoming HTTP requests.

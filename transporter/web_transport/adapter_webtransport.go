@@ -14,7 +14,7 @@ type WebTransportAdapter struct {
 	session         *webtransport.Session
 	mutex           sync.Mutex
 	transporterType string
-	eventRegistries []*neoroute.EventRegistry
+	eventRegistries []neoroute.IEventRegistry
 	isUnreliable    bool
 	removeFunc      func()
 	closed          bool
