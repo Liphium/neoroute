@@ -3,11 +3,11 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/Liphium/neoroute/cmd/neogen/languages"
 	"github.com/Liphium/neoroute/neoschema"
 )
 
@@ -25,11 +25,11 @@ func Generate(config GeneratorConfig) {
 
 	// Find the server and run it
 	cmd := exec.Command("go", append([]string{"run", "."}, strings.Split(Config.ArgsForGeneration, " ")...)...)
-	wd, err := os.Getwd()
+	var err error
+	cmd.Dir, err = filepath.Abs(Config.ServerPath)
 	if err != nil {
-		panic(fmt.Errorf("couldn't get working directory: %v", err))
+		panic(fmt.Errorf("couldn't get absolute path of server: %v", err))
 	}
-	cmd.Dir = filepath.Clean(filepath.Join(wd, Config.ServerPath))
 
 	bytes, err := cmd.Output()
 	if err != nil {
@@ -44,6 +44,8 @@ func Generate(config GeneratorConfig) {
 	switch config.TargetLanguage {
 	case "go":
 		GenerateGo(schema)
+	case "typescript":
+		GenerateWithConfig(schema, languages.NewTSConfig())
 	default:
 		fmt.Println("Unsupported target language: " + config.TargetLanguage)
 		fmt.Println(" ")
