@@ -32,6 +32,8 @@ func cleanRoute(route string) string {
 	// Remove leading and trailing separators
 	route = strings.Trim(route, string(RouteSeparator))
 
+	route = strings.ToLower(route)
+
 	unfilteredRunes := []rune(route)
 
 	var runes []rune

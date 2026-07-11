@@ -19,6 +19,11 @@ func Test_cleanRoute(t *testing.T) {
 			want:  "legal_route",
 		},
 		{
+			name:  "apply lowercase to route",
+			route: "Legal_Route",
+			want:  "legal_route",
+		},
+		{
 			name:  "remove trailing separator",
 			route: "legal_route" + string(RouteSeparator) + string(RouteSeparator),
 			want:  "legal_route",

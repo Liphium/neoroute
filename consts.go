@@ -2,7 +2,7 @@ package neoroute
 
 const RouteSeparator rune = '/'
 
-// allowedRouteRunes contains the characters allowed for routes: a-z, A-Z, 0-9, '-', '.', '_', '~'
+// allowedRouteRunes contains the characters allowed for routes: a-z, 0-9, '-', '.', '_', '~'
 var allowedRouteRunes = map[rune]struct{}{
 	// Special symbols
 	'-':            {},
@@ -20,10 +20,4 @@ var allowedRouteRunes = map[rune]struct{}{
 	'h': {}, 'i': {}, 'j': {}, 'k': {}, 'l': {}, 'm': {}, 'n': {},
 	'o': {}, 'p': {}, 'q': {}, 'r': {}, 's': {}, 't': {}, 'u': {},
 	'v': {}, 'w': {}, 'x': {}, 'y': {}, 'z': {},
-
-	// Uppercase letters
-	'A': {}, 'B': {}, 'C': {}, 'D': {}, 'E': {}, 'F': {}, 'G': {},
-	'H': {}, 'I': {}, 'J': {}, 'K': {}, 'L': {}, 'M': {}, 'N': {},
-	'O': {}, 'P': {}, 'Q': {}, 'R': {}, 'S': {}, 'T': {}, 'U': {},
-	'V': {}, 'W': {}, 'X': {}, 'Y': {}, 'Z': {},
 }
