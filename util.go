@@ -1,8 +1,14 @@
 package neoroute
 
 import (
+	"runtime/debug"
 	"strings"
 )
+
+func PrintRecoveredPanic(transporterType string, rec any) {
+	Logger.Error("panic occurred in "+transporterType+" handler", "err", rec)
+	Logger.Debug(string(debug.Stack()))
+}
 
 func splitRoute(route string) []string {
 	return strings.Split(route, string(RouteSeparator))

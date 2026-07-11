@@ -68,6 +68,12 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 
 	hook := func(w http.ResponseWriter, r *http.Request) {
 
+		defer func() {
+			if rec := recover(); rec != nil {
+				neoroute.PrintRecoveredPanic("WebSocket", rec)
+			}
+		}()
+
 		// Perform handshake to get session data
 		sessionData, ok := transporter.config.HandshakeFunc(r)
 		if !ok {
@@ -185,6 +191,11 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 	session.mutex.Unlock()
 
 	defer func() {
+
+		if rec := recover(); rec != nil {
+			neoroute.PrintRecoveredPanic("WebSocket", rec)
+		}
+
 		if session.cancel != nil {
 			session.cancel()
 		}
@@ -193,6 +204,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		session.mutex.Lock()
 		t.removeSession(session.session.Id())
 		session.mutex.Unlock()
+
 	}()
 
 	t.config.EnterNetworkFunc(session.session, t)

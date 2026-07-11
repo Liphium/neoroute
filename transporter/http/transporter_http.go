@@ -40,6 +40,12 @@ func NewHTTPTransporter[D any](router *neoroute.NeoRouter[D], handshake neoroute
 	}
 	hook := func(w http.ResponseWriter, r *http.Request) {
 
+		defer func() {
+			if rec := recover(); rec != nil {
+				neoroute.PrintRecoveredPanic("HTTP", rec)
+			}
+		}()
+
 		// Perform handshake to get session data
 		sessionData, ok := handshake(r)
 		if !ok {
