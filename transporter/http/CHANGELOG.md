@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0](https://github.com/Liphium/neoroute/compare/transporter/http/v0.5.0...transporter/http/v0.6.0) (2026-07-11)
+
+
+### Features
+
+* add panic protection to websocket and http neoroute transporter ([42aad5a](https://github.com/Liphium/neoroute/commit/42aad5a32297dc8998b75aeea1ef6608aa4dcb94))
+* add schema generation for transporters ([604cdb9](https://github.com/Liphium/neoroute/commit/604cdb9660594678998b88eb30ea28688484f97a))
+* support http transporter and full generation ([cb3e08e](https://github.com/Liphium/neoroute/commit/cb3e08ee12d71465f70e766dd31852c441136567))
+
 ## [0.5.0](https://github.com/Liphium/neoroute/compare/transporter/http/v0.4.1...transporter/http/v0.5.0) (2026-06-28)
 
 
