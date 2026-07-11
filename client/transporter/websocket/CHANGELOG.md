@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Liphium/neoroute/compare/client/transporter/websocket/v0.5.0...client/transporter/websocket/v0.5.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **client/websocket:** print dial error when read fails ([3c28c07](https://github.com/Liphium/neoroute/commit/3c28c07d1b028864c602c246036b18a1cea010af))
+
 ## [0.5.0](https://github.com/Liphium/neoroute/compare/client/transporter/websocket/v0.4.1...client/transporter/websocket/v0.5.0) (2026-06-28)
 
 

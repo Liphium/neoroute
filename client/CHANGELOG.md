@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0](https://github.com/Liphium/neoroute/compare/client/v0.5.0...client/v0.6.0) (2026-07-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **client:** rename the RouteNoop function to RoutePing
+
+### Features
+
+* **client:** add run error handler function with default logger to avoid nil pointer ([7ee50b3](https://github.com/Liphium/neoroute/commit/7ee50b310c1ffa580948bd12d4547302d5d3c87b))
+
+
+### Code Refactoring
+
+* **client:** rename the RouteNoop function to RoutePing ([a75c651](https://github.com/Liphium/neoroute/commit/a75c651a350bb0a35dc47bcbeceafb5a859fa28b))
+
 ## [0.5.0](https://github.com/Liphium/neoroute/compare/client-v0.4.0...client/v0.5.0) (2026-06-30)
 
 
