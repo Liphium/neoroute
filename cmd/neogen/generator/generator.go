@@ -12,10 +12,10 @@ import (
 )
 
 type GeneratorConfig struct {
-	ServerPath        string
-	ArgsForGeneration string
-	TargetLanguage    string
-	Verbose           bool
+	ServerPath     string
+	Command        string
+	TargetLanguage string
+	Verbose        bool
 }
 
 var Config GeneratorConfig
@@ -24,7 +24,7 @@ func Generate(config GeneratorConfig) {
 	Config = config
 
 	// Find the server and run it
-	cmd := exec.Command("go", append([]string{"run", "."}, strings.Split(Config.ArgsForGeneration, " ")...)...)
+	cmd := exec.Command(strings.Split(Config.Command, " ")[0], strings.Split(Config.Command, " ")[1:]...)
 	var err error
 	cmd.Dir, err = filepath.Abs(Config.ServerPath)
 	if err != nil {
