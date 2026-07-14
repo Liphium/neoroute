@@ -63,10 +63,10 @@ func TestGenerate(t *testing.T) {
 	_ = os.Mkdir(definitionsDir, os.ModePerm)
 	_ = os.Chdir(definitionsDir)
 	generator.Generate(generator.GeneratorConfig{
-		ServerPath:        "..",
-		ArgsForGeneration: "",
-		TargetLanguage:    "go",
-		Verbose:           true,
+		ServerPath:     "..",
+		Command:        "go run .",
+		TargetLanguage: "go",
+		Verbose:        true,
 	})
 
 	// 4. Install more dependencies
