@@ -17,7 +17,7 @@ type NeoRouter[D any] struct {
 	neos        []*NeoRouter[D]
 	routes      map[string]RouteData[D]
 	middlewares map[string][]func(c *Ctx[D]) bool
-	config     Config[D]
+	config      Config[D]
 }
 
 func NewNeoRouter[D any](config Config[D]) *NeoRouter[D] {
