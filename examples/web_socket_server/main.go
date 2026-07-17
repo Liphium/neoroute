@@ -29,8 +29,8 @@ func main() {
 	adapterReg := neoroute.NewAdapterRegistry()
 
 	// Setup router
-	r := neoroute.NewNeoRouter[struct{}](neoroute.Config{
-		ErrorHandler: func(err error) string {
+	r := neoroute.NewNeoRouter[struct{}](neoroute.Config[struct{}]{
+		ErrorHandler: func(err error, c *neoroute.Ctx[struct{}]) string {
 			log.Println("error occurred: ", err)
 			return "Internal server error."
 		},

@@ -1,30 +1,33 @@
-package neoroute_test
+package neoroute
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/Liphium/neoroute"
 )
 
+type testSessionData struct{}
+
 func TestConfig_RunErrorHandler(t *testing.T) {
+	r := NewNeoRouter[testSessionData](Config[testSessionData]{})
+	session := NewSession[testSessionData]("test-id", testSessionData{})
+	ctx := NewTestingCtx(r, "test.route", session)
+
 	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for target function.
-		cfg  neoroute.Config
+		name string
+		cfg  Config[testSessionData]
 		err  error
 		want string
 	}{
 		{
 			name: "error without defined error function",
-			cfg:  neoroute.Config{},
+			cfg:  Config[testSessionData]{},
 			err:  fmt.Errorf("some error"),
 			want: "Internal Server Error",
 		},
 		{
 			name: "error defined error function",
-			cfg: neoroute.Config{
-				func(err error) string {
+			cfg: Config[testSessionData]{
+				ErrorHandler: func(err error, c *Ctx[testSessionData]) string {
 					return fmt.Sprintf("received error: %v", err)
 				},
 			},
@@ -33,14 +36,14 @@ func TestConfig_RunErrorHandler(t *testing.T) {
 		},
 		{
 			name: "nil error without defined error function",
-			cfg:  neoroute.Config{},
+			cfg:  Config[testSessionData]{},
 			err:  nil,
 			want: "Internal Server Error",
 		},
 		{
 			name: "nil error defined error function",
-			cfg: neoroute.Config{
-				func(err error) string {
+			cfg: Config[testSessionData]{
+				ErrorHandler: func(err error, c *Ctx[testSessionData]) string {
 					return fmt.Sprintf("received error: %v", err)
 				},
 			},
@@ -50,7 +53,7 @@ func TestConfig_RunErrorHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.cfg.RunErrorHandler(tt.err)
+			got := tt.cfg.RunErrorHandler(tt.err, ctx)
 			if tt.want != got {
 				t.Errorf("RunErrorHandler() = %v, want %v", got, tt.want)
 			}
