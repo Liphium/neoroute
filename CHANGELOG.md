@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0](https://github.com/Liphium/neoroute/compare/v0.5.0...v0.6.0) (2026-07-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **neoroute:** allow multiple middlewares for the same route
+
+### Features
+
+* **neoroute:** allow multiple middlewares for the same route ([29ab932](https://github.com/Liphium/neoroute/commit/29ab9321325402c6901e8c3f2053377c1ffcaf87))
+
+
+### Bug Fixes
+
+* gofmt alignment in router.go ([63430ed](https://github.com/Liphium/neoroute/commit/63430edf7d82315724eeab6a78842873bc146b5c))
+
 ## [0.5.0](https://github.com/Liphium/neoroute/compare/v0.4.0...v0.5.0) (2026-07-11)
 
 
