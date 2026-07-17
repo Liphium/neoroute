@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/Liphium/neoroute"
-	"github.com/google/uuid"
+	"github.com/Liphium/neoroute/transporter/web_transport"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/quic-go/webtransport-go"
 )
@@ -67,20 +67,20 @@ func main() {
 	}
 	defer wtServer.Close()
 
-	config := neoroute.WTTConfig[SessionData]{
-		UpgradeFunc:          wtServer.Upgrade,
-		OverwriteSessionFunc: func(id string) bool { return true },
-		HandshakeFunc: func(r *http.Request) (*neoroute.Session[SessionData], bool) {
+	// Create router
+	router := neoroute.NewNeoRouter[SessionData](neoroute.Config[SessionData]{
+		ErrorHandler: func(err error, c *neoroute.Ctx[SessionData]) string {
+			return fmt.Sprintf("error: %v", err)
+		},
+	})
 
-			// Create session with randomly generated id for session
-			session := neoroute.NewSession[SessionData](uuid.NewString())
-
-			// Set token if one provided as session data
-			session.SetData(SessionData{
+	// Create WebTransport transporter - now takes router as first arg
+	config := web_transport.Config[SessionData]{
+		UpgradeFunc: wtServer.Upgrade,
+		HandshakeFunc: func(r *http.Request) (SessionData, bool) {
+			return SessionData{
 				Token: r.URL.Query().Get("token"),
-			})
-
-			return session, true
+			}, true
 		},
 		EnterNetworkFunc: func(session *neoroute.Session[SessionData]) {
 			fmt.Println("client connected")
@@ -92,22 +92,19 @@ func main() {
 		WantUnreliableConnection: true,
 	}
 
-	// Create WebTransport transporter
-	hook, t := neoroute.NewWebTransportTransporter(config)
+	hook, t := web_transport.NewWebTransportTransporter(router, config)
 
-	// Create router and set it for transporter
-	router := neoroute.NewNeoRouter[SessionData](neoroute.Config[SessionData]{
-		ErrorHandler: func(err error, c *neoroute.Ctx[SessionData]) string {
-			return fmt.Sprintf("error: %v", err)
-		},
-	})
+	// Set router for transporter (already passed to constructor, SetRouter is optional)
 	t.SetRouter(router)
 
 	// Route: simple.route
-	// Wrap the RouteResponse call with a Use to directly apply a middleware to that route specifically.
-	neoroute.Use(neoroute.RouteResponse(router, "simple.route", func(c *neoroute.ResCtx[Response, SessionData]) error {
+	// Use RouteNoRequest since handler doesn't take input
+	neoroute.RouteNoRequest(router, "simple.route", func(c *neoroute.ResCtx[SessionData, Response, *Response]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
-	}), "", func(c *neoroute.Ctx[SessionData]) bool {
+	})
+
+	// Apply middleware on simple.route
+	router.Use("simple.route", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Println("middleware mounted directly on route was used")
 		return true
 	})
@@ -116,9 +113,7 @@ func main() {
 	group1 := router.Group("group1")
 
 	// Apply auth middleware to group1
-	// If the token provided in the handshake is not `secret_token` this wont let the user continue.
-	// Now only simple.route can be accessed without a token.
-	neoroute.Use(group1, "", func(c *neoroute.Ctx[SessionData]) bool {
+	group1.Use("", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Printf("middleware for group1 used with route %v by userId %v\n", c.Route(), c.Session().Id())
 		fmt.Printf("session data: %+v\n", c.Session().Data().Token)
 		if c.Session().Data().Token == "" {
@@ -129,7 +124,7 @@ func main() {
 
 	// Create subroute for group1
 	// Route: group1.route1
-	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[Response, SessionData], req Request) error {
+	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[SessionData, Response, *Response], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 1,
@@ -141,7 +136,7 @@ func main() {
 
 	// Create subroute for group2
 	// Route: group1.group2.route1
-	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[Response, SessionData], req Request) error {
+	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[SessionData, Response, *Response], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 2,
