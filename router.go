@@ -14,18 +14,18 @@ type Router[D any] interface {
 }
 
 type NeoRouter[D any] struct {
-	neos       []*NeoRouter[D]
-	routes     map[string]RouteData[D]
-	middleware map[string]func(c *Ctx[D]) bool
+	neos        []*NeoRouter[D]
+	routes      map[string]RouteData[D]
+	middlewares map[string][]func(c *Ctx[D]) bool
 	config     Config[D]
 }
 
 func NewNeoRouter[D any](config Config[D]) *NeoRouter[D] {
 	return &NeoRouter[D]{
-		routes:     make(map[string]RouteData[D]),
-		middleware: make(map[string]func(c *Ctx[D]) bool),
-		config:     config,
-		neos:       make([]*NeoRouter[D], 0),
+		routes:      make(map[string]RouteData[D]),
+		middlewares: make(map[string][]func(c *Ctx[D]) bool),
+		config:      config,
+		neos:        make([]*NeoRouter[D], 0),
 	}
 }
 
@@ -55,7 +55,7 @@ func (r *NeoRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
 
 	neos := r.getNeos()
 	for _, neo := range neos {
-		neo.middleware[route] = middleware
+		neo.middlewares[route] = append(neo.middlewares[route], middleware)
 	}
 }
 
@@ -116,9 +116,11 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	// Run middlewares
 	subRoutes := buildSubroutes(route)
 	for _, subroute := range subRoutes {
-		if middleware, ok := r.middleware[subroute]; ok {
-			if !middleware(c) {
-				return messageResponse(c.respondError(ErrMiddlewareDenied)), nil
+		if middlewares, ok := r.middlewares[subroute]; ok {
+			for _, middleware := range middlewares {
+				if !middleware(c) {
+					return messageResponse(c.respondError(ErrMiddlewareDenied)), nil
+				}
 			}
 		}
 	}
