@@ -17,10 +17,10 @@ type NeoRouter[D any] struct {
 	neos       []*NeoRouter[D]
 	routes     map[string]RouteData[D]
 	middleware map[string]func(c *Ctx[D]) bool
-	config     Config
+	config     Config[D]
 }
 
-func NewNeoRouter[D any](config Config) *NeoRouter[D] {
+func NewNeoRouter[D any](config Config[D]) *NeoRouter[D] {
 	return &NeoRouter[D]{
 		routes:     make(map[string]RouteData[D]),
 		middleware: make(map[string]func(c *Ctx[D]) bool),
@@ -29,7 +29,7 @@ func NewNeoRouter[D any](config Config) *NeoRouter[D] {
 	}
 }
 
-func (r *NeoRouter[D]) Config() Config {
+func (r *NeoRouter[D]) Config() Config[D] {
 	return r.config
 }
 
@@ -150,5 +150,5 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	}
 
 	// Let user handle the error and decide what error message to send back to the client
-	return messageResponse(c.respondError(r.config.RunErrorHandler(err))), c.runAfter
+	return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), c.runAfter
 }
