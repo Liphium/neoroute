@@ -96,8 +96,8 @@ func main() {
 	hook, t := neoroute.NewWebTransportTransporter(config)
 
 	// Create router and set it for transporter
-	router := neoroute.NewNeoRouter[SessionData](neoroute.Config{
-		ErrorHandler: func(err error) string {
+	router := neoroute.NewNeoRouter[SessionData](neoroute.Config[SessionData]{
+		ErrorHandler: func(err error, c *neoroute.Ctx[SessionData]) string {
 			return fmt.Sprintf("error: %v", err)
 		},
 	})
