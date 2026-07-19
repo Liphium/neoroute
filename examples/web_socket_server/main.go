@@ -78,13 +78,9 @@ func main() {
 		}
 
 		// Send new pun to all clients
-		ev, err := CreateNewPunSubmittedEvent(NewPunEvent{
+		adapterReg.Broadcast(CreateNewPunSubmittedEvent(NewPunEvent{
 			Pun: req.Pun,
-		})
-		if err != nil {
-			log.Println("failed to create pun event", err)
-		}
-		adapterReg.Broadcast(ev)
+		}))
 
 		counter.mutex.Lock()
 		counter.puns = append(counter.puns, req.Pun)

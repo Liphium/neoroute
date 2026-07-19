@@ -50,7 +50,7 @@ func (er *EventRegistry) GetSchemas() []func() reflect.Type {
 func Register[E any, EM interface {
 	*E
 	msgp.Marshaler
-}](e *EventRegistry, name string) func(ev E) (event, error) {
+}](e *EventRegistry, name string) func(ev E) event {
 
 	e.mutex.Lock()
 	e.registeredEvents = append(e.registeredEvents, name)
@@ -59,18 +59,18 @@ func Register[E any, EM interface {
 	})
 	e.mutex.Unlock()
 
-	return func(eventData E) (event, error) {
+	return func(eventData E) event {
 
 		// Marshal event data
 		marshaler := any(&eventData).(msgp.Marshaler)
 		respData, err := marshaler.MarshalMsg(nil)
 		if err != nil {
-			return event{}, fmt.Errorf("failed to marshal event data for event %v: %v", name, err)
+			panic(fmt.Sprintf("failed to marshal event data for event %v: %v", name, err))
 		}
 
 		return event{
 			Name: name,
 			Data: respData,
-		}, nil
+		}
 	}
 }
