@@ -28,11 +28,11 @@ func NewSession[D any](id string, data D, callbacks SessionTransporterCallbacks[
 }
 
 // Id returns the session's id.
-// ONLY USE THIS FUNCTION IF YOU ARE IMPLEMENTING A TRANSPORTER.
 func (s *Session[D]) Id() string {
 	return s.id
 }
 
+// Data returns the session's data.
 func (s *Session[D]) Data() D {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
