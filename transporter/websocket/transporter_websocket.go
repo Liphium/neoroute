@@ -45,7 +45,7 @@ type WSConfig[D any] struct {
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 	HandshakeFunc neoroute.HandshakeFunc[D]
 
-	EnterNetworkFunc  func(session *neoroute.Session[D], t *WebSocketTransporter[D])
+	EnterNetworkFunc  func(session *neoroute.Session[D])
 	DisconnectHandler func(session *neoroute.Session[D])
 }
 
@@ -212,7 +212,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 
 	}()
 
-	t.config.EnterNetworkFunc(session.session, t)
+	t.config.EnterNetworkFunc(session.session)
 
 	for {
 		messageType, msg, err := conn.Read(context.Background())
