@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/Liphium/neoroute/compare/transporter/websocket/v0.6.0...transporter/websocket/v0.7.0) (2026-07-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **websocket:** remove transporter from EnterNetworkFunc as it's no longer needed to register adapter
+* **websocket:** add support for adapt und disconnect on session and remove old adapt function
+
+### Features
+
+* **websocket:** add support for adapt und disconnect on session and remove old adapt function ([262d9dc](https://github.com/Liphium/neoroute/commit/262d9dc47d280d7e17ba89667b0a7f8b3f1ff408))
+* **websocket:** remove transporter from EnterNetworkFunc as it's no longer needed to register adapter ([0c975e4](https://github.com/Liphium/neoroute/commit/0c975e4b4f3b9efe94f11bed3e89fd9dfefee0df))
+
 ## [0.6.0](https://github.com/Liphium/neoroute/compare/transporter/websocket/v0.5.0...transporter/websocket/v0.6.0) (2026-07-11)
 
 

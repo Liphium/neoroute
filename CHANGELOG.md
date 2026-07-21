@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.7.0](https://github.com/Liphium/neoroute/compare/v0.6.0...v0.7.0) (2026-07-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **neogen:** rename args to command for more control
+* **neoroute:** add error return to disconnect function on session
+* Remove error return from event creation function on
+
+### Features
+
+* **neogen:** add typescript support ([c9bd471](https://github.com/Liphium/neoroute/commit/c9bd47108578eeda1f94c4f4d37f4c278500439b))
+* **neogen:** add typescript support ([0a4634a](https://github.com/Liphium/neoroute/commit/0a4634a0db4d35d1b18f7663bab6d3c17bd4af27))
+* **neogen:** rename args to command for more control ([e2965fb](https://github.com/Liphium/neoroute/commit/e2965fb78f7ab1602452da4ff7aee6f992791c3f))
+* **neoroute:** add error return to disconnect function on session ([091d50a](https://github.com/Liphium/neoroute/commit/091d50a3d4b9f2aa08f6ff5f4ad89b7e4f18bd9b))
+* **neoschema:** Support generation for slices ([266aa3c](https://github.com/Liphium/neoroute/commit/266aa3c08d5a3fb26881971b9e82a306432d469c))
+
+
+### Code Refactoring
+
+* Remove error return from event creation function on ([b128954](https://github.com/Liphium/neoroute/commit/b128954247c5c9f98554504babb1d1a68eb763a9))
+
 ## [0.6.0](https://github.com/Liphium/neoroute/compare/v0.5.0...v0.6.0) (2026-07-17)
 
 
