@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/Liphium/neoroute/compare/transporter/http/v0.6.0...transporter/http/v0.7.0) (2026-07-21)
+
+
+### Features
+
+* **http:** provide empty struct to NewSession function to satisfy definition ([4ed6356](https://github.com/Liphium/neoroute/commit/4ed63569862dd4404d5233b8a80e8bd903e478b5))
+
 ## [0.6.0](https://github.com/Liphium/neoroute/compare/transporter/http/v0.5.0...transporter/http/v0.6.0) (2026-07-11)
 
 
