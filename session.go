@@ -14,7 +14,7 @@ type Session[D any] struct {
 
 type SessionTransporterCallbacks[D any] struct {
 	Adapt      func() (Adapter, error)
-	Disconnect func()
+	Disconnect func() error
 }
 
 // NewSession creates a new session with the given id and returns a pointer to it.
@@ -58,10 +58,11 @@ func (s *Session[D]) UpdateData(updateFunc func(data *D)) {
 }
 
 // Disconnect allows you to disconnect the session.
-func (s *Session[D]) Disconnect() {
+func (s *Session[D]) Disconnect() error {
 	if callback := s.callbacks.Disconnect; callback != nil {
-		callback()
+		return callback()
 	}
+	return errors.ErrUnsupported
 }
 
 // Disconnect allows you to disconnect the session.
@@ -69,5 +70,5 @@ func (s *Session[D]) Adapt() (Adapter, error) {
 	if callback := s.callbacks.Adapt; callback != nil {
 		return callback()
 	}
-	return nil, errors.New("This transporter type doesn't support adapt.")
+	return nil, errors.ErrUnsupported
 }
