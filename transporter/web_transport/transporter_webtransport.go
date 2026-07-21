@@ -125,7 +125,7 @@ func (t *Transporter[D]) addSession(sessionData D, transportSession *webtranspor
 	for {
 		id := uuid.NewString()
 		if _, exists := t.sessions[id]; !exists {
-			userSession = neoroute.NewSession(id, sessionData)
+			userSession = neoroute.NewSession(id, sessionData, neoroute.SessionTransporterCallbacks[D]{}) // TODO: Add disconnect and adapt function when implementing
 			break
 		}
 	}

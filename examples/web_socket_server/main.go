@@ -40,13 +40,13 @@ func main() {
 		HandshakeFunc: func(r *http.Request) (struct{}, bool) {
 			return struct{}{}, true
 		},
-		EnterNetworkFunc: func(session *neoroute.Session[struct{}], t *websocket.WebSocketTransporter[struct{}]) {
+		EnterNetworkFunc: func(session *neoroute.Session[struct{}]) {
 
 			log.Println("user connected")
 
 			// Add to adapter registry, in this case we don't have to manually unregister the adapter, because we want then in the registry until they disconnect.
 			// Then they will be removed automatically.
-			adapter, err := t.Adapt(session)
+			adapter, err := session.Adapt()
 			if err != nil {
 				log.Println("failed to create adapter for", session.Id(), "with error", err)
 				return

@@ -45,7 +45,7 @@ type WSConfig[D any] struct {
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 	HandshakeFunc neoroute.HandshakeFunc[D]
 
-	EnterNetworkFunc  func(session *neoroute.Session[D], t *WebSocketTransporter[D])
+	EnterNetworkFunc  func(session *neoroute.Session[D])
 	DisconnectHandler func(session *neoroute.Session[D])
 }
 
@@ -123,7 +123,10 @@ func (t *WebSocketTransporter[D]) addSession(sessionData D, conn *websocket.Conn
 	for {
 		id := uuid.NewString()
 		if _, exists := t.sessions[id]; !exists {
-			userSession = neoroute.NewSession[D](id, sessionData)
+			userSession = neoroute.NewSession[D](id, sessionData, neoroute.SessionTransporterCallbacks[D]{
+				Adapt:      t.adaptFunc(id),
+				Disconnect: conn.CloseNow,
+			})
 			break
 		}
 	}
@@ -149,31 +152,33 @@ func (t *WebSocketTransporter[D]) removeSession(id string) {
 	t.mutex.Unlock()
 }
 
-func (t *WebSocketTransporter[D]) Adapt(session *neoroute.Session[D]) (neoroute.Adapter, error) {
-	wsSession, ok := t.getSession(session.Id())
-	if !ok {
-		return nil, fmt.Errorf("session %s not found", session.Id())
-	}
+func (t *WebSocketTransporter[D]) adaptFunc(sessionId string) func() (neoroute.Adapter, error) {
+	return func() (neoroute.Adapter, error) {
+		wsSession, ok := t.getSession(sessionId)
+		if !ok {
+			return nil, fmt.Errorf("session %s not found", sessionId)
+		}
 
-	wsSession.mutex.Lock()
-	conn := wsSession.conn
-	sendMutex := wsSession.sendMutex
-	ctx := wsSession.ctx
-	wsSession.mutex.Unlock()
+		wsSession.mutex.Lock()
+		conn := wsSession.conn
+		sendMutex := wsSession.sendMutex
+		ctx := wsSession.ctx
+		wsSession.mutex.Unlock()
 
-	if conn == nil {
-		return nil, fmt.Errorf("websocket session not set for %s", session.Id())
-	}
+		if conn == nil {
+			return nil, fmt.Errorf("websocket session not set for %s", sessionId)
+		}
 
-	adapter := &WebSocketAdapter{
-		transporterType: "WebSocket",
-		eventRegistries: t.eventRegistries,
-		conn:            conn,
-		sendMutex:       sendMutex,
-		ctx:             ctx,
+		adapter := &WebSocketAdapter{
+			transporterType: "WebSocket",
+			eventRegistries: t.eventRegistries,
+			conn:            conn,
+			sendMutex:       sendMutex,
+			ctx:             ctx,
+		}
+		go adapter.waitClosed()
+		return adapter, nil
 	}
-	go adapter.waitClosed()
-	return adapter, nil
 }
 
 func (t *WebSocketTransporter[D]) getSession(id string) (*wsSession[D], bool) {
@@ -207,7 +212,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 
 	}()
 
-	t.config.EnterNetworkFunc(session.session, t)
+	t.config.EnterNetworkFunc(session.session)
 
 	for {
 		messageType, msg, err := conn.Read(context.Background())

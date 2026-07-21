@@ -28,7 +28,7 @@ func TestNewSession(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewSession(tt.args.id, tt.args.data)
+			got := NewSession(tt.args.id, tt.args.data, SessionTransporterCallbacks[string]{})
 			if got.id != tt.args.id {
 				t.Errorf("NewSession() id = %v, want %v", got.id, tt.args.id)
 			}
@@ -47,7 +47,7 @@ func TestSession_Id(t *testing.T) {
 	}{
 		{
 			name: "get session id",
-			s:    NewSession("id-abc", "data"),
+			s:    NewSession("id-abc", "data", SessionTransporterCallbacks[string]{}),
 			want: "id-abc",
 		},
 	}
@@ -68,7 +68,7 @@ func TestSession_Data(t *testing.T) {
 	}{
 		{
 			name: "get session data",
-			s:    NewSession("id", "my-string-data"),
+			s:    NewSession("id", "my-string-data", SessionTransporterCallbacks[string]{}),
 			want: "my-string-data",
 		},
 	}
@@ -93,7 +93,7 @@ func TestSession_SetData(t *testing.T) {
 	}{
 		{
 			name: "update data completely",
-			s:    NewSession("id", "old-data"),
+			s:    NewSession("id", "old-data", SessionTransporterCallbacks[string]{}),
 			args: args{data: "new-data"},
 			want: "new-data",
 		},
@@ -120,7 +120,7 @@ func TestSession_UpdateData(t *testing.T) {
 	}{
 		{
 			name: "mutate data via function closure",
-			s:    NewSession("id", "hello"),
+			s:    NewSession("id", "hello", SessionTransporterCallbacks[string]{}),
 			args: args{
 				updateFunc: func(data *string) {
 					*data += " world"
