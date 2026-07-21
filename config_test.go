@@ -8,8 +8,8 @@ import (
 type testSessionData struct{}
 
 func TestConfig_RunErrorHandler(t *testing.T) {
-	r := NewNeoRouter[testSessionData](Config[testSessionData]{})
-	session := NewSession[testSessionData]("test-id", testSessionData{})
+	r := NewNeoRouter(Config[testSessionData]{})
+	session := NewSession("test-id", testSessionData{}, SessionTransporterCallbacks[testSessionData]{})
 	ctx := NewTestingCtx(r, "test.route", session)
 
 	tests := []struct {

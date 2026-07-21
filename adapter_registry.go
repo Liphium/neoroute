@@ -45,7 +45,6 @@ func (r *AdapterRegistry) Disconnect(name string) {
 		return
 	}
 	adapter.Disconnect()
-
 }
 
 func (r *AdapterRegistry) unregisterIfSame(name string, adapter Adapter) {
