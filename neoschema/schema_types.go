@@ -52,6 +52,7 @@ var Kinds = map[reflect.Kind]SchemaType{
 
 	// Simple types
 	reflect.Array:   TypeArray,
+	reflect.Slice:   TypeArray,
 	reflect.Float32: TypeFloat32,
 	reflect.Float64: TypeFloat64,
 	reflect.Bool:    TypeBool,

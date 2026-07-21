@@ -8,7 +8,7 @@ import (
 
 var (
 	path    = flag.String("path", ".", "package for the golang package to generate a schema for")
-	args    = flag.String("args", "--neo-generate", "arguments for generating schema")
+	command = flag.String("command", "go run . --neo-generate", "command for generating the schema")
 	target  = flag.String("target", string("go"), "target language for generation")
 	verbose = flag.Bool("v", false, "verbose diagnostics")
 )
@@ -17,9 +17,9 @@ func main() {
 	flag.Parse()
 
 	generator.Generate(generator.GeneratorConfig{
-		ServerPath:        *path,
-		ArgsForGeneration: *args,
-		TargetLanguage:    *target,
-		Verbose:           *verbose,
+		ServerPath:     *path,
+		Command:        *command,
+		TargetLanguage: *target,
+		Verbose:        *verbose,
 	})
 }
