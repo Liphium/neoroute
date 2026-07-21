@@ -80,7 +80,7 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			Object: st.Name,
 		}
 
-	case reflect.Array:
+	case reflect.Array, reflect.Slice:
 		// Build the type for the array
 		arrayElem, err := buildPackedFor(t.Elem(), current, nil, 0)
 		if err != nil {
