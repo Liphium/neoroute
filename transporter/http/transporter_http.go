@@ -54,7 +54,7 @@ func NewHTTPTransporter[D any](router *neoroute.NeoRouter[D], handshake neoroute
 		}
 
 		// Create session with handshake data
-		session := neoroute.NewSession(uuid.NewString(), sessionData)
+		session := neoroute.NewSession(uuid.NewString(), sessionData, neoroute.SessionTransporterCallbacks[D]{})
 
 		// Read body data
 		body, err := io.ReadAll(r.Body)
