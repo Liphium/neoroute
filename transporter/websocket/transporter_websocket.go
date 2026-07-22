@@ -45,6 +45,9 @@ type WSConfig[D any] struct {
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 	HandshakeFunc neoroute.HandshakeFunc[D]
 
+	// Options for accepting the websocket connection, if not set, default options from the library are used.
+	AcceptOptions *websocket.AcceptOptions
+
 	EnterNetworkFunc  func(session *neoroute.Session[D])
 	DisconnectHandler func(session *neoroute.Session[D])
 }
@@ -82,7 +85,7 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		}
 
 		// Upgrade to WebSocket session
-		conn, err := websocket.Accept(w, r, nil)
+		conn, err := websocket.Accept(w, r, config.AcceptOptions)
 		if err != nil {
 			neoroute.Logger.Info("Upgrade to WebSocket failed", "err", err)
 			return
