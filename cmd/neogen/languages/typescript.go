@@ -94,9 +94,9 @@ import {
 export class {{ .Object.Name }} extends {{ .Object.TypeName }}Transporter {
 	private recv: Receiver;
 
-	constructor(config: Config{{ if eq .Object.Type "http" }}, method: string, url: string{{ else if eq .Object.Type "websocket" }}, options: WebSocketOptions{{ end }}) {
+	constructor(config: Config{{ if eq .Object.Type "http" }}, method: string, url: string{{ else if eq .Object.Type "websocket" }} & WebSocketOptions{{ end }}) {
 		const recv = new Receiver(config);
-		super(recv{{ if eq .Object.Type "http" }}, method, url{{ else if eq .Object.Type "websocket" }}, options{{ end }});
+		super(recv{{ if eq .Object.Type "http" }}, method, url{{ else if eq .Object.Type "websocket" }}, config{{ end }});
 		this.recv = recv;
 	}
 
