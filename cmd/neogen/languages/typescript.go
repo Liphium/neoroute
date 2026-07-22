@@ -78,7 +78,7 @@ import {
     HTTPTransporter,
     {{- else if eq .Object.Type "websocket" }}
     WebSocketTransporter,
-    WebSocketOptions,
+    type WebSocketOptions,
 	{{- end }}
     UserError,
     Ctx
@@ -92,17 +92,17 @@ import {
 {{ end }}
 
 export class {{ .Object.Name }} extends {{ .Object.TypeName }}Transporter {
-	private receiver: Receiver;
+	private recv: Receiver;
 
 	constructor(config: Config{{ if eq .Object.Type "http" }}, method: string, url: string{{ else if eq .Object.Type "websocket" }}, options: WebSocketOptions{{ end }}) {
-		const receiver = new Receiver(config);
-		super(receiver{{ if eq .Object.Type "http" }}, method, url{{ else if eq .Object.Type "websocket" }}, options{{ end }});
-		this.receiver = receiver;
+		const recv = new Receiver(config);
+		super(recv{{ if eq .Object.Type "http" }}, method, url{{ else if eq .Object.Type "websocket" }}, options{{ end }});
+		this.recv = recv;
 	}
 
 {{ range $name, $event := .Object.Events }}
 	public on{{ camel $name true }}(handler: (event: {{ getType $event }}) => void): void {
-		this.receiver.receive<{{ getType $event }}>("{{ $name }}", (c: Ctx, event: {{ getType $event }}) => {
+		this.recv.receive<{{ getType $event }}>("{{ $name }}", (c: Ctx, event: {{ getType $event }}) => {
 			handler(event);
 		});
 	}
@@ -112,17 +112,17 @@ export class {{ .Object.Name }} extends {{ .Object.TypeName }}Transporter {
 	public async {{ camel $name false }}({{- if $route.HasRequest }}payload: {{ getType $route.Request }}{{ end -}}): Promise<{{ if $route.HasResponse }}{{ getType $route.Response }} | {{ end }}UserError{{ if not $route.HasResponse }} | void{{ end }}> {
 		{{- $sendType := $route.GetSendType -}}
 		{{- if eq $sendType $.Object.Const.SendRequestResponse }}
-		return this.receiver.send<{{ getType $route.Response }}, {{ getType $route.Request }}>("{{ $name }}", payload);
+		return this.recv.send<{{ getType $route.Response }}, {{ getType $route.Request }}>("{{ $name }}", payload);
 		{{- else if eq $sendType $.Object.Const.SendOK }}
-		return this.receiver.sendOk<{{ getType $route.Request }}>("{{ $name }}", payload);
+		return this.recv.sendOk<{{ getType $route.Request }}>("{{ $name }}", payload);
 		{{- else if eq $sendType $.Object.Const.SendOKNoRequest }}
-		return this.receiver.sendOkNoRequest("{{ $name }}");
+		return this.recv.sendOkNoRequest("{{ $name }}");
 		{{- else if eq $sendType $.Object.Const.SendNoRequest }}
-		return this.receiver.sendNoRequest<{{ getType $route.Response }}>("{{ $name }}");
+		return this.recv.sendNoRequest<{{ getType $route.Response }}>("{{ $name }}");
 		{{- else if eq $sendType $.Object.Const.SendNoResponse }}
-		return this.receiver.sendNoResponse<{{ getType $route.Request }}>("{{ $name }}", payload);
+		return this.recv.sendNoResponse<{{ getType $route.Request }}>("{{ $name }}", payload);
 		{{- else if eq $sendType $.Object.Const.SendPing }}
-		return this.receiver.sendPing("{{ $name }}");
+		return this.recv.sendPing("{{ $name }}");
 		{{- end }}
 	}
 {{ end }}
