@@ -45,6 +45,9 @@ type WSConfig[D any] struct {
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 	HandshakeFunc neoroute.HandshakeFunc[D]
 
+	// If true, the origin header will not be checked during the handshake. This is useful for testing and development, but can also be false if you have a proxy in front of your server anyway.
+	DisableOriginVerification bool
+
 	EnterNetworkFunc  func(session *neoroute.Session[D])
 	DisconnectHandler func(session *neoroute.Session[D])
 }
@@ -82,7 +85,9 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		}
 
 		// Upgrade to WebSocket session
-		conn, err := websocket.Accept(w, r, nil)
+		conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+			InsecureSkipVerify: config.DisableOriginVerification,
+		})
 		if err != nil {
 			neoroute.Logger.Info("Upgrade to WebSocket failed", "err", err)
 			return
