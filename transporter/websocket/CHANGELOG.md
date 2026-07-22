@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.0](https://github.com/Liphium/neoroute/compare/transporter/websocket/v0.7.0...transporter/websocket/v0.8.0) (2026-07-22)
+
+
+### Features
+
+* **websocket:** Add option to disable origin checking ([f09dbd9](https://github.com/Liphium/neoroute/commit/f09dbd9fe22ab4f05cbe643288a93b7c8a381a01))
+* **websocket:** Add option to disable origin checking ([63cff11](https://github.com/Liphium/neoroute/commit/63cff1139254fbc6d0db0dcf6f4b811a138e5438))
+* **websocket:** Let the AcceptOptions bet set ([bd4b6fc](https://github.com/Liphium/neoroute/commit/bd4b6fc3df2799b004ab7645ee389bb56f1eeded))
+
 ## [0.7.0](https://github.com/Liphium/neoroute/compare/transporter/websocket/v0.6.0...transporter/websocket/v0.7.0) (2026-07-21)
 
 
