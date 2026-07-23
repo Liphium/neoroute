@@ -27,6 +27,10 @@ func GetTSType(packed neoschema.PackedType) (string, error) {
 	case *neoschema.ReferenceType:
 		return util.ToCamelCase(schema.Object, true), nil
 	case *neoschema.ArrayType:
+		// Byte array → Uint8Array for proper typed array in TS/JS
+		if schema.Element.Type() == neoschema.TypeByte {
+			return "Uint8Array", nil
+		}
 		elem, err := GetTSType(schema.Element)
 		if err != nil {
 			return "", err
