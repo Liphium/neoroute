@@ -47,11 +47,7 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			},
 			Fields: map[string]PackedType{},
 		}
-		if current != nil && current.ObjectRegistry() != nil {
-			st.BasicType.Objects = current.ObjectRegistry()
-		} else {
-			st.BasicType.Objects = map[string]PackedType{}
-		}
+		st.BasicType.Objects = getRegistry(current)
 		st.BasicType.Objects[st.Name] = st
 
 		// Go through all struct fields and build their schemas
@@ -81,51 +77,63 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 		}
 
 	case reflect.Array, reflect.Slice:
-		// Build the type for the array
-		arrayElem, err := buildPackedFor(t.Elem(), current, nil, 0)
-		if err != nil {
-			return &BasicType{}, err
-		}
 
-		generated = &ArrayType{
+		at := &ArrayType{
 			BasicType: &BasicType{
 				ActualType: Kinds[kind],
 			},
-			Element: arrayElem,
 		}
+		at.BasicType.Objects = getRegistry(current)
+
+		// Build the type for the array
+		arrayElem, err := buildPackedFor(t.Elem(), at, nil, 0)
+		if err != nil {
+			return &BasicType{}, err
+		}
+		at.Element = arrayElem
+
+		generated = at
 
 	case reflect.Map:
-		// Build the type for key and map of the array
-		mapKey, err := buildPackedFor(t.Key(), current, nil, 0)
-		if err != nil {
-			return &BasicType{}, err
-		}
-		mapElem, err := buildPackedFor(t.Elem(), current, nil, 0)
-		if err != nil {
-			return &BasicType{}, err
-		}
 
-		generated = &MapType{
+		mt := &MapType{
 			BasicType: &BasicType{
 				ActualType: TypeMap,
 			},
-			Key:   mapKey,
-			Value: mapElem,
 		}
+		mt.BasicType.Objects = getRegistry(current)
 
-	case reflect.Pointer:
-		// Build the type for the nullable
-		nullableElem, err := buildPackedFor(t.Elem(), current, nil, 0)
+		// Build the type for key and map of the array
+		mapKey, err := buildPackedFor(t.Key(), mt, nil, 0)
 		if err != nil {
 			return &BasicType{}, err
 		}
+		mt.Key = mapKey
+		mapElem, err := buildPackedFor(t.Elem(), mt, nil, 0)
+		if err != nil {
+			return &BasicType{}, err
+		}
+		mt.Value = mapElem
 
-		generated = &NullableType{
+		generated = mt
+
+	case reflect.Pointer:
+
+		nt := &NullableType{
 			BasicType: &BasicType{
 				ActualType: TypeNullable,
 			},
-			Element: nullableElem,
 		}
+		nt.BasicType.Objects = getRegistry(current)
+
+		// Build the type for the nullable
+		nullableElem, err := buildPackedFor(t.Elem(), nt, nil, 0)
+		if err != nil {
+			return &BasicType{}, err
+		}
+		nt.Element = nullableElem
+
+		generated = nt
 
 	default:
 		st := Kinds[kind]
@@ -154,4 +162,11 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 
 	// Remove all registries from children
 	return generated, nil
+}
+
+func getRegistry(current PackedType) map[string]PackedType {
+	if current != nil && current.ObjectRegistry() != nil {
+		return current.ObjectRegistry()
+	}
+	return map[string]PackedType{}
 }
