@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.8.0](https://github.com/Liphium/neoroute/compare/v0.7.0...v0.8.0) (2026-08-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* **neogen:** Generate Uint8Array instead of number[]
+* **neogen:** Make the WebSocketConfig one parameter
+* **neogen:** Correctly extend transporters for TS
+* **neogen:** Let WebSocketConfig be configurable
+
+### Features
+
+* Add functions for adapter management on registry ([249d2d0](https://github.com/Liphium/neoroute/commit/249d2d073c98bcf4734710fc01000e24788993ee))
+* **neogen:** Make the WebSocketConfig one parameter ([4fa21f5](https://github.com/Liphium/neoroute/commit/4fa21f550d9b09eb416c8a5f7e57fa6e2c1901d9))
+
+
+### Bug Fixes
+
+* neogen typescript generation errors ([bde5470](https://github.com/Liphium/neoroute/commit/bde5470d161651982cd0d5069391415215ca20ab))
+* **neogen:** Correctly extend transporters for TS ([ca9c09f](https://github.com/Liphium/neoroute/commit/ca9c09f988341163da94a2a4b905ed941ac2e8de))
+* **neogen:** Generate Uint8Array instead of number[] ([4c2659f](https://github.com/Liphium/neoroute/commit/4c2659f88575f885f73d1156f28d206588d9a6b1))
+* **neogen:** Let WebSocketConfig be configurable ([78b7f71](https://github.com/Liphium/neoroute/commit/78b7f71e3809acdbc8e427bc0d022a108fb1aab7))
+* **neogen:** Structs now generate properly in slices ([86b0de4](https://github.com/Liphium/neoroute/commit/86b0de466d66b3b21f71a9287c09542c39f523ad))
+
 ## [0.7.0](https://github.com/Liphium/neoroute/compare/v0.6.0...v0.7.0) (2026-07-21)
 
 
