@@ -47,6 +47,36 @@ func (r *AdapterRegistry) Disconnect(name string) {
 	adapter.Disconnect()
 }
 
+func (r *AdapterRegistry) UnregisterAll() {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	r.adapters = make(map[string]Adapter)
+}
+
+func (r *AdapterRegistry) DisconnectAll() {
+	r.mutex.RLock()
+	adapters := make([]Adapter, 0, len(r.adapters))
+	for _, adapter := range r.adapters {
+		adapters = append(adapters, adapter)
+	}
+	r.mutex.RUnlock()
+
+	for _, adapter := range adapters {
+		adapter.Disconnect()
+	}
+}
+
+func (r *AdapterRegistry) GetAdapters() []string {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	names := make([]string, 0, len(r.adapters))
+	for name := range r.adapters {
+		names = append(names, name)
+	}
+	return names
+}
+
 func (r *AdapterRegistry) unregisterIfSame(name string, adapter Adapter) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
