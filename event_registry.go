@@ -47,10 +47,7 @@ func (er *EventRegistry) GetSchemas() []func() reflect.Type {
 
 // Register returns a new event builder.
 // First register all events only then start creating adapters.
-func Register[E any, EM interface {
-	*E
-	msgp.Marshaler
-}](e *EventRegistry, name string) func(ev E) event {
+func Register[E msgp.Marshaler](e *EventRegistry, name string) func(ev E) event {
 
 	e.mutex.Lock()
 	e.registeredEvents = append(e.registeredEvents, name)
@@ -62,8 +59,7 @@ func Register[E any, EM interface {
 	return func(eventData E) event {
 
 		// Marshal event data
-		marshaler := any(&eventData).(msgp.Marshaler)
-		respData, err := marshaler.MarshalMsg(nil)
+		respData, err := eventData.MarshalMsg(nil)
 		if err != nil {
 			panic(fmt.Sprintf("failed to marshal event data for event %v: %v", name, err))
 		}

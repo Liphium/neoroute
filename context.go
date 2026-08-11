@@ -74,8 +74,7 @@ func (c *ResCtx[D, RS]) BaseCtx() *Ctx[D] {
 
 // Respond sends a successful response with the provided data.
 func (c *ResCtx[D, RS]) Respond(resp RS) error {
-	marshaler := any(&resp).(msgp.Marshaler)
-	respData, err := marshaler.MarshalMsg(nil)
+	respData, err := resp.MarshalMsg(nil)
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %v", err)
 	}
