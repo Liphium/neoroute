@@ -7,10 +7,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-func Send[RS any, RSP interface {
-	*RS
-	msgp.Unmarshaler
-}, RQ msgp.Marshaler](r Sender, route string, req RQ) (RS, error) {
+func Send[RS any, RSP msgp.UnmarshalPtr[RS], RQ msgp.Marshaler](r Sender, route string, req RQ) (RS, error) {
 
 	var resp RS
 
@@ -98,10 +95,7 @@ func SendOkNoRequest(r Sender, route string) error {
 
 }
 
-func SendNoRequest[RS any, RSP interface {
-	*RS
-	msgp.Unmarshaler
-}](r Sender, route string) (RS, error) {
+func SendNoRequest[RS any, RSP msgp.UnmarshalPtr[RS]](r Sender, route string) (RS, error) {
 
 	var resp RS
 

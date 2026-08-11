@@ -40,10 +40,7 @@ func EvaluateCtxTesting[D any](c *Ctx[D]) {
 
 // GetTestingResponse return the response data or an error message for the user or
 // an error from the handler or an error if the response is not correct.
-func GetTestingResponse[RQ any, PQ interface {
-	*RQ
-	msgp.Unmarshaler
-}](err error) (RQ, string, error) {
+func GetTestingResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](err error) (RQ, string, error) {
 	var resp RQ
 	if respData, ok := errors.AsType[*responseData](err); ok {
 		if respData.IsError {

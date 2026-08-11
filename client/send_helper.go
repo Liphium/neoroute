@@ -14,10 +14,7 @@ func marshalRequestData[RQ msgp.Marshaler](req RQ) ([]byte, error) {
 	return reqData, nil
 }
 
-func unmarshalResponseData[RS any, RSP interface {
-	*RS
-	msgp.Unmarshaler
-}](r Sender, respBytes []byte) (RS, error) {
+func unmarshalResponseData[RS any, RSP msgp.UnmarshalPtr[RS]](r Sender, respBytes []byte) (RS, error) {
 	var data RS
 	unmarshaler := any(&data).(msgp.Unmarshaler)
 	_, err := unmarshaler.UnmarshalMsg(respBytes)

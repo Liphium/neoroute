@@ -7,10 +7,7 @@ import (
 // Receive binds the event name to a handle function.
 // If the server sends a event with that name to this client
 // the provided function will handle it.
-func Receive[E any, EP interface {
-	*E
-	msgp.Unmarshaler
-}](r *Receiver, eventName string, handleFunc func(c *Ctx, data E)) {
+func Receive[E any, EP msgp.UnmarshalPtr[E]](r *Receiver, eventName string, handleFunc func(c *Ctx, data E)) {
 	r.setEvent(eventName, func(c *Ctx) {
 
 		// Parse request data into struct
