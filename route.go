@@ -241,6 +241,6 @@ func RoutePing[D any](r Router[D], route string, handler func(c *Ctx[D])) Router
 func panicIfPointer[T any](route string) {
 	t := reflect.TypeFor[T]()
 	if t.Kind() == reflect.Pointer {
-		panic(fmt.Sprint("%s: pointers are not allowed in routes due to nil not being encodable, use a struct instead of a pointer", route))
+		panic(fmt.Sprintf("%s: pointers are not allowed in routes due to nil not being encodable, use a struct instead of a pointer", route))
 	}
 }
