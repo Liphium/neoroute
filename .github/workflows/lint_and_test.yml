@@ -3,7 +3,7 @@ name: Go Lint and Test
 # Triggers the workflow on push or pull request to the main branch
 on:
   push:
-    branches: ["main"]
+    branches: ["**"]
   pull_request:
     branches: ["main"]
 
