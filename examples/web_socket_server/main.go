@@ -59,7 +59,7 @@ func main() {
 	})
 
 	// Setup routes
-	neoroute.Route(r, "echo", func(c *neoroute.ResCtx[struct{}, EchoResponse, *EchoResponse], req EchoRequest) error {
+	neoroute.Route(r, "echo", func(c *neoroute.ResCtx[struct{}, EchoResponse], req EchoRequest) error {
 		log.Println("message received")
 		counter.mutex.Lock()
 		defer counter.mutex.Unlock()

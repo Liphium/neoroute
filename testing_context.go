@@ -8,11 +8,8 @@ import (
 )
 
 // NewTestingResCtx creates a new ResCtx for testing with the given neo, route and session.
-func NewTestingResCtx[D any, RS any, PS interface {
-	*RS
-	msgp.Marshaler
-}](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS, PS] {
-	return &ResCtx[D, RS, PS]{
+func NewTestingResCtx[D any, RS msgp.Marshaler](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS] {
+	return &ResCtx[D, RS]{
 		Ctx: NewTestingCtx(neo, route, session),
 	}
 }
