@@ -10,14 +10,11 @@ import (
 func Send[RS any, RSP interface {
 	*RS
 	msgp.Unmarshaler
-}, RQ any, RQP interface {
-	*RQ
-	msgp.Marshaler
-}](r Sender, route string, req RQ) (RS, error) {
+}, RQ msgp.Marshaler](r Sender, route string, req RQ) (RS, error) {
 
 	var resp RS
 
-	reqBytes, err := marshalRequestData[RQ, RQP](req)
+	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return resp, err
 	}
@@ -46,12 +43,9 @@ func Send[RS any, RSP interface {
 
 }
 
-func SendOk[RQ any, RQP interface {
-	*RQ
-	msgp.Marshaler
-}](r Sender, route string, req RQ) error {
+func SendOk[RQ msgp.Marshaler](r Sender, route string, req RQ) error {
 
-	reqBytes, err := marshalRequestData[RQ, RQP](req)
+	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return err
 	}
@@ -134,12 +128,9 @@ func SendNoRequest[RS any, RSP interface {
 	}
 }
 
-func SendNoResponse[RQ any, RQP interface {
-	*RQ
-	msgp.Marshaler
-}](r Sender, route string, req RQ) error {
+func SendNoResponse[RQ msgp.Marshaler](r Sender, route string, req RQ) error {
 
-	reqBytes, err := marshalRequestData[RQ, RQP](req)
+	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return err
 	}
