@@ -52,7 +52,7 @@ jobs:
         run: go install github.com/tinylib/msgp@latest
 
       - name: Test all of the examples and the main codebase
-        run: find . -name go.mod -execdir sh -c 'pwd && go test ./... -count=1 -cover -coverprofile=c.out' \;
+        run: find . -name go.mod -execdir sh -c 'pwd && go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out' \;
 
       - name: Generate coverage
         run: go tool cover -func=c.out -o=c.out
