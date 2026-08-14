@@ -10,13 +10,18 @@ replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client
 
 replace github.com/Liphium/neoroute/transporter/websocket => ../../transporter/websocket
 
+replace github.com/Liphium/neoroute/pkg/neodebug => ../../pkg/neodebug
+
 require (
 	github.com/Liphium/neoroute v0.2.0
 	github.com/coder/websocket v1.8.15 // indirect
 	github.com/tinylib/msgp v1.6.4
 )
 
-require github.com/Liphium/neoroute/transporter/websocket v0.0.0-00010101000000-000000000000
+require (
+	github.com/Liphium/neoroute/pkg/neodebug v0.0.0-00010101000000-000000000000
+	github.com/Liphium/neoroute/transporter/websocket v0.0.0-00010101000000-000000000000
+)
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
