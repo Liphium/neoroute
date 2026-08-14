@@ -18,19 +18,15 @@ type RouteData[D any] struct {
 }
 
 // Route saves a handler for a given route.
-// Be aware that only a-z, A-Z, 0-9, "-", "_", "~" can be used as characters for a route.
-// To separate subroutes use "."
-// Example routes: "", "route1", "route1.route2", "route1.route3"
+// Be aware that only a-z, A-Z, 0-9, "-", "_", "~", "." can be used as characters for a route.
+// To separate subroutes use "/"
+// Example routes: "", "route1", "route1/route2", "route1/route3"
 // If characters are used that are not allowed, they will be striped, this can lead to unwanted behavior.
 //
 // Make sure the handler never returns nil, otherwise the router will panic.
-func Route[D any, RS any, PS interface {
-	*RS
-	msgp.Marshaler
-}, RQ any, PQ interface {
-	*RQ
-	msgp.Unmarshaler
-}](r Router[D], route string, handler func(c *ResCtx[D, RS, PS], req RQ) error) Router[D] {
+func Route[D any, RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](r Router[D], route string, handler func(c *ResCtx[D, RS], req RQ) error) Router[D] {
+	panicIfPointer[RS](route)
+
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -47,7 +43,7 @@ func Route[D any, RS any, PS interface {
 					return fmt.Errorf("failed to unmarshal struct: %v", err)
 				}
 
-				ctx := &ResCtx[D, RS, PS]{
+				ctx := &ResCtx[D, RS]{
 					Ctx: c,
 				}
 
@@ -71,10 +67,9 @@ func Route[D any, RS any, PS interface {
 
 // RouteNoRequest does the same as Route but the handler does not receive a request struct, only the context.
 // This can be useful if you only want to receive the request and don't want any data.
-func RouteNoRequest[D any, RS any, PS interface {
-	*RS
-	msgp.Marshaler
-}](r Router[D], route string, handler func(c *ResCtx[D, RS, PS]) error) Router[D] {
+func RouteNoRequest[D any, RS msgp.Marshaler](r Router[D], route string, handler func(c *ResCtx[D, RS]) error) Router[D] {
+	panicIfPointer[RS](route)
+
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -82,7 +77,7 @@ func RouteNoRequest[D any, RS any, PS interface {
 		neo.routes[route] = RouteData[D]{
 			handler: func(c *Ctx[D]) error {
 
-				ctx := &ResCtx[D, RS, PS]{
+				ctx := &ResCtx[D, RS]{
 					Ctx: c,
 				}
 
@@ -106,10 +101,7 @@ func RouteNoRequest[D any, RS any, PS interface {
 
 // RouteOk does the same as Route but the handler does not have a return type, it can only succeed or error.
 // This can be useful if you don't have any return data, but the request can still have an error.
-func RouteOk[D any, RQ any, PQ interface {
-	*RQ
-	msgp.Unmarshaler
-}](r Router[D], route string, handler func(c *OkCtx[D], req RQ) error) Router[D] {
+func RouteOk[D any, RQ any, PQ msgp.UnmarshalPtr[RQ]](r Router[D], route string, handler func(c *OkCtx[D], req RQ) error) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -181,10 +173,7 @@ func RouteOkNoRequest[D any](r Router[D], route string, handler func(c *OkCtx[D]
 
 // RouteNoResponse does the same as Route but the handler does not return anything.
 // This can be useful if you only want to receive the data for example streaming over WebTransport.
-func RouteNoResponse[D any, RQ any, PQ interface {
-	*RQ
-	msgp.Unmarshaler
-}](r Router[D], route string, handler func(c *Ctx[D], req RQ)) Router[D] {
+func RouteNoResponse[D any, RQ any, PQ msgp.UnmarshalPtr[RQ]](r Router[D], route string, handler func(c *Ctx[D], req RQ)) Router[D] {
 	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
 
 	neos := r.getNeos()
@@ -246,5 +235,12 @@ func RoutePing[D any](r Router[D], route string, handler func(c *Ctx[D])) Router
 	return &RouteRouter[D]{
 		neos:  neos,
 		route: route,
+	}
+}
+
+func panicIfPointer[T any](route string) {
+	t := reflect.TypeFor[T]()
+	if t.Kind() == reflect.Pointer {
+		panic(fmt.Sprintf("%s: pointers are not allowed in routes due to nil not being encodable, use a struct instead of a pointer", route))
 	}
 }

@@ -156,10 +156,7 @@ func (a *TestingAdapter) Close() {
 }
 
 // UnmarshalEventTesting is a helper function to unmarshal event data from an event struct.
-func UnmarshalEventTesting[E any, EP interface {
-	*E
-	msgp.Unmarshaler
-}](eventData []byte) (E, error) {
+func UnmarshalEventTesting[E any, EP msgp.UnmarshalPtr[E]](eventData []byte) (E, error) {
 	var ev E
 	unmarshaler := any(&ev).(msgp.Unmarshaler)
 	_, err := unmarshaler.UnmarshalMsg(eventData)

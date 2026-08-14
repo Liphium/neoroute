@@ -64,21 +64,17 @@ func (c *Ctx[D]) respondError(msg string) response {
 // Response Context
 // --------------------------------------------------------------------------------
 
-type ResCtx[D any, RS any, PS interface {
-	*RS
-	msgp.Marshaler
-}] struct {
+type ResCtx[D any, RS msgp.Marshaler] struct {
 	*Ctx[D]
 }
 
-func (c *ResCtx[D, RS, PS]) BaseCtx() *Ctx[D] {
+func (c *ResCtx[D, RS]) BaseCtx() *Ctx[D] {
 	return c.Ctx
 }
 
 // Respond sends a successful response with the provided data.
-func (c *ResCtx[D, RS, PS]) Respond(resp RS) error {
-	marshaler := any(&resp).(msgp.Marshaler)
-	respData, err := marshaler.MarshalMsg(nil)
+func (c *ResCtx[D, RS]) Respond(resp RS) error {
+	respData, err := resp.MarshalMsg(nil)
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %v", err)
 	}

@@ -11,17 +11,17 @@ import (
 )
 
 type GenericData struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
+	Message string `msg:"message"`
+	Code    int    `msg:"code"`
 }
 
 type Recursive struct {
-	Next *Recursive `json:"next"`
+	Next *Recursive `msg:"next"`
 }
 
 type Normal struct {
-	Value int    `json:"value"`
-	Text  string `json:"text"`
+	Value int    `msg:"value"`
+	Text  string `msg:"text"`
 }
 
 type MockTransporter struct {

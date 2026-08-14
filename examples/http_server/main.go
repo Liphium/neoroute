@@ -56,7 +56,7 @@ func main() {
 
 	// Route: simple.route
 	// Wrap the RouteResponse call with a Use to directly apply a middleware to that route specifically.
-	neoroute.RouteNoRequest(rGroup, "simple.route", func(c *neoroute.ResCtx[SessionData, Response, *Response]) error {
+	neoroute.RouteNoRequest(rGroup, "simple.route", func(c *neoroute.ResCtx[SessionData, Response]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
 	}).Use("", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Println("middleware mounted directly on route was used")
@@ -80,7 +80,7 @@ func main() {
 
 	// Create subroute for group1
 	// Route: group1.route1
-	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[SessionData, Response, *Response], req Request) error {
+	neoroute.Route(group1, "route1", func(c *neoroute.ResCtx[SessionData, Response], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 1,
@@ -92,7 +92,7 @@ func main() {
 
 	// Create subroute for group2
 	// Route: group1.group2.route1
-	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[SessionData, Response, *Response], req Request) error {
+	neoroute.Route(group2, "route1", func(c *neoroute.ResCtx[SessionData, Response], req Request) error {
 		return c.Respond(Response{
 			Field1: "response to " + req.Field1,
 			Field2: req.Field2 + 2,

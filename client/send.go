@@ -7,17 +7,11 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-func Send[RS any, RSP interface {
-	*RS
-	msgp.Unmarshaler
-}, RQ any, RQP interface {
-	*RQ
-	msgp.Marshaler
-}](r Sender, route string, req RQ) (RS, error) {
+func Send[RS any, RSP msgp.UnmarshalPtr[RS], RQ msgp.Marshaler](r Sender, route string, req RQ) (RS, error) {
 
 	var resp RS
 
-	reqBytes, err := marshalRequestData[RQ, RQP](req)
+	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return resp, err
 	}
@@ -46,12 +40,9 @@ func Send[RS any, RSP interface {
 
 }
 
-func SendOk[RQ any, RQP interface {
-	*RQ
-	msgp.Marshaler
-}](r Sender, route string, req RQ) error {
+func SendOk[RQ msgp.Marshaler](r Sender, route string, req RQ) error {
 
-	reqBytes, err := marshalRequestData[RQ, RQP](req)
+	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return err
 	}
@@ -104,10 +95,7 @@ func SendOkNoRequest(r Sender, route string) error {
 
 }
 
-func SendNoRequest[RS any, RSP interface {
-	*RS
-	msgp.Unmarshaler
-}](r Sender, route string) (RS, error) {
+func SendNoRequest[RS any, RSP msgp.UnmarshalPtr[RS]](r Sender, route string) (RS, error) {
 
 	var resp RS
 
@@ -134,12 +122,9 @@ func SendNoRequest[RS any, RSP interface {
 	}
 }
 
-func SendNoResponse[RQ any, RQP interface {
-	*RQ
-	msgp.Marshaler
-}](r Sender, route string, req RQ) error {
+func SendNoResponse[RQ msgp.Marshaler](r Sender, route string, req RQ) error {
 
-	reqBytes, err := marshalRequestData[RQ, RQP](req)
+	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return err
 	}

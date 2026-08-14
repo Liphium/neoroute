@@ -8,11 +8,8 @@ import (
 )
 
 // NewTestingResCtx creates a new ResCtx for testing with the given neo, route and session.
-func NewTestingResCtx[D any, RS any, PS interface {
-	*RS
-	msgp.Marshaler
-}](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS, PS] {
-	return &ResCtx[D, RS, PS]{
+func NewTestingResCtx[D any, RS msgp.Marshaler](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS] {
+	return &ResCtx[D, RS]{
 		Ctx: NewTestingCtx(neo, route, session),
 	}
 }
@@ -43,10 +40,7 @@ func EvaluateCtxTesting[D any](c *Ctx[D]) {
 
 // GetTestingResponse return the response data or an error message for the user or
 // an error from the handler or an error if the response is not correct.
-func GetTestingResponse[RQ any, PQ interface {
-	*RQ
-	msgp.Unmarshaler
-}](err error) (RQ, string, error) {
+func GetTestingResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](err error) (RQ, string, error) {
 	var resp RQ
 	if respData, ok := errors.AsType[*responseData](err); ok {
 		if respData.IsError {
