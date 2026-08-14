@@ -2,6 +2,7 @@ package tui
 
 import (
 	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/pkg/neodebug/connector"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -40,18 +41,11 @@ const (
 	sectionSystem
 )
 
-type section struct {
-	t        sectionType // The type of the section (received, ...)
-	loading  bool        // If the thing is currently still loading or sth
-	label    string      // The name of the event / handler
-	data     []content   // All of the data in it in string form
-	expanded bool        // If the thing is expanded (all lines from it are visible)
+type Content struct {
+	Error bool
+	Line  string
 }
-
-type content struct {
-	error bool
-	line  string
-}
+type content = Content
 
 var _ tea.Model = model{}
 
@@ -63,7 +57,7 @@ type model struct {
 	currentState inputFieldState
 
 	// History
-	received []section
+	received []Section
 	selected int
 
 	// Viewport things
@@ -75,13 +69,13 @@ func Run(transporter neoschema.TransporterSchema) *model {
 		viewingHistory: false,
 		transporter:    transporter,
 		currentState:   stateConnecting,
-		received: []section{
-			section{
-				t:       sectionSystem,
-				loading: true,
-				label:   "Initialization",
-				data: []content{
-					{line: "Starting neodebug..."},
+		received: []Section{
+			{
+				T:       sectionSystem,
+				Loading: true,
+				Label:   "Initialization",
+				Data: []content{
+					{Line: "Starting neodebug..."},
 				},
 			},
 		},
@@ -90,7 +84,7 @@ func Run(transporter neoschema.TransporterSchema) *model {
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return connector.Connect(m.transporter)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
