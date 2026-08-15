@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Liphium/neoroute/neoschema"
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 type ClosedMsg struct{}

@@ -7,7 +7,7 @@ import (
 	"github.com/Liphium/neoroute/client/transporter/websocket"
 	"github.com/Liphium/neoroute/neoschema"
 	"github.com/Liphium/neoroute/pkg/neodebug/config"
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 func connectWebsocket() tea.Msg {

@@ -11,6 +11,7 @@ import (
 	"github.com/Liphium/neoroute"
 	"github.com/Liphium/neoroute/neoschema"
 	"github.com/Liphium/neoroute/pkg/neodebug"
+	"github.com/Liphium/neoroute/pkg/neodebug/config"
 	"github.com/Liphium/neoroute/transporter/websocket"
 )
 
@@ -26,7 +27,7 @@ var CreateNewPunSubmittedEvent = neoroute.Register[NewPunEvent](eventReg, "new_p
 
 func main() {
 	if slices.Contains(os.Args, "--debug") {
-		neodebug.Run(neodebug.DebugConfig{
+		neodebug.Run(config.DebugConfig{
 			TransporterName: "main",
 			TransporterURL:  "http://localhost:6121",
 		})
