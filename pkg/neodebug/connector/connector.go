@@ -8,9 +8,13 @@ import (
 
 type ClosedMsg struct{}
 
+// When this message is sent, we're connected, also return connection.WaitForEvent() afterwards and handle DoWaitMsg after that as well.
 type ConnectedMsg struct {
 	Connection Connection
 }
+
+// When this message is sent, you should call connection.WaitForEvent() so we can send more events into the connection.
+type DoWaitMsg struct{}
 
 func Connect(transporter neoschema.TransporterSchema) tea.Cmd {
 

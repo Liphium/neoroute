@@ -14,6 +14,7 @@ type ToggleSnapMsg struct{}
 var (
 	infoStyle   = lipgloss.NewStyle().Foreground(textColor).Bold(true)
 	errorStyle  = lipgloss.NewStyle().Foreground(errorColor).Bold(true)
+	warnStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true) // yellow / warn
 	symbolStyle = lipgloss.NewStyle().Foreground(successColor).Bold(true)
 	eventStyle  = lipgloss.NewStyle().Foreground(highlightColor).Bold(true)
 )
@@ -104,6 +105,11 @@ func (m History) renderContent() string {
 
 		case model.ErrorContent:
 			b.WriteString(errorStyle.Render("ERR"))
+			b.WriteRune(' ')
+			b.WriteString(textStyle.Render(c.Message))
+
+		case model.WarnContent:
+			b.WriteString(warnStyle.Render("WRN"))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Message))
 

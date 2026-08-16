@@ -33,6 +33,7 @@ var (
 	highlightColor = lipgloss.Color("67")  // muted blue
 	errorColor     = lipgloss.Color("167") // muted red
 	successColor   = lipgloss.Color("71")  // muted green
+	warningColor   = lipgloss.Color("214") // yellow / warn
 )
 
 // Characters that are handy

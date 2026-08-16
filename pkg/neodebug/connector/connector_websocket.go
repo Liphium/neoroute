@@ -93,10 +93,17 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 // WaitForEvent implements [Connection].
 func (w WebSocketConnection) WaitForEvent() tea.Cmd {
 	return func() tea.Msg {
-		return <-w.msgChan
+		defer func() {
+			recover() // This happens when no events come in any more (closed)
+		}()
+
+		// Wait for a message and also wait for the next one after
+		msg := <-w.msgChan
+		return model.Multiple(msg, DoWaitMsg{})
 	}
 }
 
 func (w WebSocketConnection) Close() {
+	close(w.msgChan)
 	w.transporter.Close()
 }

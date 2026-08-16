@@ -90,10 +90,14 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 	case connector.ConnectedMsg:
 		m.state = stateRouteSelect
 		m.connection = msg.Connection
+		return m, m.connection.WaitForEvent()
 
 	case connector.ClosedMsg:
 		m.state = stateClosed
 		return m, nil
+
+	case connector.DoWaitMsg:
+		return m, m.connection.WaitForEvent()
 	}
 
 	return m, nil

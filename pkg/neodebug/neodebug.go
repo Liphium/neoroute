@@ -36,7 +36,9 @@ func Run(cfg config.DebugConfig) {
 	}
 
 	// Start the actual TUI with the correct transporter
-	p := tea.NewProgram(tui.Run(transporter))
+	m := tui.Run(transporter)
+	p := tea.NewProgram(m)
+	tui.InitLogger(p)
 	if _, err := p.Run(); err != nil {
 		fmt.Println("neodebug crashed:", err)
 		os.Exit(1)
