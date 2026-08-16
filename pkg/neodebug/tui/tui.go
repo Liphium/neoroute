@@ -21,18 +21,18 @@ import (
 //   - stateEditRequest: When you click enter on one of the fields in the JSON like thingy, this is where you edit it
 // - Bottom bar always constant with some information that we can get from other places (like hotkeys, etc.)
 
-var _ tea.Model = model{}
+var _ tea.Model = tui{}
 
 // Basic colors that we're gonna use
 var (
-	textColor          = lipgloss.Color("252") // main text (more white)
-	secondaryTextColor = lipgloss.Color("248") // secondary text (gray)
+	textColor          = lipgloss.Color("252") // main text
+	secondaryTextColor = lipgloss.Color("246") // secondary text
 
-	separatorColor = lipgloss.Color("245") // gray for the separators (more gray than the text stuff)
+	separatorColor = lipgloss.Color("240") // subtle separators
 
-	highlightColor = lipgloss.Color("38")  // blue
-	errorColor     = lipgloss.Color("196") // red
-	successColor   = lipgloss.Color("46")  // green
+	highlightColor = lipgloss.Color("67")  // muted blue
+	errorColor     = lipgloss.Color("167") // muted red
+	successColor   = lipgloss.Color("71")  // muted green
 )
 
 // Characters that are handy
@@ -70,7 +70,7 @@ func renderDivider(w int) string {
 	return separatorStyle.Render(strings.Repeat(SymbolDivider, w))
 }
 
-type model struct {
+type tui struct {
 	transporter neoschema.TransporterSchema
 
 	full    fullScreenView
@@ -87,22 +87,22 @@ type model struct {
 	help help.Model
 }
 
-func Run(transporter neoschema.TransporterSchema) *model {
+func Run(transporter neoschema.TransporterSchema) *tui {
 	h := help.New()
 	h.ShowAll = false
 
 	// Customize the short styles
-	h.Styles.ShortKey = lipgloss.NewStyle().Foreground(textColor).Bold(true)
+	h.Styles.ShortKey = lipgloss.NewStyle().Foreground(textColor)
 	h.Styles.ShortDesc = lipgloss.NewStyle().Foreground(secondaryTextColor)
 	h.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(separatorColor)
 	h.Styles.Ellipsis = lipgloss.NewStyle().Foreground(separatorColor)
 
 	// Customize the full help styles
-	h.Styles.FullKey = lipgloss.NewStyle().Foreground(textColor).Bold(true)
+	h.Styles.FullKey = lipgloss.NewStyle().Foreground(textColor)
 	h.Styles.FullDesc = lipgloss.NewStyle().Foreground(secondaryTextColor)
 	h.Styles.FullSeparator = lipgloss.NewStyle().Foreground(separatorColor)
 
-	return &model{
+	return &tui{
 		transporter: transporter,
 		full:        fullScreenNone,
 		input:       newInput(),
@@ -114,11 +114,11 @@ func Run(transporter neoschema.TransporterSchema) *model {
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m tui) Init() tea.Cmd {
 	return tea.Batch(connector.Connect(m.transporter), m.input.Init())
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd // Possibly a command that we want to return from the children
 	var cmds []tea.Cmd
 
@@ -200,7 +200,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *model) inputHandleMsg(msg tea.Msg) tea.Cmd {
+func (m *tui) inputHandleMsg(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 
 	// When the height of the input changes, we want to immediately want to relayout ourselves
@@ -213,7 +213,7 @@ func (m *model) inputHandleMsg(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-func (m *model) relayoutHeight() {
+func (m *tui) relayoutHeight() {
 
 	// When we're in fullscreen, actually adjust differently
 	if m.full != fullScreenNone {
@@ -232,7 +232,7 @@ func (m *model) relayoutHeight() {
 	m.input.SetHeight(inputHeight)
 }
 
-func (m *model) setFull(full fullScreenView) {
+func (m *tui) setFull(full fullScreenView) {
 	m.full = full
 	switch m.full {
 	case fullScreenNone:
@@ -244,7 +244,7 @@ func (m *model) setFull(full fullScreenView) {
 	}
 }
 
-func (m model) View() tea.View {
+func (m tui) View() tea.View {
 
 	// Configure the main view
 	view := tea.NewView("")

@@ -3,11 +3,12 @@ package connector
 import (
 	"net/url"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute/client"
 	"github.com/Liphium/neoroute/client/transporter/websocket"
 	"github.com/Liphium/neoroute/neoschema"
 	"github.com/Liphium/neoroute/pkg/neodebug/config"
-	tea "charm.land/bubbletea/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
 func connectWebsocket() tea.Msg {
@@ -20,24 +21,27 @@ func connectWebsocket() tea.Msg {
 	// Connect to the transporter using the URL in the config
 	url, err := url.Parse(config.Config.TransporterURL)
 	if err != nil {
-		return e("Failed to parse URL: %w", err)
+		return withClose(model.Error("Failed to parse URL: %w", err))
 	}
 	doneChan, err := transporter.Connect(url)
 	if err != nil {
-		return e("Failed to connect: %w", err)
+		return withClose(model.Error(err.Error()))
 	}
 	go func() {
 		<-doneChan
 		msgChan <- ClosedMsg{}
 	}()
 
-	return ConnectedMsg{
-		Connection: WebSocketConnection{
-			transporter: transporter,
-			recv:        r,
-			msgChan:     msgChan,
+	return model.Multiple(
+		ConnectedMsg{
+			Connection: WebSocketConnection{
+				transporter: transporter,
+				recv:        r,
+				msgChan:     msgChan,
+			},
 		},
-	}
+		model.Info("Connected to transporter."),
+	)
 }
 
 var _ Connection = WebSocketConnection{}
@@ -50,11 +54,11 @@ type WebSocketConnection struct {
 }
 
 // Send implements [Connection].
-func (w WebSocketConnection) Send(id, endpoint string, request any) tea.Cmd {
+func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 	return func() tea.Msg {
 		route, ok := w.schema.Routes[endpoint]
 		if !ok {
-			return reqErr(id, "couldn't find matching route")
+			return model.Error("couldn't find matching route")
 		}
 
 		// Send to the server based on the send type
@@ -77,12 +81,12 @@ func (w WebSocketConnection) Send(id, endpoint string, request any) tea.Cmd {
 
 		// Return an error / the response when we get back stuff from the server
 		if err != nil {
-			return reqErr(id, "something went wrong: %w", err)
+			return model.Error("Sending %s failed: %w", endpoint, err)
 		}
 		if res == nil { // Handler without response thingy
-			return ResponseReceivedMsg{ID: id, Data: nil}
+			return model.Response(endpoint, nil)
 		}
-		return ResponseReceivedMsg{ID: id, Data: res.Value}
+		return model.Response(endpoint, res.Value)
 	}
 }
 

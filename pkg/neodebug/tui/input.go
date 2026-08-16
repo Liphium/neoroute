@@ -5,6 +5,7 @@ import (
 
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/connector"
 )
 
 type inputFieldState int
@@ -22,6 +23,9 @@ const (
 
 	// When the little spinner for connecting is shown
 	stateConnecting
+
+	// When the connection has been closed
+	stateClosed
 )
 
 type inputRequestHeightMsg struct {
@@ -33,6 +37,7 @@ type Input struct {
 	width      int
 	height     int
 	state      inputFieldState
+	connection connector.Connection
 	spinner    spinner.Model
 }
 
@@ -58,7 +63,7 @@ func (m *Input) SetHeight(h int) {
 // Also TODO: Make this return what the selected dialog wants.
 func (m Input) WantedHeight() int {
 	switch m.state {
-	case stateConnecting:
+	case stateConnecting, stateClosed:
 		return 1
 	case stateRouteSelect:
 		return 5
@@ -81,6 +86,14 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 			m.spinner, cmd = m.spinner.Update(msg)
 			return m, cmd
 		}
+
+	case connector.ConnectedMsg:
+		m.state = stateRouteSelect
+		m.connection = msg.Connection
+
+	case connector.ClosedMsg:
+		m.state = stateClosed
+		return m, nil
 	}
 
 	return m, nil
@@ -97,7 +110,12 @@ func (m Input) View() (*tea.Cursor, string) {
 		connectText := highlightStyle.Render(m.spinner.View()) + textStyle.Render("Connecting to transporter...")
 		fill := strings.TrimSuffix(strings.Repeat("\n", m.height), "\n")
 		return nil, connectText + fill
+
+	case stateClosed:
+		closeText := textStyle.Render("Connection closed.")
+		fill := strings.TrimSuffix(strings.Repeat("\n", m.height), "\n")
+		return nil, closeText + fill
 	}
 
-	return nil, strings.TrimSuffix(strings.Repeat(symbolStyle.Render("i")+"\n", m.height), "\n")
+	return nil, strings.TrimSuffix(strings.Repeat(textStyle.Render("to do")+"\n", m.height), "\n")
 }

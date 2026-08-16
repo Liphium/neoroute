@@ -1,57 +1,18 @@
 package tui
 
 import (
-	"slices"
 	"strings"
-	"time"
 
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
-type Content interface {
-	Creation() time.Time
-}
-
-type BasicContent struct {
-	CreatedAt time.Time
-}
-
-func CreatedAt(stamp time.Time) BasicContent {
-	return BasicContent{stamp}
-}
-
-func (b BasicContent) Creation() time.Time {
-	return b.CreatedAt
-}
-
-type ErrorContent struct {
-	Message string
-	BasicContent
-}
-
-type SendingContent struct {
-	Route string
-	BasicContent
-}
-
-type EventContent struct {
-	Name  string
-	Event any
-	BasicContent
-}
-
-type ResponseContent struct {
-	Route string
-	Data  any
-	BasicContent
-}
-
-type AddContentMsg struct{ BasicContent }
 type ToggleSnapMsg struct{}
 
 var (
+	infoStyle   = lipgloss.NewStyle().Foreground(textColor).Bold(true)
 	errorStyle  = lipgloss.NewStyle().Foreground(errorColor).Bold(true)
 	symbolStyle = lipgloss.NewStyle().Foreground(successColor).Bold(true)
 	eventStyle  = lipgloss.NewStyle().Foreground(highlightColor).Bold(true)
@@ -60,7 +21,7 @@ var (
 type History struct {
 	handledKey   bool
 	snapToBottom bool
-	content      []Content
+	content      []model.Content
 	viewport     viewport.Model
 }
 
@@ -72,24 +33,18 @@ func NewHistory(w, h int) History {
 
 	his := History{
 		viewport: v,
-		content: slices.Repeat([]Content{
-			ErrorContent{
-				Message:      "Some random error happened!",
-				BasicContent: CreatedAt(time.Now()),
+		content: []model.Content{
+			model.InfoContent{
+				Message:      "Starting up...",
+				BasicContent: model.Now(),
 			},
-			ErrorContent{
-				Message:      "Something went totally wrong!",
-				BasicContent: CreatedAt(time.Now()),
-			},
-		}, 20),
+		},
 		snapToBottom: true,
 	}
 	his.viewport.SetContent(his.renderContent())
 
 	return his
 }
-
-func (m History) Init() tea.Cmd { return nil }
 
 func (m *History) SetWidth(width int) {
 	m.viewport.SetWidth(width)
@@ -111,9 +66,8 @@ func (m History) Update(msg tea.Msg) (History, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
-	case AddContentMsg:
-		c := msg.BasicContent
-		m.content = append(m.content, c)
+	case model.AddContentMsg:
+		m.content = append(m.content, msg.Content)
 
 		// Set new content and scroll it to the bottom when we snap
 		m.viewport.SetContent(m.renderContent())
@@ -143,22 +97,27 @@ func (m History) renderContent() string {
 		b.WriteString(secondaryTextStyle.Render(c.Creation().Format("03:04 PM") + " "))
 
 		switch c := c.(type) {
-		case ErrorContent:
+		case model.InfoContent:
+			b.WriteString(infoStyle.Render("INF"))
+			b.WriteRune(' ')
+			b.WriteString(textStyle.Render(c.Message))
+
+		case model.ErrorContent:
 			b.WriteString(errorStyle.Render("ERR"))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Message))
 
-		case SendingContent:
+		case model.SendingContent:
 			b.WriteString(symbolStyle.Render(SymbolArrowRight))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Route))
 
-		case ResponseContent:
+		case model.ResponseContent:
 			b.WriteString(symbolStyle.Render(SymbolArrowLeft))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Route))
 
-		case EventContent:
+		case model.EventContent:
 			b.WriteString(eventStyle.Render(SymbolArrowLeft))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Name))
