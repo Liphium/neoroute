@@ -53,6 +53,7 @@ var (
 	titleStyle         = lipgloss.NewStyle().Bold(true).Foreground(highlightColor)
 	textStyle          = lipgloss.NewStyle().Foreground(textColor)
 	secondaryTextStyle = lipgloss.NewStyle().Foreground(secondaryTextColor)
+	highlightStyle     = lipgloss.NewStyle().Foreground(highlightColor)
 
 	separatorStyle = lipgloss.NewStyle().Foreground(separatorColor)
 )
@@ -103,6 +104,8 @@ func Run(transporter neoschema.TransporterSchema) *model {
 
 	return &model{
 		transporter: transporter,
+		full:        fullScreenNone,
+		input:       newInput(),
 		history:     NewHistory(0, 0),
 		width:       0,
 		height:      0,
@@ -112,14 +115,14 @@ func Run(transporter neoschema.TransporterSchema) *model {
 }
 
 func (m model) Init() tea.Cmd {
-	return connector.Connect(m.transporter)
+	return tea.Batch(connector.Connect(m.transporter), m.input.Init())
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd // Possibly a command that we want to return from the children
 	var cmds []tea.Cmd
 
-	var handled bool
+	var handled, differentHandling bool
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		handled = true
@@ -130,7 +133,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.history.SetWidth(msg.Width)
 		m.relayoutHeight() // This only handles height
 
+	case tea.MouseWheelMsg:
+		differentHandling = true
+
+		historyVisible := msg.Mouse().Y <= m.history.viewport.Height()
+		if historyVisible {
+			m.history, _ = m.history.Update(msg)
+		}
+
 	case tea.KeyPressMsg:
+		differentHandling = true
 
 		// Let the children handle keys first, when they handled them, we don't
 		m.input, cmd = m.input.Update(msg)
@@ -175,7 +187,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// If we've already handled the event, we don't want our children to handle it as well (we like already gave out events anyway)
-	if !handled {
+	if !handled && !differentHandling {
+		cmds = append(cmds, m.inputHandleMsg(msg))
+
 		m.history, cmd = m.history.Update(msg)
 		cmds = append(cmds, cmd)
 	}
@@ -186,8 +200,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+func (m *model) inputHandleMsg(msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
+
+	// When the height of the input changes, we want to immediately want to relayout ourselves
+	prev := m.input.WantedHeight()
+	m.input, cmd = m.input.Update(msg)
+	if prev != m.input.WantedHeight() {
+		m.relayoutHeight()
+	}
+
+	return cmd
+}
+
 func (m *model) relayoutHeight() {
-	inputHeight := m.input.WantedHeight(m.height)
+
+	// When we're in fullscreen, actually adjust differently
+	if m.full != fullScreenNone {
+		m.setFull(m.full)
+		return
+	}
+
+	inputHeight := m.input.WantedHeight()
 	historyHeight := m.height - inputHeight - 3 /* help bar + dividers */
 	if historyHeight <= 0 {
 		m.tooSmall = true
@@ -214,6 +248,7 @@ func (m model) View() tea.View {
 
 	// Configure the main view
 	view := tea.NewView("")
+	view.MouseMode = tea.MouseModeCellMotion
 	view.AltScreen = true
 
 	if m.width == 0 || m.height == 0 || m.tooSmall {

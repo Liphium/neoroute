@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute/cmd/neogen/generator"
 	"github.com/Liphium/neoroute/pkg/neodebug/config"
 	"github.com/Liphium/neoroute/pkg/neodebug/tui"
-	tea "charm.land/bubbletea/v2"
 )
 
 func Run(cfg config.DebugConfig) {

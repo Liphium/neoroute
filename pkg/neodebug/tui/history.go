@@ -67,6 +67,7 @@ type History struct {
 func NewHistory(w, h int) History {
 	v := viewport.New(viewport.WithWidth(w), viewport.WithHeight(h))
 	v.SoftWrap = false
+	v.MouseWheelEnabled = true
 	v.FillHeight = true
 
 	his := History{
@@ -169,3 +170,5 @@ func (m History) renderContent() string {
 }
 
 func (m History) View() string { return m.viewport.View() }
+
+func (m History) ViewportKeyMap() viewport.KeyMap { return m.viewport.KeyMap }
