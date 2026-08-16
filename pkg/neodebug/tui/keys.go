@@ -8,10 +8,13 @@ import (
 type appKeyMap struct {
 	ScrollingActive bool // If the viewport has been scrolled (will stay at that point, this will show the scroll to bottom key)
 
-	Quit         key.Binding
-	GoToBottom   key.Binding
-	ViewportKeys viewport.KeyMap
-	Help         key.Binding
+	Quit           key.Binding
+	GoToBottom     key.Binding
+	ExpandHistory  key.Binding
+	ExpandInput    key.Binding
+	ExitFullscreen key.Binding
+	ViewportKeys   viewport.KeyMap
+	Help           key.Binding
 }
 
 func newAppKeyMap() appKeyMap {
@@ -21,8 +24,20 @@ func newAppKeyMap() appKeyMap {
 			key.WithHelp("q", "quit"),
 		),
 		GoToBottom: key.NewBinding(
-			key.WithKeys("b"),
-			key.WithHelp("b", "go to bottom"),
+			key.WithKeys("ctrl+b"),
+			key.WithHelp("ctrl+b", "go to bottom"),
+		),
+		ExpandHistory: key.NewBinding(
+			key.WithKeys("ctrl+h"),
+			key.WithHelp("ctrl+h", "expand history"),
+		),
+		ExpandInput: key.NewBinding(
+			key.WithKeys("ctrl+e"),
+			key.WithHelp("ctrl+e", "expand input"),
+		),
+		ExitFullscreen: key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("escape", "exit fullscreen"),
 		),
 		ViewportKeys: viewport.DefaultKeyMap(),
 		Help: key.NewBinding(

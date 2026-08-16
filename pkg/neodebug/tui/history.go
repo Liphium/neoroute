@@ -1,34 +1,54 @@
 package tui
 
 import (
+	"slices"
 	"strings"
+	"time"
 
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
 
-type Content interface{}
+type Content interface {
+	Creation() time.Time
+}
+
+type BasicContent struct {
+	CreatedAt time.Time
+}
+
+func CreatedAt(stamp time.Time) BasicContent {
+	return BasicContent{stamp}
+}
+
+func (b BasicContent) Creation() time.Time {
+	return b.CreatedAt
+}
 
 type ErrorContent struct {
 	Message string
+	BasicContent
 }
 
 type SendingContent struct {
 	Route string
+	BasicContent
 }
 
 type EventContent struct {
 	Name  string
 	Event any
+	BasicContent
 }
 
 type ResponseContent struct {
 	Route string
 	Data  any
+	BasicContent
 }
 
-type AddContentMsg struct{ Content }
+type AddContentMsg struct{ BasicContent }
 type ToggleSnapMsg struct{}
 
 var (
@@ -38,73 +58,92 @@ var (
 )
 
 type History struct {
+	handledKey   bool
 	snapToBottom bool
 	content      []Content
 	viewport     viewport.Model
 }
 
 func NewHistory(w, h int) History {
-	return History{
-		viewport:     viewport.New(viewport.WithWidth(w), viewport.WithHeight(h)),
+	v := viewport.New(viewport.WithWidth(w), viewport.WithHeight(h))
+	v.SoftWrap = false
+	v.FillHeight = true
+
+	his := History{
+		viewport: v,
+		content: slices.Repeat([]Content{
+			ErrorContent{
+				Message:      "Some random error happened!",
+				BasicContent: CreatedAt(time.Now()),
+			},
+			ErrorContent{
+				Message:      "Something went totally wrong!",
+				BasicContent: CreatedAt(time.Now()),
+			},
+		}, 20),
 		snapToBottom: true,
 	}
+	his.viewport.SetContent(his.renderContent())
+
+	return his
 }
 
-func (h History) Init() tea.Cmd { return nil }
+func (m History) Init() tea.Cmd { return nil }
 
-func (h History) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *History) SetWidth(width int) {
+	m.viewport.SetWidth(width)
+}
+
+func (m *History) SetHeight(height int) {
+	m.viewport.SetHeight(height)
+	// TODO: Determine if this enough (maybe we need to scroll down more?)
+}
+
+func (m *History) GotoBottom() {
+	m.snapToBottom = true
+	m.viewport.GotoBottom()
+}
+
+func (m History) Update(msg tea.Msg) (History, tea.Cmd) {
+	m.handledKey = false
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 
-	case tea.WindowSizeMsg:
-		h.viewport.SetWidth(msg.Width)
-		h.viewport.SetHeight(msg.Height)
-		h.viewport.SetContent(h.renderContent())
-
 	case AddContentMsg:
-		c := msg.Content
-		h.content = append(h.content, c)
-		h.refreshViewport()
-		// TODO: Make sure we don't scroll the viewport to the bottom when the new thingy is added
+		c := msg.BasicContent
+		m.content = append(m.content, c)
 
-	case ToggleSnapMsg:
-		h.toggleSnap()
+		// Set new content and scroll it to the bottom when we snap
+		m.viewport.SetContent(m.renderContent())
+		if m.snapToBottom {
+			m.viewport.GotoBottom()
+		}
 	}
 
-	oldOffset := h.viewport.YOffset()
+	// Update the viewport, when it scrolls we want to determine if we actually should snap to the bottom
+	oldOffset := m.viewport.YOffset()
 	var cmd tea.Cmd
-	h.viewport, cmd = h.viewport.Update(msg)
+	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
-	if h.viewport.YOffset() != oldOffset {
-		h.snapToBottom = h.viewport.AtBottom()
+	if m.viewport.YOffset() != oldOffset {
+		m.handledKey = true
+		m.snapToBottom = m.viewport.AtBottom()
 	}
 
-	return h, tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
-func (h *History) toggleSnap() {
-	h.snapToBottom = !h.snapToBottom
-	h.refreshViewport()
-}
-
-func (h *History) refreshViewport() {
-	y := h.viewport.YOffset()
-	h.viewport.SetContent(h.renderContent())
-	if h.snapToBottom {
-		h.viewport.GotoBottom()
-	} else {
-		h.viewport.SetYOffset(y)
-	}
-}
-
-func (h History) renderContent() string {
+func (m History) renderContent() string {
 	var b strings.Builder
-	for _, c := range h.content {
+	for _, c := range m.content {
+
+		// Add the creation timestamp
+		b.WriteString(secondaryTextStyle.Render(c.Creation().Format("03:04 PM") + " "))
 
 		switch c := c.(type) {
 		case ErrorContent:
-			b.WriteString(errorStyle.Render("error"))
+			b.WriteString(errorStyle.Render("ERR"))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Message))
 
@@ -129,5 +168,4 @@ func (h History) renderContent() string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-func (h History) View() tea.View     { return tea.NewView(h.viewport.View()) }
-func (h History) ViewString() string { return h.viewport.View() }
+func (m History) View() string { return m.viewport.View() }

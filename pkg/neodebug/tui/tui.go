@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"math"
 	"strings"
 
 	"charm.land/bubbles/v2/help"
@@ -21,23 +20,6 @@ import (
 //   - stateCreateRequest: Create a request a JSON like editor that parsed the complete response for the thing we're trying to send
 //   - stateEditRequest: When you click enter on one of the fields in the JSON like thingy, this is where you edit it
 // - Bottom bar always constant with some information that we can get from other places (like hotkeys, etc.)
-
-type inputFieldState int
-
-// All of the states for the debug UI's input field thingy
-const (
-	// When you choose a handler from the list of available ones.
-	stateSelectHandler inputFieldState = iota
-
-	// When you are viewing the entire request in the view
-	stateCreateRequest
-
-	// When you edit an individual field of the request
-	stateEditRequest
-
-	// When the little spinner for connecting is shown
-	stateConnecting
-)
 
 var _ tea.Model = model{}
 
@@ -75,15 +57,29 @@ var (
 	separatorStyle = lipgloss.NewStyle().Foreground(separatorColor)
 )
 
+type fullScreenView string
+
+const (
+	fullScreenNone    fullScreenView = "none"
+	fullScreenHistory fullScreenView = "history"
+	fullScreenInput   fullScreenView = "input"
+)
+
+func renderDivider(w int) string {
+	return separatorStyle.Render(strings.Repeat(SymbolDivider, w))
+}
+
 type model struct {
 	transporter neoschema.TransporterSchema
 
-	// History
+	full    fullScreenView
+	input   Input
 	history History
 
 	// Viewport / layout
-	width  int
-	height int
+	width    int
+	height   int
+	tooSmall bool
 
 	// Key bindings + help
 	keys appKeyMap
@@ -120,29 +116,69 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd // Possibly a command that we want to return from the children
 	var cmds []tea.Cmd
 
+	var handled bool
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		handled = true
 		m.width = msg.Width
 		m.height = msg.Height
 		m.help.SetWidth(msg.Width)
+		m.input.SetWidth(msg.Width)
+		m.history.SetWidth(msg.Width)
+		m.relayoutHeight() // This only handles height
 
 	case tea.KeyPressMsg:
+
+		// Let the children handle keys first, when they handled them, we don't
+		m.input, cmd = m.input.Update(msg)
+		if m.input.handledKey {
+			return m, cmd
+		}
+		m.history, cmd = m.history.Update(msg)
+		if m.history.handledKey {
+			return m, cmd
+		}
+
 		switch {
 		case key.Matches(msg, m.keys.Quit):
+			handled = true
 			return m, tea.Quit
+
 		case key.Matches(msg, m.keys.Help):
+			handled = true
 			m.help.ShowAll = !m.help.ShowAll
+			m.relayoutHeight()
+
+		case key.Matches(msg, m.keys.ExpandHistory):
+			handled = true
+			if m.full == fullScreenHistory {
+				m.setFull(fullScreenNone)
+			} else {
+				m.setFull(fullScreenHistory)
+			}
+
+		case key.Matches(msg, m.keys.ExpandInput):
+			handled = true
+			if m.full == fullScreenInput {
+				m.setFull(fullScreenNone)
+			} else {
+				m.setFull(fullScreenInput)
+			}
+
+		case key.Matches(msg, m.keys.ExitFullscreen):
+			handled = true
+			m.setFull(fullScreenNone)
 		}
 	}
 
-	// Update the history
-	h, cmd := m.history.Update(msg)
-	cmds = append(cmds, cmd)
-	m.history = h.(History)
-
-	// TODO: Calculate new sizes and stuff + update history
+	// If we've already handled the event, we don't want our children to handle it as well (we like already gave out events anyway)
+	if !handled {
+		m.history, cmd = m.history.Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	if len(cmds) == 0 {
 		return m, nil
@@ -150,32 +186,70 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m model) View() tea.View {
-	if m.width == 0 || m.height == 0 {
-		return tea.NewView("loading neodebug...")
+func (m *model) relayoutHeight() {
+	inputHeight := m.input.WantedHeight(m.height)
+	historyHeight := m.height - inputHeight - 3 /* help bar + dividers */
+	if historyHeight <= 0 {
+		m.tooSmall = true
+		return
 	}
 
+	m.history.SetHeight(historyHeight)
+	m.input.SetHeight(inputHeight)
+}
+
+func (m *model) setFull(full fullScreenView) {
+	m.full = full
+	switch m.full {
+	case fullScreenNone:
+		m.relayoutHeight()
+	case fullScreenInput:
+		m.input.SetHeight(m.height - 2 /* help view + divider */)
+	case fullScreenHistory:
+		m.history.SetHeight(m.height - 2 /* help view + divider */)
+	}
+}
+
+func (m model) View() tea.View {
+
+	// Configure the main view
+	view := tea.NewView("")
+	view.AltScreen = true
+
+	if m.width == 0 || m.height == 0 || m.tooSmall {
+		view.SetContent("loading neodebug...")
+		return view
+	}
+
+	// All of the hotkeys are shown on a different page
+	if m.help.ShowAll {
+		view.SetContent("all of your keys")
+		return view
+	}
+
+	// TODO: Actually calculate properly also with keymaps from children included
+	divider := renderDivider(m.width)
 	helpView := m.help.View(m.keys)
-	remaining := m.height - lipgloss.Height(helpView) - 2 /* dividers */
 
-	topH := int(math.Floor(float64(remaining) / 2))
-	bottomH := int(math.Ceil(float64(remaining) / 2))
+	if m.full != fullScreenNone {
 
-	top := topPanelStyle.Width(m.width).Height(topH).Render(m.renderTopPanel())
-	bottom := bottomPanelStyle.Width(m.width).Height(bottomH).Render(m.renderBottomPanel())
-	divider := separatorStyle.Render(strings.Repeat(SymbolDivider, m.width))
+		switch m.full {
+		case fullScreenHistory:
+			history := m.history.View()
+			view.SetContent(lipgloss.JoinVertical(lipgloss.Left, history, divider, helpView))
+			return view
 
-	v := tea.NewView(lipgloss.JoinVertical(lipgloss.Left, top, divider, bottom, divider, helpView))
-	v.AltScreen = true
-	return v
-}
+		case fullScreenInput:
+			_, input := m.input.View()
+			view.SetContent(lipgloss.JoinVertical(lipgloss.Left, input, divider, helpView))
+			return view
+		}
+	}
 
-func (m model) renderTopPanel() string {
-	title := titleStyle.Render("History") + lipgloss.NewStyle().Faint(true).Render(" (h to focus)")
-	return lipgloss.JoinVertical(lipgloss.Left, title)
-}
+	// Render normally with history and input
+	history := m.history.View()
+	_, input := m.input.View()
 
-func (m model) renderBottomPanel() string {
-	title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("240")).Render("Bottom panel")
-	return lipgloss.JoinVertical(lipgloss.Left, title)
+	view.SetContent(lipgloss.JoinVertical(lipgloss.Left, history, divider, input, divider, helpView))
+	return view
 }
