@@ -29,6 +29,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Liphium/neoroute/client v0.0.0 // indirect
 	github.com/Liphium/neoroute/client/transporter/websocket v0.0.0-00010101000000-000000000000 // indirect
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260811164956-006e29f97886 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect

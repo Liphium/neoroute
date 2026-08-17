@@ -106,7 +106,7 @@ func Run(transporter neoschema.TransporterSchema) *tui {
 	return &tui{
 		transporter: transporter,
 		full:        fullScreenNone,
-		input:       newInput(),
+		input:       newInput(transporter),
 		history:     NewHistory(0, 0),
 		width:       0,
 		height:      0,
@@ -146,13 +146,17 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		differentHandling = true
 
 		// Let the children handle keys first, when they handled them, we don't
-		m.input, cmd = m.input.Update(msg)
-		if m.input.handledKey {
-			return m, cmd
+		if m.inputVisible() {
+			cmd = m.inputHandleMsg(msg)
+			if m.input.handledKey {
+				return m, cmd
+			}
 		}
-		m.history, cmd = m.history.Update(msg)
-		if m.history.handledKey {
-			return m, cmd
+		if m.historyVisible() {
+			m.history, cmd = m.history.Update(msg)
+			if m.history.handledKey {
+				return m, cmd
+			}
 		}
 
 		switch {
@@ -214,6 +218,14 @@ func (m *tui) inputHandleMsg(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
+func (m *tui) inputVisible() bool {
+	return m.full != fullScreenHistory
+}
+
+func (m *tui) historyVisible() bool {
+	return m.full != fullScreenInput
+}
+
 func (m *tui) relayoutHeight() {
 
 	// When we're in fullscreen, actually adjust differently
@@ -263,7 +275,6 @@ func (m tui) View() tea.View {
 		return view
 	}
 
-	// TODO: Actually calculate properly also with keymaps from children included
 	divider := renderDivider(m.width)
 	helpView := m.help.View(m.keys)
 
@@ -276,7 +287,8 @@ func (m tui) View() tea.View {
 			return view
 
 		case fullScreenInput:
-			_, input := m.input.View()
+			cursor, input := m.input.View()
+			view.Cursor = cursor
 			view.SetContent(lipgloss.JoinVertical(lipgloss.Left, input, divider, helpView))
 			return view
 		}
