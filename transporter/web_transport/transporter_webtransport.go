@@ -1,5 +1,6 @@
 package web_transport
 
+/*
 import (
 	"fmt"
 	"io"
@@ -340,3 +341,4 @@ func (t *Transporter[D]) listenDatagram(session *wttSession[D], done chan struct
 
 	}
 }
+*/

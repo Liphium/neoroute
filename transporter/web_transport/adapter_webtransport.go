@@ -1,5 +1,6 @@
 package web_transport
 
+/*
 import (
 	"context"
 	"fmt"
@@ -118,3 +119,4 @@ func (a *WebTransportAdapter) waitClosed() {
 		a.removeOnce.Do(removeFunc)
 	}
 }
+*/
