@@ -21,6 +21,8 @@ import (
 //   - stateEditRequest: When you click enter on one of the fields in the JSON like thingy, this is where you edit it
 // - Bottom bar always constant with some information that we can get from other places (like hotkeys, etc.)
 
+// TODO: Temporary error command so when a key is pressed and it's action can't be done we can show an error at the bottom (instead of the help bar for like 3-4s or sth)
+
 var _ tea.Model = tui{}
 
 // Basic colors that we're gonna use
