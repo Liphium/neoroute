@@ -2,31 +2,7 @@ package tui
 
 import (
 	tea "charm.land/bubbletea/v2"
-	"github.com/Liphium/neoroute/neoschema"
 )
-
-func createNode(schema neoschema.PackedType) SchemaNode {
-	switch schema := schema.(type) {
-	case *neoschema.StructType:
-
-		// Create the children
-		children := make([]StructField, len(schema.Fields))
-		i := 0
-		for name, field := range schema.Fields {
-			children[i] = StructField{
-				Name: name,
-				Node: createNode(field),
-			}
-			i++
-		}
-
-		return &StructNode{
-			basicSelection: &basicSelection{},
-			children:       children,
-		}
-	}
-	return nil
-}
 
 type SchemaNode interface {
 

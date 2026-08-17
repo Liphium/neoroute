@@ -10,3 +10,10 @@ func Multiple(msgs ...tea.Msg) tea.Msg {
 	}
 	return batch
 }
+
+// Allows you to basically just return a message as a command.
+func Plain(msg tea.Msg) tea.Cmd {
+	return func() tea.Msg {
+		return msg
+	}
+}

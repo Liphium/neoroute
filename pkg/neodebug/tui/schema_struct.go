@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	structPadding    = 2
+	structPadding    = 4
 	structChildStyle = lipgloss.NewStyle().Padding(0, 0, 0, structPadding)
 )
 
@@ -31,6 +31,7 @@ type StructField struct {
 // Init implements [SchemaNode].
 func (s *StructNode) Init() {
 	for i, child := range s.children {
+		child.Node.Init()
 
 		// When up, go to above child or above node
 		if i == 0 {
@@ -110,6 +111,7 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 	// Write the name of the struct we're editing
 	b.WriteString(textStyle.Render(s.name+" {") + "\n")
 
+	fieldPadding := 0
 	for _, child := range s.children {
 		var fb strings.Builder
 		sel := child.Node.Selected()
@@ -122,9 +124,12 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 		fb.WriteString(fieldLine)
 
 		// Write the actual view of the thing
-		var v string
+		c, v := child.Node.View()
 		if sel != 0 {
-			cursor, v = child.Node.View()
+			cursor = c
+			if sel == 1 {
+				fieldPadding = len(child.Name + ": ")
+			}
 		}
 		fb.WriteString(v)
 
@@ -135,6 +140,8 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 	// Write the closing bracket for the struct
 	b.WriteString(textStyle.Render("}"))
 
-	cursor.X += structPadding
+	if cursor != nil {
+		cursor.X += structPadding + fieldPadding
+	}
 	return cursor, b.String()
 }

@@ -26,6 +26,8 @@ type ValueNode[T any] struct {
 	*basicSelection
 	convert func(s string) (T, error)
 	value   T
+	prefix  string
+	suffix  string
 	input   textinput.Model
 	keyMap  valueNodeKeyMap
 }
@@ -34,8 +36,12 @@ type ValueNode[T any] struct {
 func (v *ValueNode[T]) Init() {
 	v.input = textinput.New()
 	v.input.SetVirtualCursor(false)
-	v.input.Prompt = ""
+	v.input.Prompt = v.prefix
 	v.input.Placeholder = ""
+	styles := textinput.DefaultDarkStyles()
+	styles.Blurred.Prompt, styles.Focused.Prompt = secondaryTextStyle, secondaryTextStyle
+	styles.Blurred.Text, styles.Focused.Text = secondaryTextStyle, textStyle
+	v.input.SetStyles(styles)
 	v.keyMap = defaultValueNodeKeyMap()
 	v.input.Validate = func(s string) error {
 		var err error
@@ -103,9 +109,15 @@ func (v *ValueNode[T]) Update(msg tea.Msg) (SchemaNode, tea.Cmd) {
 
 // View implements [SchemaNode].
 func (v *ValueNode[T]) View() (*tea.Cursor, string) {
-	view := v.input.View()
+	textView := secondaryTextStyle.Render(v.prefix + v.input.Value())
+	if v.input.Focused() {
+		textView = v.input.View()
+	}
+
+	view := textView + secondaryTextStyle.Render(v.suffix)
 	if v.input.Err != nil {
 		view += "\n" + errorStyle.Render(v.input.Err.Error())
 	}
+
 	return v.input.Cursor(), view
 }

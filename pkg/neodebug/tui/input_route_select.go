@@ -14,25 +14,11 @@ var (
 	unselectedStyle = secondaryTextStyle
 )
 
-type routeSelectKeyMap struct {
-	ClearSearch key.Binding
-	Filter      key.Binding
-	Up          key.Binding
-	Down        key.Binding
-}
-
-func routeSelectDefaultKeyMap() routeSelectKeyMap {
-	return routeSelectKeyMap{
-		ClearSearch: key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "clear search")),
-		Filter:      key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "filter routes")),
-		Up:          key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "select previous route")),
-		Down:        key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "select next route")),
-	}
+type RouteSelectedMsg struct {
+	Route string
 }
 
 type inputRouteSelect struct {
-	routeSelectKeyMap
-
 	handledKey    bool
 	width         int
 	height        int
@@ -40,21 +26,37 @@ type inputRouteSelect struct {
 	routes        []string
 	results       []string
 	selectedRoute int
+
+	// keys
+	clearSearch key.Binding
+	filter      key.Binding
+	up          key.Binding
+	down        key.Binding
+	enter       key.Binding
 }
 
 func newRouteSelect(routes []string) inputRouteSelect {
 	i := textinput.New()
 	i.Placeholder = ""
-	i.Prompt = secondaryTextStyle.Render("Filter: ")
-	i.SetStyles(textinput.DefaultDarkStyles())
+	i.Prompt = "Filter: "
+	styles := textinput.DefaultDarkStyles()
+	styles.Blurred.Prompt, styles.Focused.Prompt = secondaryTextStyle, secondaryTextStyle
+	styles.Blurred.Text, styles.Focused.Text = textStyle, textStyle
+	i.SetStyles(styles)
 	i.SetVirtualCursor(false)
 
 	return inputRouteSelect{
-		routeSelectKeyMap: routeSelectDefaultKeyMap(),
-		input:             i,
-		routes:            routes,
-		results:           routes,
-		selectedRoute:     0,
+		input:         i,
+		routes:        routes,
+		results:       routes,
+		selectedRoute: 0,
+
+		// Define default keys
+		clearSearch: key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "clear search")),
+		filter:      key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "filter routes")),
+		up:          key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "select previous route")),
+		down:        key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "select next route")),
+		enter:       key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
 	}
 }
 
@@ -82,18 +84,29 @@ func (m inputRouteSelect) Update(msg tea.Msg) (inputRouteSelect, tea.Cmd) {
 		// Handle the keys that are specific to the input
 		handled := false
 		switch {
-		case key.Matches(msg, m.Up):
+		case key.Matches(msg, m.up):
 			handled = true
 			m.selectedRoute = max(0, m.selectedRoute-1)
-		case key.Matches(msg, m.Down):
+		case key.Matches(msg, m.down):
 			handled = true
 			m.selectedRoute = min(len(m.results)-1, m.selectedRoute+1)
-		case key.Matches(msg, m.ClearSearch):
+		case key.Matches(msg, m.clearSearch):
 			if !m.input.Focused() {
 				break
 			}
 			handled = true
-			m.clearSearch()
+			m.clearSearchInput()
+		case key.Matches(msg, m.enter):
+			handled = true
+			m.handledKey = true
+
+			if len(m.results) == 0 {
+				break
+			}
+
+			return m, func() tea.Msg {
+				return RouteSelectedMsg{Route: m.results[m.selectedRoute]}
+			}
 		}
 		m.handledKey = handled
 
@@ -112,7 +125,7 @@ func (m inputRouteSelect) Update(msg tea.Msg) (inputRouteSelect, tea.Cmd) {
 
 		// Handle the filter key (we don't want / to be up there because we want to support it being typed)
 		switch {
-		case key.Matches(msg, m.Filter):
+		case key.Matches(msg, m.filter):
 			m.handledKey = true
 			return m, m.input.Focus()
 		}
@@ -126,7 +139,7 @@ func (m inputRouteSelect) Update(msg tea.Msg) (inputRouteSelect, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *inputRouteSelect) clearSearch() {
+func (m *inputRouteSelect) clearSearchInput() {
 	m.input.Blur()
 	m.input.SetValue("")
 

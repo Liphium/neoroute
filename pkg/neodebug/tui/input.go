@@ -9,6 +9,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute/neoschema"
 	"github.com/Liphium/neoroute/pkg/neodebug/connector"
+	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
 type inputFieldState int
@@ -20,9 +21,6 @@ const (
 
 	// When you are viewing the entire request in the view
 	stateCreateRequest
-
-	// When you edit an individual field of the request
-	stateEditRequest
 
 	// When the little spinner for connecting is shown
 	stateConnecting
@@ -40,6 +38,7 @@ type Input struct {
 	width      int
 	height     int
 	state      inputFieldState
+	schema     neoschema.TransporterSchema
 
 	// Connected / closed state
 	connection connector.Connection
@@ -47,6 +46,9 @@ type Input struct {
 
 	// Route select
 	routeSelect inputRouteSelect
+
+	// Request creator
+	requestCreator inputRequestCreator
 }
 
 func newInput(schema neoschema.TransporterSchema) Input {
@@ -55,6 +57,7 @@ func newInput(schema neoschema.TransporterSchema) Input {
 	return Input{
 		state:       stateConnecting,
 		spinner:     s,
+		schema:      schema,
 		routeSelect: newRouteSelect(slices.Collect(maps.Keys(schema.Routes))),
 	}
 }
@@ -62,11 +65,13 @@ func newInput(schema neoschema.TransporterSchema) Input {
 func (m *Input) SetWidth(w int) {
 	m.width = w
 	m.routeSelect.SetWidth(w)
+	m.requestCreator.SetWidth(w)
 }
 
 func (m *Input) SetHeight(h int) {
 	m.height = h
 	m.routeSelect.SetHeight(h)
+	m.requestCreator.SetHeight(h)
 }
 
 func (m Input) WantedHeight() int {
@@ -75,6 +80,8 @@ func (m Input) WantedHeight() int {
 		return 1
 	case stateRouteSelect:
 		return m.routeSelect.WantedHeight()
+	case stateCreateRequest:
+		return m.requestCreator.WantedHeight()
 	}
 	return 5
 }
@@ -112,6 +119,43 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 	case connector.DoWaitMsg:
 		differentHandling = true
 		return m, m.connection.WaitForEvent()
+
+	case RouteSelectedMsg:
+		differentHandling = true
+
+		// When selected, switch to editing the input
+		route, ok := m.schema.Routes[msg.Route]
+		if !ok {
+			return m, model.Plain(model.Error("Couldn't find route selected."))
+		}
+		if !route.HasRequest {
+			return m, model.Plain(model.Info("Coming soon..."))
+		}
+
+		// Switch to new creation state
+		m.state = stateCreateRequest
+		m.requestCreator = newInputRequestCreator(msg.Route, route.Request, m.width, m.height)
+
+		return m, nil
+
+	case SendMsg:
+		differentHandling = true
+
+		// Switch to state and handle cancellation properly
+		m.state = stateRouteSelect
+		if msg.Cancelled {
+			return m, nil
+		}
+
+		// When sent, switch to the route selector again
+		_, ok := m.schema.Routes[msg.Route]
+		if !ok {
+			return m, model.Plain(model.Error("Couldn't find route selected."))
+		}
+
+		// TODO: Actually send the route
+
+		return m, model.Plain(model.Info("Would send route now, but that's kinda not implemented ig"))
 	}
 
 	// Forward any msgs not handled here down
@@ -121,6 +165,11 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 			var cmd tea.Cmd
 			m.routeSelect, cmd = m.routeSelect.Update(msg)
 			m.handledKey = m.routeSelect.handledKey
+			return m, cmd
+		case stateCreateRequest:
+			var cmd tea.Cmd
+			m.requestCreator, cmd = m.requestCreator.Update(msg)
+			m.handledKey = true // Always give this back cause other than priority keys everything should be handled here
 			return m, cmd
 		}
 	}
@@ -147,6 +196,10 @@ func (m Input) View() (*tea.Cursor, string) {
 
 	case stateRouteSelect:
 		cursor, view := m.routeSelect.View()
+		return cursor, view
+
+	case stateCreateRequest:
+		cursor, view := m.requestCreator.View()
 		return cursor, view
 	}
 

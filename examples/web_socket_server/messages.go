@@ -9,7 +9,17 @@ type EchoRequest struct {
 }
 
 type SubmitPunRequest struct {
-	Pun string `msg:"pun"`
+	Pun    string `msg:"pun"`
+	Number Test   `msg:"number"`
+}
+
+type Test struct {
+	World  string `msg:"world"`
+	Test   string `msg:"test"`
+	World2 string `msg:"world2"`
+	Test2  string `msg:"test2"`
+	World3 string `msg:"world3"`
+	Test3  string `msg:"test3"`
 }
 
 // Response
