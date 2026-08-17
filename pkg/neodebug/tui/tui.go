@@ -145,25 +145,8 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		differentHandling = true
 
-		// Let the children handle keys first, when they handled them, we don't
-		if m.inputVisible() {
-			cmd = m.inputHandleMsg(msg)
-			if m.input.handledKey {
-				return m, cmd
-			}
-		}
-		if m.historyVisible() {
-			m.history, cmd = m.history.Update(msg)
-			if m.history.handledKey {
-				return m, cmd
-			}
-		}
-
+		// Priority keys
 		switch {
-		case key.Matches(msg, m.keys.Quit):
-			handled = true
-			return m, tea.Quit
-
 		case key.Matches(msg, m.keys.Help):
 			handled = true
 			m.help.ShowAll = !m.help.ShowAll
@@ -184,6 +167,29 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.setFull(fullScreenInput)
 			}
+		}
+		if handled {
+			break
+		}
+
+		// Let the children handle keys first, when they handled them, we don't
+		if m.inputVisible() {
+			cmd = m.inputHandleMsg(msg)
+			if m.input.handledKey {
+				return m, cmd
+			}
+		}
+		if m.historyVisible() {
+			m.history, cmd = m.history.Update(msg)
+			if m.history.handledKey {
+				return m, cmd
+			}
+		}
+
+		switch {
+		case key.Matches(msg, m.keys.Quit):
+			handled = true
+			return m, tea.Quit
 
 		case key.Matches(msg, m.keys.ExitFullscreen):
 			handled = true
@@ -288,7 +294,9 @@ func (m tui) View() tea.View {
 
 		case fullScreenInput:
 			cursor, input := m.input.View()
-			view.Cursor = cursor
+			if cursor != nil {
+				view.Cursor = cursor
+			}
 			view.SetContent(lipgloss.JoinVertical(lipgloss.Left, input, divider, helpView))
 			return view
 		}
@@ -296,7 +304,11 @@ func (m tui) View() tea.View {
 
 	// Render normally with history and input
 	history := m.history.View()
-	_, input := m.input.View()
+	cursor, input := m.input.View()
+	if cursor != nil {
+		cursor.Y += m.history.viewport.Height() + 1
+		view.Cursor = cursor
+	}
 
 	view.SetContent(lipgloss.JoinVertical(lipgloss.Left, history, divider, input, divider, helpView))
 	return view
