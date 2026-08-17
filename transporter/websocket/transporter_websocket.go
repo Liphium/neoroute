@@ -218,7 +218,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 	t.config.EnterNetworkFunc(session.session)
 
 	for {
-		messageType, msg, err := conn.Read(context.Background())
+		messageType, reader, err := conn.Reader(context.Background())
 		if err != nil {
 
 			// Only log err if it is not due to expected connection closure
@@ -239,7 +239,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		}
 
 		// Handle request and send response back over the same connection
-		resp, runAfter := t.router.Handle(msg, userSession)
+		resp, runAfter := t.router.Handle(reader, userSession)
 		if resp != nil {
 			go func() {
 				defer func() {
