@@ -3,6 +3,7 @@ package tui
 import (
 	"strings"
 
+	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -18,9 +19,34 @@ var (
 var _ SchemaNode = &StructNode{}
 
 type StructNode struct {
-	*basicSelection
+	basicNode
 	name     string
 	children []StructField
+}
+
+// Children implements SchemaNode.
+func (s *StructNode) Children() []keyProvider {
+	var sel SchemaNode
+	for _, field := range s.children {
+		if field.Node.Selected() != 0 {
+			sel = field.Node
+			break
+		}
+	}
+	if sel == nil {
+		return []keyProvider{}
+	}
+	return []keyProvider{sel}
+}
+
+// FooterKeys implements SchemaNode.
+func (s *StructNode) FooterKeys() []key.Binding {
+	return []key.Binding{}
+}
+
+// FullKeyHelp implements SchemaNode.
+func (s *StructNode) FullKeyHelp() FullKeyHelp {
+	return FullKeyHelp{}
 }
 
 type StructField struct {
@@ -32,17 +58,24 @@ type StructField struct {
 func (s *StructNode) Init() {
 	for i, child := range s.children {
 		child.Node.Init()
+		child.Node.SetSuffix(secondaryTextStyle.Render(","))
 
 		// When up, go to above child or above node
 		if i == 0 {
-			child.Node.OnUp(s.GoUp)
+			// The method can not be put in here directly (as s.GoUp instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the struct is called after, the method is not called correctly.
+			child.Node.OnUp(func() {
+				s.GoUp()
+			})
 		} else {
 			child.Node.OnUp(s.children[i-1].Node.SelectFromBottom)
 		}
 
 		// When down, go to below child or below node
 		if i == len(s.children)-1 {
-			child.Node.OnDown(s.GoDown)
+			// The method can not be put in here directly (as s.GoDown instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the struct is called after, the method is not called correctly.
+			child.Node.OnDown(func() {
+				s.GoDown()
+			})
 		} else {
 			child.Node.OnDown(s.children[i+1].Node.SelectFromTop)
 		}
@@ -89,17 +122,16 @@ func (s *StructNode) Selected() int {
 }
 
 // Update implements [SchemaNode].
-func (s *StructNode) Update(msg tea.Msg) (SchemaNode, tea.Cmd) {
+func (s *StructNode) Update(msg tea.Msg) tea.Cmd {
 	// Just update the child with Selected() != 0
 	for _, child := range s.children {
 		if child.Node.Selected() != 0 {
-			newChild, cmd := child.Node.Update(msg)
-			child.Node = newChild
-			return s, cmd
+			cmd := child.Node.Update(msg)
+			return cmd
 		}
 	}
 
-	return s, nil
+	return nil
 }
 
 // View implements [SchemaNode].
@@ -134,7 +166,7 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 		fb.WriteString(v)
 
 		// The field builder is rendered here to make sure the padding is applied to everything
-		b.WriteString(structChildStyle.Render(fb.String()) + secondaryTextStyle.Render(",") + "\n")
+		b.WriteString(structChildStyle.Render(fb.String()) + "\n")
 	}
 
 	// Write the closing bracket for the struct
@@ -143,5 +175,5 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 	if cursor != nil {
 		cursor.X += structPadding + fieldPadding
 	}
-	return cursor, b.String()
+	return cursor, b.String() + s.basicNode.Suffix
 }

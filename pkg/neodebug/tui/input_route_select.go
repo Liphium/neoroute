@@ -18,6 +18,8 @@ type RouteSelectedMsg struct {
 	Route string
 }
 
+var _ keyProvider = inputRouteSelect{}
+
 type inputRouteSelect struct {
 	handledKey    bool
 	width         int
@@ -33,6 +35,29 @@ type inputRouteSelect struct {
 	up          key.Binding
 	down        key.Binding
 	enter       key.Binding
+}
+
+// Children implements keyProvider.
+func (m inputRouteSelect) Children() []keyProvider {
+	return []keyProvider{}
+}
+
+// FooterKeys implements keyProvider.
+func (m inputRouteSelect) FooterKeys() []key.Binding {
+	if m.input.Focused() {
+		return []key.Binding{m.enter, m.clearSearch, m.up, m.down}
+	}
+	return []key.Binding{m.enter, m.filter, m.up, m.down}
+}
+
+// FullKeyHelp implements keyProvider.
+func (m inputRouteSelect) FullKeyHelp() FullKeyHelp {
+	return FullKeyHelp{
+		Title: "Route selection",
+		Keys: [][]key.Binding{
+			[]key.Binding{m.enter, m.clearSearch, m.filter, m.up, m.down},
+		},
+	}
 }
 
 func newRouteSelect(routes []string) inputRouteSelect {
@@ -53,9 +78,9 @@ func newRouteSelect(routes []string) inputRouteSelect {
 
 		// Define default keys
 		clearSearch: key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "clear search")),
-		filter:      key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "filter routes")),
-		up:          key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "select previous route")),
-		down:        key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "select next route")),
+		filter:      key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "search")),
+		up:          key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "up")),
+		down:        key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "down")),
 		enter:       key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
 	}
 }

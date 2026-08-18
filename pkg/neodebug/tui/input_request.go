@@ -26,6 +26,8 @@ type SendMsg struct {
 	Value     any
 }
 
+var _ keyProvider = inputRequestCreator{}
+
 type inputRequestCreator struct {
 	height   int
 	width    int
@@ -36,6 +38,26 @@ type inputRequestCreator struct {
 	// keys
 	send key.Binding
 	back key.Binding
+}
+
+// Children implements [keyProvider].
+func (m inputRequestCreator) Children() []keyProvider {
+	return []keyProvider{m.rootNode}
+}
+
+// FooterKeys implements [keyProvider].
+func (m inputRequestCreator) FooterKeys() []key.Binding {
+	return []key.Binding{m.send, m.back}
+}
+
+// FullKeyHelp implements [keyProvider].
+func (m inputRequestCreator) FullKeyHelp() FullKeyHelp {
+	return FullKeyHelp{
+		Title: "Request editor",
+		Keys: [][]key.Binding{
+			[]key.Binding{m.send, m.back},
+		},
+	}
 }
 
 func newInputRequestCreator(route string, schema neoschema.PackedType, width, height int) inputRequestCreator {
@@ -82,6 +104,7 @@ func (m inputRequestCreator) Update(msg tea.Msg) (inputRequestCreator, tea.Cmd) 
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.send):
+
 			// TODO: Implement
 			return m, nil
 		case key.Matches(msg, m.back):
@@ -92,8 +115,7 @@ func (m inputRequestCreator) Update(msg tea.Msg) (inputRequestCreator, tea.Cmd) 
 	}
 
 	// Update the rootNode (handles all of the things anyway from here)
-	var cmd tea.Cmd
-	m.rootNode, cmd = m.rootNode.Update(msg)
+	cmd := m.rootNode.Update(msg)
 	return m, cmd
 }
 

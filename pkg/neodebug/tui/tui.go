@@ -86,8 +86,13 @@ type tui struct {
 	tooSmall bool
 
 	// Key bindings + help
-	keys appKeyMap
-	help help.Model
+	help           help.Model
+	quit           key.Binding
+	goToBottom     key.Binding
+	expandHistory  key.Binding
+	expandInput    key.Binding
+	exitFullscreen key.Binding
+	helpKey        key.Binding
 }
 
 func Run(transporter neoschema.TransporterSchema) *tui {
@@ -112,8 +117,33 @@ func Run(transporter neoschema.TransporterSchema) *tui {
 		history:     NewHistory(0, 0),
 		width:       0,
 		height:      0,
-		keys:        newAppKeyMap(),
 		help:        h,
+
+		// Define all of the key bindings
+		quit: key.NewBinding(
+			key.WithKeys("q", "ctrl+c"),
+			key.WithHelp("q", "quit"),
+		),
+		goToBottom: key.NewBinding(
+			key.WithKeys("ctrl+b"),
+			key.WithHelp("ctrl+b", "go to bottom"),
+		),
+		expandHistory: key.NewBinding(
+			key.WithKeys("ctrl+h"),
+			key.WithHelp("ctrl+h", "expand history"),
+		),
+		expandInput: key.NewBinding(
+			key.WithKeys("ctrl+e"),
+			key.WithHelp("ctrl+e", "expand input"),
+		),
+		exitFullscreen: key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("escape", "exit fullscreen"),
+		),
+		helpKey: key.NewBinding(
+			key.WithKeys("ctrl+h"),
+			key.WithHelp("ctrl+h", "toggle help"),
+		),
 	}
 }
 
@@ -149,12 +179,12 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Priority keys
 		switch {
-		case key.Matches(msg, m.keys.Help):
+		case key.Matches(msg, m.helpKey):
 			handled = true
 			m.help.ShowAll = !m.help.ShowAll
 			m.relayoutHeight()
 
-		case key.Matches(msg, m.keys.ExpandHistory):
+		case key.Matches(msg, m.expandHistory):
 			handled = true
 			if m.full == fullScreenHistory {
 				m.setFull(fullScreenNone)
@@ -162,7 +192,7 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.setFull(fullScreenHistory)
 			}
 
-		case key.Matches(msg, m.keys.ExpandInput):
+		case key.Matches(msg, m.expandInput):
 			handled = true
 			if m.full == fullScreenInput {
 				m.setFull(fullScreenNone)
@@ -189,11 +219,11 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		switch {
-		case key.Matches(msg, m.keys.Quit):
+		case key.Matches(msg, m.quit):
 			handled = true
 			return m, tea.Quit
 
-		case key.Matches(msg, m.keys.ExitFullscreen):
+		case key.Matches(msg, m.exitFullscreen):
 			handled = true
 			m.setFull(fullScreenNone)
 		}
@@ -284,7 +314,7 @@ func (m tui) View() tea.View {
 	}
 
 	divider := renderDivider(m.width)
-	helpView := m.help.View(m.keys)
+	helpView := m.HelpBar()
 
 	if m.full != fullScreenNone {
 

@@ -3,6 +3,7 @@ package tui
 import (
 	"strings"
 
+	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -19,11 +20,35 @@ var (
 	eventStyle  = lipgloss.NewStyle().Foreground(highlightColor).Bold(true)
 )
 
+var _ keyProvider = History{}
+
 type History struct {
 	handledKey   bool
 	snapToBottom bool
 	content      []model.Content
 	viewport     viewport.Model
+}
+
+// Children implements keyProvider.
+func (m History) Children() []keyProvider {
+	return []keyProvider{}
+}
+
+// FooterKeys implements keyProvider.
+func (m History) FooterKeys() []key.Binding {
+	keys := viewport.DefaultKeyMap()
+	return []key.Binding{keys.Up, keys.Down}
+}
+
+// FullKeyHelp implements keyProvider.
+func (m History) FullKeyHelp() FullKeyHelp {
+	keys := viewport.DefaultKeyMap()
+	return FullKeyHelp{
+		Title: "History",
+		Keys: [][]key.Binding{
+			[]key.Binding{keys.Up, keys.Down, keys.Right, keys.Left},
+		},
+	}
 }
 
 func NewHistory(w, h int) History {

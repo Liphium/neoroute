@@ -16,20 +16,41 @@ type valueNodeKeyMap struct {
 
 func defaultValueNodeKeyMap() valueNodeKeyMap {
 	return valueNodeKeyMap{
-		Up:    key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "up")),
-		Down:  key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "down")),
+		Up:    key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "up")),
+		Down:  key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "down")),
 		Clear: key.NewBinding(key.WithKeys("ctrl+backspace"), key.WithHelp("ctrl+backspace", "clear input")),
 	}
 }
 
 type ValueNode[T any] struct {
-	*basicSelection
+	basicNode
 	convert func(s string) (T, error)
 	value   T
 	prefix  string
-	suffix  string
-	input   textinput.Model
-	keyMap  valueNodeKeyMap
+	// This suffix here is different from the one in basicNode in that it applies to the input field instead of to what's after the entire node (also after the error label)
+	suffix string
+	input  textinput.Model
+	keyMap valueNodeKeyMap
+}
+
+// Children implements SchemaNode.
+func (v *ValueNode[T]) Children() []keyProvider {
+	return []keyProvider{}
+}
+
+// FooterKeys implements SchemaNode.
+func (v *ValueNode[T]) FooterKeys() []key.Binding {
+	return []key.Binding{v.keyMap.Up, v.keyMap.Down}
+}
+
+// FullKeyHelp implements SchemaNode.
+func (v *ValueNode[T]) FullKeyHelp() FullKeyHelp {
+	return FullKeyHelp{
+		Title: "Currently selected value",
+		Keys: [][]key.Binding{
+			append(v.FooterKeys(), v.keyMap.Clear),
+		},
+	}
 }
 
 // Init implements [SchemaNode].
@@ -78,33 +99,33 @@ func (v *ValueNode[T]) Selected() int {
 }
 
 // Update implements [SchemaNode].
-func (v *ValueNode[T]) Update(msg tea.Msg) (SchemaNode, tea.Cmd) {
+func (v *ValueNode[T]) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, v.keyMap.Up):
 			v.input.Blur()
 			v.GoUp()
-			return v, nil
+			return nil
 
 		case key.Matches(msg, v.keyMap.Down):
 			v.input.Blur()
 			v.GoDown()
-			return v, nil
+			return nil
 
 		case key.Matches(msg, v.keyMap.Clear):
 			v.input.SetValue("")
-			return v, nil
+			return nil
 		}
 	}
 
 	if v.input.Focused() {
 		var cmd tea.Cmd
 		v.input, cmd = v.input.Update(msg)
-		return v, cmd
+		return cmd
 	}
 
-	return v, nil
+	return nil
 }
 
 // View implements [SchemaNode].
@@ -114,7 +135,7 @@ func (v *ValueNode[T]) View() (*tea.Cursor, string) {
 		textView = v.input.View()
 	}
 
-	view := textView + secondaryTextStyle.Render(v.suffix)
+	view := textView + secondaryTextStyle.Render(v.suffix) + v.basicNode.Suffix
 	if v.input.Err != nil {
 		view += "\n" + errorStyle.Render(v.input.Err.Error())
 	}

@@ -21,9 +21,8 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 		}
 
 		return &StructNode{
-			basicSelection: &basicSelection{},
-			name:           schema.Name,
-			children:       children,
+			name:     schema.Name,
+			children: children,
 		}
 
 	case *neoschema.ReferenceType:
@@ -41,9 +40,8 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 func newValueNode[T any](convert func(string) (T, error)) *ValueNode[T] {
 	var zero T
 	return &ValueNode[T]{
-		basicSelection: &basicSelection{},
-		convert:        convert,
-		value:          zero,
+		convert: convert,
+		value:   zero,
 	}
 }
 
@@ -85,9 +83,8 @@ func createBasic(basic *neoschema.BasicType) SchemaNode {
 	case neoschema.TypeString:
 		// Special because we want prefix and suffix
 		return &ValueNode[string]{
-			basicSelection: &basicSelection{},
-			prefix:         "\"",
-			suffix:         "\"",
+			prefix: "\"",
+			suffix: "\"",
 			convert: func(s string) (string, error) {
 				return s, nil
 			},

@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute/neoschema"
@@ -13,6 +14,9 @@ import (
 )
 
 type inputFieldState int
+
+// Wishlist:
+// - Add reconnections
 
 // All of the states for the debug UI's input field thingy
 const (
@@ -33,6 +37,8 @@ type inputRequestHeightMsg struct {
 	height int
 }
 
+var _ keyProvider = Input{}
+
 type Input struct {
 	handledKey bool
 	width      int
@@ -49,6 +55,28 @@ type Input struct {
 
 	// Request creator
 	requestCreator inputRequestCreator
+}
+
+// Children implements keyProvider.
+func (m Input) Children() []keyProvider {
+	switch m.state {
+	case stateRouteSelect:
+		return []keyProvider{m.routeSelect}
+	case stateCreateRequest:
+		return []keyProvider{m.requestCreator}
+	}
+
+	return []keyProvider{}
+}
+
+// FooterKeys implements keyProvider.
+func (m Input) FooterKeys() []key.Binding {
+	return []key.Binding{}
+}
+
+// FullKeyHelp implements keyProvider.
+func (m Input) FullKeyHelp() FullKeyHelp {
+	return FullKeyHelp{}
 }
 
 func newInput(schema neoschema.TransporterSchema) Input {
