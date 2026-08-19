@@ -88,9 +88,9 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 			return model.Error("Sending %s failed: %v", endpoint, err)
 		}
 		if res == nil { // Handler without response thingy
-			return model.Response(endpoint, nil)
+			return model.Response(endpoint, request, nil)
 		}
-		return model.Response(endpoint, res.Value)
+		return model.Response(endpoint, request, res.Value)
 	}
 }
 

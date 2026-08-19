@@ -139,13 +139,8 @@ func (m History) renderContent() string {
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Message))
 
-		case model.SendingContent:
-			b.WriteString(symbolStyle.Render("REQ"))
-			b.WriteRune(' ')
-			b.WriteString(textStyle.Render(c.Route))
-
 		case model.ResponseContent:
-			b.WriteString(symbolStyle.Render("RES"))
+			b.WriteString(symbolStyle.Render("REQ"))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Route))
 

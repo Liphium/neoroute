@@ -139,8 +139,8 @@ func Run(transporter neoschema.TransporterSchema) *tui {
 			key.WithHelp("ctrl+e", "expand history"),
 		),
 		expandInput: key.NewBinding(
-			key.WithKeys("ctrl+w"),
-			key.WithHelp("ctrl+w", "expand input"),
+			key.WithKeys("ctrl+r"),
+			key.WithHelp("ctrl+r", "expand input"),
 		),
 		exitFullscreen: key.NewBinding(
 			key.WithKeys("esc"),
@@ -305,7 +305,6 @@ func (m tui) View() tea.View {
 
 	// Configure the main view
 	view := tea.NewView("")
-	view.MouseMode = tea.MouseModeCellMotion
 	view.AltScreen = true
 
 	if m.width == 0 || m.height == 0 || m.tooSmall {

@@ -74,22 +74,6 @@ func Warn(format string, a ...any) tea.Msg {
 	}
 }
 
-type SendingContent struct {
-	Route string
-	Data  any
-	BasicContent
-}
-
-func Sending(route string, data any) tea.Msg {
-	return AddContentMsg{
-		Content: SendingContent{
-			Route:        route,
-			Data:         data,
-			BasicContent: Now(),
-		},
-	}
-}
-
 type EventContent struct {
 	Name  string
 	Event any
@@ -112,7 +96,7 @@ type ResponseContent struct {
 	BasicContent
 }
 
-func Response(route string, data any) tea.Msg {
+func Response(route string, sent any, data any) tea.Msg {
 	return AddContentMsg{
 		Content: ResponseContent{
 			Route:        route,
