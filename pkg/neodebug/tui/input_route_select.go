@@ -55,7 +55,8 @@ func (m inputRouteSelect) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
 		Title: "Route selection",
 		Keys: [][]key.Binding{
-			[]key.Binding{m.enter, m.clearSearch, m.filter, m.up, m.down},
+			[]key.Binding{m.enter, m.clearSearch, m.filter},
+			[]key.Binding{m.up, m.down},
 		},
 	}
 }

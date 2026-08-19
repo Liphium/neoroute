@@ -9,8 +9,7 @@ type EchoRequest struct {
 }
 
 type SubmitPunRequest struct {
-	Pun    string `msg:"pun"`
-	Number int64  `msg:"number"`
+	Pun string `msg:"pun"`
 }
 
 // Response

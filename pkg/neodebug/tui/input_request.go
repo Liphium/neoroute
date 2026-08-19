@@ -6,6 +6,7 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
 // Idea:
@@ -105,12 +106,12 @@ func (m inputRequestCreator) Update(msg tea.Msg) (inputRequestCreator, tea.Cmd) 
 		switch {
 		case key.Matches(msg, m.send):
 
-			// TODO: Implement
-			return m, nil
+			return m, model.Plain(SendMsg{
+				Route: m.route,
+				Value: m.rootNode.Request(),
+			})
 		case key.Matches(msg, m.back):
-			return m, func() tea.Msg {
-				return SendMsg{Cancelled: true}
-			}
+			return m, model.Plain(SendMsg{Cancelled: true})
 		}
 	}
 

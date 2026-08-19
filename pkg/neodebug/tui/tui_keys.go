@@ -2,6 +2,7 @@ package tui
 
 import (
 	"slices"
+	"strings"
 
 	"charm.land/bubbles/v2/key"
 )
@@ -30,8 +31,8 @@ func (m tui) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
 		Title: "App control",
 		Keys: [][]key.Binding{
-			[]key.Binding{m.expandInput, m.expandHistory, m.exitFullscreen, m.goToBottom},
-			[]key.Binding{m.helpKey, m.quit},
+			[]key.Binding{m.expandInput, m.expandHistory, m.exitFullscreen},
+			[]key.Binding{m.goToBottom, m.helpKey, m.quit},
 		},
 	}
 }
@@ -66,6 +67,26 @@ func (m tui) HelpBar() string {
 	return m.help.ShortHelpView(binds)
 }
 
-func (m tui) FullHelpView() string {
-	return ""
+func (m tui) FullHelpView(current keyProvider, view string) string {
+
+	// Add own key help to the thing
+	view += m.renderKeyHelp(current.FullKeyHelp())
+
+	// Add all of the children help views
+	for _, child := range current.Children() {
+		view = m.FullHelpView(child, view)
+	}
+
+	return view
+}
+
+func (m tui) renderKeyHelp(help FullKeyHelp) string {
+	if help.Keys == nil {
+		return ""
+	}
+
+	var b strings.Builder
+	b.WriteString(titleStyle.Render(help.Title) + "\n")
+	b.WriteString(m.help.FullHelpView(help.Keys)) // TODO: Custom rendering
+	return b.String() + "\n\n"
 }

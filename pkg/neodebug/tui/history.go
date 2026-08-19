@@ -46,7 +46,8 @@ func (m History) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
 		Title: "History",
 		Keys: [][]key.Binding{
-			[]key.Binding{keys.Up, keys.Down, keys.Right, keys.Left},
+			[]key.Binding{keys.Up, keys.Down},
+			[]key.Binding{keys.Right, keys.Left},
 		},
 	}
 }

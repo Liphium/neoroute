@@ -309,7 +309,7 @@ func (m tui) View() tea.View {
 
 	// All of the hotkeys are shown on a different page
 	if m.help.ShowAll {
-		view.SetContent("all of your keys")
+		view.SetContent(strings.TrimSuffix(m.FullHelpView(m, ""), "\n\n"))
 		return view
 	}
 

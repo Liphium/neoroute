@@ -40,6 +40,9 @@ type SchemaNode interface {
 
 	// Should render the entire view.
 	View() (*tea.Cursor, string)
+
+	// Should construct the request using go types.
+	Request() any
 }
 
 // A struct that can be embedded to implement basic functions for the schema interface.

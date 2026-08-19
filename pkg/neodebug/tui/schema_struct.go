@@ -24,6 +24,16 @@ type StructNode struct {
 	children []StructField
 }
 
+// Request implements SchemaNode.
+func (s *StructNode) Request() any {
+	req := map[string]any{}
+	for _, f := range s.children {
+		req[f.Name] = f.Node.Request()
+	}
+
+	return req
+}
+
 // Children implements SchemaNode.
 func (s *StructNode) Children() []keyProvider {
 	var sel SchemaNode

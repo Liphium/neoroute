@@ -11,7 +11,7 @@ import (
 	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
-func connectWebsocket() tea.Msg {
+func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 	msgChan := make(chan tea.Msg)
 
 	// Create the actual transporter
@@ -37,6 +37,7 @@ func connectWebsocket() tea.Msg {
 			Connection: WebSocketConnection{
 				transporter: transporter,
 				recv:        r,
+				schema:      schema,
 				msgChan:     msgChan,
 			},
 		},

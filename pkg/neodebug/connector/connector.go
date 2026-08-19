@@ -25,7 +25,7 @@ func Connect(transporter neoschema.TransporterSchema) tea.Cmd {
 		case neoschema.TransporterHTTP:
 			return withClose(model.Error("HTTP request transporters are currently not supported."))
 		case neoschema.TransporterWebSocket:
-			return connectWebsocket()
+			return connectWebsocket(transporter)
 		}
 		return withClose(model.Error("This type of transporter is unknown."))
 	}

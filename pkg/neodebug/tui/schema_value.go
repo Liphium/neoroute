@@ -33,6 +33,11 @@ type ValueNode[T any] struct {
 	keyMap valueNodeKeyMap
 }
 
+// Request implements SchemaNode.
+func (v *ValueNode[T]) Request() any {
+	return v.value
+}
+
 // Children implements SchemaNode.
 func (v *ValueNode[T]) Children() []keyProvider {
 	return []keyProvider{}
@@ -48,7 +53,8 @@ func (v *ValueNode[T]) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
 		Title: "Currently selected value",
 		Keys: [][]key.Binding{
-			append(v.FooterKeys(), v.keyMap.Clear),
+			v.FooterKeys(),
+			[]key.Binding{v.keyMap.Clear},
 		},
 	}
 }
