@@ -36,18 +36,17 @@ func (m History) Children() []keyProvider {
 
 // FooterKeys implements keyProvider.
 func (m History) FooterKeys() []key.Binding {
-	keys := viewport.DefaultKeyMap()
-	return []key.Binding{keys.Up, keys.Down}
+	return []key.Binding{m.viewport.KeyMap.Up, m.viewport.KeyMap.Down}
 }
 
 // FullKeyHelp implements keyProvider.
 func (m History) FullKeyHelp() FullKeyHelp {
-	keys := viewport.DefaultKeyMap()
+	km := m.viewport.KeyMap
 	return FullKeyHelp{
 		Title: "History",
 		Keys: [][]key.Binding{
-			[]key.Binding{keys.Up, keys.Down},
-			[]key.Binding{keys.Right, keys.Left},
+			[]key.Binding{km.Up, km.Down},
+			[]key.Binding{km.Right, km.Left},
 		},
 	}
 }
@@ -57,6 +56,8 @@ func NewHistory(w, h int) History {
 	v.SoftWrap = false
 	v.MouseWheelEnabled = true
 	v.FillHeight = true
+	v.KeyMap.Up = key.NewBinding(standardUpKey, key.WithHelp("↑", "up"))
+	v.KeyMap.Down = key.NewBinding(standardDownKey, key.WithHelp("↓", "down"))
 
 	his := History{
 		viewport: v,
@@ -79,7 +80,6 @@ func (m *History) SetWidth(width int) {
 
 func (m *History) SetHeight(height int) {
 	m.viewport.SetHeight(height)
-	// TODO: Determine if this enough (maybe we need to scroll down more?)
 }
 
 func (m *History) GotoBottom() {
@@ -140,12 +140,12 @@ func (m History) renderContent() string {
 			b.WriteString(textStyle.Render(c.Message))
 
 		case model.SendingContent:
-			b.WriteString(symbolStyle.Render(SymbolArrowRight))
+			b.WriteString(symbolStyle.Render("REQ"))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Route))
 
 		case model.ResponseContent:
-			b.WriteString(symbolStyle.Render(SymbolArrowLeft))
+			b.WriteString(symbolStyle.Render("RES"))
 			b.WriteRune(' ')
 			b.WriteString(textStyle.Render(c.Route))
 

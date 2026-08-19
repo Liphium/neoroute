@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"charm.land/bubbles/v2/key"
+	"charm.land/lipgloss/v2"
 )
 
 var _ keyProvider = tui{}
@@ -89,4 +90,11 @@ func (m tui) renderKeyHelp(help FullKeyHelp) string {
 	b.WriteString(titleStyle.Render(help.Title) + "\n")
 	b.WriteString(m.help.FullHelpView(help.Keys)) // TODO: Custom rendering
 	return b.String() + "\n\n"
+}
+
+func (m tui) fullHelpHint() string {
+	hintLabel := lipgloss.NewStyle().Bold(true).Foreground(textColor).Render("Hint:")
+	sec := secondaryTextStyle.Render
+	normal := textStyle.Render
+	return hintLabel + " " + sec("Instead of ") + normal(SymbolArrowUp) + sec(" and ") + normal(SymbolArrowDown) + sec(", you can use ") + normal("shift+tab") + sec(" and ") + normal("tab") + sec(", respectively.")
 }

@@ -21,7 +21,7 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 	// Connect to the transporter using the URL in the config
 	url, err := url.Parse(config.Config.TransporterURL)
 	if err != nil {
-		return withClose(model.Error("Failed to parse URL: %w", err))
+		return withClose(model.Error("Failed to parse URL: %v", err))
 	}
 	doneChan, err := transporter.Connect(url)
 	if err != nil {
@@ -82,7 +82,10 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 
 		// Return an error / the response when we get back stuff from the server
 		if err != nil {
-			return model.Error("Sending %s failed: %w", endpoint, err)
+			if u, ok := err.(*client.UserError); ok {
+				return model.Error("%s returned error response: %s", endpoint, u.Error())
+			}
+			return model.Error("Sending %s failed: %v", endpoint, err)
 		}
 		if res == nil { // Handler without response thingy
 			return model.Response(endpoint, nil)

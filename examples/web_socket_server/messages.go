@@ -9,7 +9,8 @@ type EchoRequest struct {
 }
 
 type SubmitPunRequest struct {
-	Pun string `msg:"pun"`
+	Pun      string  `msg:"pun"`
+	Password *string `msg:"password"`
 }
 
 // Response

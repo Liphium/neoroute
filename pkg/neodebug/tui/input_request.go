@@ -96,7 +96,7 @@ func (m *inputRequestCreator) SetHeight(h int) {
 }
 
 func (m inputRequestCreator) WantedHeight() int {
-	return min(m.rootNode.Height(), 7) // TODO: Calculate the global height here (when smaller, also make this smaller)
+	return min(m.rootNode.Height(), 7)
 }
 
 func (m inputRequestCreator) Update(msg tea.Msg) (inputRequestCreator, tea.Cmd) {
@@ -121,7 +121,6 @@ func (m inputRequestCreator) Update(msg tea.Msg) (inputRequestCreator, tea.Cmd) 
 }
 
 func (m inputRequestCreator) View() (*tea.Cursor, string) {
-	// Manage the scrolling here (always centered around main selected thingy)
 
 	maxShown := m.height
 	selected := m.rootNode.Selected()
@@ -145,5 +144,6 @@ func (m inputRequestCreator) View() (*tea.Cursor, string) {
 		cursor.Y += selected - start - 1
 	}
 
-	return cursor, v
+	fill := strings.TrimSuffix(strings.Repeat("\n", m.height-(end-start)+1), "\n")
+	return cursor, v + fill
 }

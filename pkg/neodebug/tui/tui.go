@@ -61,6 +61,12 @@ var (
 	separatorStyle = lipgloss.NewStyle().Foreground(separatorColor)
 )
 
+// Important standards
+var (
+	standardUpKey   = key.WithKeys("up", "shift+tab")
+	standardDownKey = key.WithKeys("down", "tab")
+)
+
 type fullScreenView string
 
 const (
@@ -129,12 +135,12 @@ func Run(transporter neoschema.TransporterSchema) *tui {
 			key.WithHelp("ctrl+b", "go to bottom"),
 		),
 		expandHistory: key.NewBinding(
-			key.WithKeys("ctrl+h"),
-			key.WithHelp("ctrl+h", "expand history"),
+			key.WithKeys("ctrl+e"),
+			key.WithHelp("ctrl+e", "expand history"),
 		),
 		expandInput: key.NewBinding(
-			key.WithKeys("ctrl+e"),
-			key.WithHelp("ctrl+e", "expand input"),
+			key.WithKeys("ctrl+w"),
+			key.WithHelp("ctrl+w", "expand input"),
 		),
 		exitFullscreen: key.NewBinding(
 			key.WithKeys("esc"),
@@ -309,7 +315,9 @@ func (m tui) View() tea.View {
 
 	// All of the hotkeys are shown on a different page
 	if m.help.ShowAll {
-		view.SetContent(strings.TrimSuffix(m.FullHelpView(m, ""), "\n\n"))
+		content := strings.TrimSuffix(m.FullHelpView(m, ""), "\n\n")
+		content += "\n\n" + m.fullHelpHint()
+		view.SetContent(content)
 		return view
 	}
 

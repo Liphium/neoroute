@@ -25,6 +25,12 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 			children: children,
 		}
 
+	case *neoschema.NullableType:
+		return &NullableNode{
+			null:  true,
+			other: createNode(schema.Element, registry),
+		}
+
 	case *neoschema.ReferenceType:
 		return createNode(registry[schema.Object], registry)
 

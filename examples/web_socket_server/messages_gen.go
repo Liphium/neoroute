@@ -364,6 +364,24 @@ func (z *SubmitPunRequest) DecodeMsg(dc *msgp.Reader) (err error) {
 				err = msgp.WrapError(err, "Pun")
 				return
 			}
+		case "password":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "Password")
+					return
+				}
+				z.Password = nil
+			} else {
+				if z.Password == nil {
+					z.Password = new(string)
+				}
+				*z.Password, err = dc.ReadString()
+				if err != nil {
+					err = msgp.WrapError(err, "Password")
+					return
+				}
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -376,10 +394,10 @@ func (z *SubmitPunRequest) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z SubmitPunRequest) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 1
+func (z *SubmitPunRequest) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 2
 	// write "pun"
-	err = en.Append(0x81, 0xa3, 0x70, 0x75, 0x6e)
+	err = en.Append(0x82, 0xa3, 0x70, 0x75, 0x6e)
 	if err != nil {
 		return
 	}
@@ -388,16 +406,40 @@ func (z SubmitPunRequest) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Pun")
 		return
 	}
+	// write "password"
+	err = en.Append(0xa8, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	if err != nil {
+		return
+	}
+	if z.Password == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteString(*z.Password)
+		if err != nil {
+			err = msgp.WrapError(err, "Password")
+			return
+		}
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z SubmitPunRequest) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *SubmitPunRequest) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 1
+	// map header, size 2
 	// string "pun"
-	o = append(o, 0x81, 0xa3, 0x70, 0x75, 0x6e)
+	o = append(o, 0x82, 0xa3, 0x70, 0x75, 0x6e)
 	o = msgp.AppendString(o, z.Pun)
+	// string "password"
+	o = append(o, 0xa8, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64)
+	if z.Password == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendString(o, *z.Password)
+	}
 	return
 }
 
@@ -425,6 +467,23 @@ func (z *SubmitPunRequest) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "Pun")
 				return
 			}
+		case "password":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.Password = nil
+			} else {
+				if z.Password == nil {
+					z.Password = new(string)
+				}
+				*z.Password, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "Password")
+					return
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -438,7 +497,12 @@ func (z *SubmitPunRequest) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z SubmitPunRequest) Msgsize() (s int) {
-	s = 1 + 4 + msgp.StringPrefixSize + len(z.Pun)
+func (z *SubmitPunRequest) Msgsize() (s int) {
+	s = 1 + 4 + msgp.StringPrefixSize + len(z.Pun) + 9
+	if z.Password == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.StringPrefixSize + len(*z.Password)
+	}
 	return
 }

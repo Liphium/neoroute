@@ -172,6 +172,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 
 		// Switch to state and handle cancellation properly
 		m.state = stateRouteSelect
+		m.routeSelect.clearSearchInput()
 		if msg.Cancelled {
 			return m, nil
 		}

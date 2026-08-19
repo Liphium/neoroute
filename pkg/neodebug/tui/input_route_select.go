@@ -80,8 +80,8 @@ func newRouteSelect(routes []string) inputRouteSelect {
 		// Define default keys
 		clearSearch: key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "clear search")),
 		filter:      key.NewBinding(key.WithKeys("/"), key.WithHelp("/", "search")),
-		up:          key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "up")),
-		down:        key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "down")),
+		up:          key.NewBinding(standardUpKey, key.WithHelp("↑", "up")),
+		down:        key.NewBinding(standardDownKey, key.WithHelp("↓", "down")),
 		enter:       key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
 	}
 }
