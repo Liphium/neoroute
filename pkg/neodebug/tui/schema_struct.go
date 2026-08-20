@@ -70,25 +70,8 @@ func (s *StructNode) Init() {
 		child.Node.Init()
 		child.Node.SetSuffix(secondaryTextStyle.Render(","))
 
-		// When up, go to above child or above node
-		if i == 0 {
-			// The method can not be put in here directly (as s.GoUp instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the struct is called after, the method is not called correctly.
-			child.Node.OnUp(func() {
-				s.GoUp()
-			})
-		} else {
-			child.Node.OnUp(s.children[i-1].Node.SelectFromBottom)
-		}
-
-		// When down, go to below child or below node
-		if i == len(s.children)-1 {
-			// The method can not be put in here directly (as s.GoDown instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the struct is called after, the method is not called correctly.
-			child.Node.OnDown(func() {
-				s.GoDown()
-			})
-		} else {
-			child.Node.OnDown(s.children[i+1].Node.SelectFromTop)
-		}
+		// Configure up down selection for the struct (we want to walk fields this way)
+		configureUpDownSelection(i, [3]SchemaNode{s.children[max(i-1, 0)].Node, child.Node, s.children[min(i+1, len(s.children)-1)].Node}, s.basicNode, len(s.children))
 	}
 }
 

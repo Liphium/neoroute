@@ -31,6 +31,15 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 			other: createNode(schema.Element, registry),
 		}
 
+	case *neoschema.MapType:
+
+	case *neoschema.ArrayType:
+		return &SliceNode{
+			element:  schema.Element,
+			registry: registry,
+			items:    []SchemaNode{createNode(schema.Element, registry)},
+		}
+
 	case *neoschema.ReferenceType:
 		return createNode(registry[schema.Object], registry)
 

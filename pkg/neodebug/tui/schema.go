@@ -77,3 +77,30 @@ func (b *basicNode) OnDown(down func()) {
 func (b *basicNode) SetSuffix(suffix string) {
 	b.Suffix = suffix
 }
+
+// configureUpDownSelection adds up and down functions to a child node based on its parents' fields.
+//
+// snapshot is the current children in the following order: previous (i-1), current (i), next (i+1). If that would go out of bounds, just put anything, it won't be touched.
+//
+// This is meant for nodes that use up/down to navigate, well, up and down (like structs, slices, maps, etc.).
+func configureUpDownSelection(i int, snapshot [3]SchemaNode, parent basicNode, size int) {
+	// When up, go to above child or above node
+	if i == 0 {
+		// The method can not be put in here directly (as s.GoUp instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the child is called after, the method is not called correctly.
+		snapshot[1].OnUp(func() {
+			parent.GoUp()
+		})
+	} else {
+		snapshot[1].OnUp(snapshot[0].SelectFromBottom)
+	}
+
+	// When down, go to below child or below node
+	if i == size-1 {
+		// The method can not be put in here directly (as s.GoDown instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the child is called after, the method is not called correctly.
+		snapshot[1].OnDown(func() {
+			parent.GoDown()
+		})
+	} else {
+		snapshot[1].OnDown(snapshot[2].SelectFromTop)
+	}
+}
