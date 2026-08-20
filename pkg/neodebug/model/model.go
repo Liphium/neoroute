@@ -91,16 +91,18 @@ func Event(name string, event any) tea.Msg {
 }
 
 type ResponseContent struct {
-	Route string
-	Data  any
+	Route    string
+	Request  any
+	Response any
 	BasicContent
 }
 
-func Response(route string, sent any, data any) tea.Msg {
+func Response(route string, request any, response any) tea.Msg {
 	return AddContentMsg{
 		Content: ResponseContent{
 			Route:        route,
-			Data:         data,
+			Request:      request,
+			Response:     response,
 			BasicContent: Now(),
 		},
 	}

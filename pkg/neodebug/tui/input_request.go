@@ -82,7 +82,7 @@ func newInputRequestCreator(route string, schema neoschema.PackedType, width, he
 		rootNode: root,
 
 		// Define default keys
-		send: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "send request")),
+		send: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "send")),
 		back: key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
 	}
 }

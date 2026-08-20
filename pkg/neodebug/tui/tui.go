@@ -28,11 +28,12 @@ var _ tea.Model = tui{}
 // Basic colors that we're gonna use
 var (
 	textColor          = lipgloss.Color("252") // main text
+	lessTextColor      = lipgloss.Color("250") // main text (but a little less bright)
 	secondaryTextColor = lipgloss.Color("246") // secondary text
 
 	separatorColor = lipgloss.Color("240") // subtle separators
 
-	highlightColor = lipgloss.Color("67")  // muted blue
+	highlightColor = lipgloss.Color("68")  // muted blue
 	errorColor     = lipgloss.Color("167") // muted red
 	successColor   = lipgloss.Color("71")  // muted green
 	warningColor   = lipgloss.Color("214") // yellow / warn
@@ -40,7 +41,8 @@ var (
 
 // Characters that are handy
 const (
-	SymbolDivider = "─"
+	SymbolHorizontalDivider = "│"
+	SymbolDivider           = "─"
 
 	SymbolArrowRight = "→"
 	SymbolArrowLeft  = "←"
@@ -55,6 +57,7 @@ var (
 
 	titleStyle         = lipgloss.NewStyle().Bold(true).Foreground(highlightColor)
 	textStyle          = lipgloss.NewStyle().Foreground(textColor)
+	lessTextStyle      = lipgloss.NewStyle().Foreground(lessTextColor)
 	secondaryTextStyle = lipgloss.NewStyle().Foreground(secondaryTextColor)
 	highlightStyle     = lipgloss.NewStyle().Foreground(highlightColor)
 
@@ -305,6 +308,7 @@ func (m tui) View() tea.View {
 
 	// Configure the main view
 	view := tea.NewView("")
+	view.MouseMode = tea.MouseModeCellMotion
 	view.AltScreen = true
 
 	if m.width == 0 || m.height == 0 || m.tooSmall {

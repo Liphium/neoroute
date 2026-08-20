@@ -13,11 +13,12 @@ import (
 type ToggleSnapMsg struct{}
 
 var (
-	infoStyle   = lipgloss.NewStyle().Foreground(textColor).Bold(true)
-	errorStyle  = lipgloss.NewStyle().Foreground(errorColor).Bold(true)
-	warnStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true) // yellow / warn
-	symbolStyle = lipgloss.NewStyle().Foreground(successColor).Bold(true)
-	eventStyle  = lipgloss.NewStyle().Foreground(highlightColor).Bold(true)
+	infoStyle          = lipgloss.NewStyle().Foreground(textColor).Bold(true)
+	errorStyle         = lipgloss.NewStyle().Foreground(errorColor).Bold(true)
+	warnStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true) // yellow / warn
+	symbolStyle        = lipgloss.NewStyle().Foreground(successColor).Bold(true)
+	eventStyle         = lipgloss.NewStyle().Foreground(highlightColor).Bold(true)
+	newLineRenderStyle = lipgloss.NewStyle().Padding(0, 0, 0, 1)
 )
 
 var _ keyProvider = History{}
@@ -121,7 +122,8 @@ func (m History) renderContent() string {
 	for _, c := range m.content {
 
 		// Add the creation timestamp
-		b.WriteString(secondaryTextStyle.Render(c.Creation().Format("03:04 PM") + " "))
+		timestamp := secondaryTextStyle.Render(c.Creation().Format("03:04 PM") + " ")
+		b.WriteString(timestamp)
 
 		switch c := c.(type) {
 		case model.InfoContent:
@@ -140,19 +142,50 @@ func (m History) renderContent() string {
 			b.WriteString(textStyle.Render(c.Message))
 
 		case model.ResponseContent:
+
+			// Write the first line for the request
 			b.WriteString(symbolStyle.Render("REQ"))
 			b.WriteRune(' ')
-			b.WriteString(textStyle.Render(c.Route))
+			msg := "Sent request to "
+			b.WriteString(lessTextStyle.Render(msg) + textStyle.Bold(true).Render(c.Route))
+			b.WriteRune(' ')
+			b.WriteString(m.renderValue(13 /* timestamp and stuff */ +len(msg)+len(c.Route), c.Request, symbolStyle))
+			b.WriteString("\n")
+
+			// Write the second line for the response to the request
+			b.WriteString(timestamp)
+			b.WriteString(symbolStyle.Render("RES"))
+			b.WriteRune(' ')
+			msg = "Got response for "
+			b.WriteString(lessTextStyle.Render(msg) + textStyle.Bold(true).Render(c.Route))
+			b.WriteRune(' ')
+			b.WriteString(m.renderValue(13+len(msg)+len(c.Route), c.Response, symbolStyle))
 
 		case model.EventContent:
-			b.WriteString(eventStyle.Render(SymbolArrowLeft))
+			b.WriteString(eventStyle.Render("EVT"))
 			b.WriteRune(' ')
-			b.WriteString(textStyle.Render(c.Name))
+			msg := "Received event "
+			b.WriteString(lessTextStyle.Render(msg) + textStyle.Bold(true).Render(c.Name))
+			b.WriteRune(' ')
+			b.WriteString(m.renderValue(13 /* timestamp and stuff */ +len(msg)+len(c.Name), c.Event, eventStyle))
 		}
 
 		b.WriteString("\n")
 	}
 	return strings.TrimSuffix(b.String(), "\n")
+}
+
+// Render the value, if oneline add behind, otherwise do line breaking
+func (m History) renderValue(lenBefore int, value any, divider lipgloss.Style) string {
+	req := render(value, m.viewport.Width()-lenBefore)
+	if lipgloss.Height(req) == 1 {
+		return textStyle.Render(req)
+	} else {
+		req = render(value, m.viewport.Width()-2 /* padding + color */)
+		renderedDivider := divider.Render(SymbolHorizontalDivider)
+		req = newLineRenderStyle.Render(textStyle.Render(req))
+		return "\n" + renderedDivider + strings.ReplaceAll(req, "\n", "\n"+renderedDivider)
+	}
 }
 
 func (m History) View() string { return m.viewport.View() }

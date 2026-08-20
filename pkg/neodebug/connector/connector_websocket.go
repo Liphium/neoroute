@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"maps"
 	"net/url"
 
 	tea "charm.land/bubbletea/v2"
@@ -31,6 +32,13 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 		<-doneChan
 		msgChan <- ClosedMsg{}
 	}()
+
+	// Listen for all events and make it emit messages
+	for event := range maps.Keys(schema.Events) {
+		client.Receive(r, event, func(c *client.Ctx, ev PackedAny) {
+			msgChan <- model.Event(event, ev.Value)
+		})
+	}
 
 	return model.Multiple(
 		ConnectedMsg{
@@ -63,7 +71,7 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 		}
 
 		// Send to the server based on the send type
-		var res *PackedAny
+		var res PackedAny = PackedAny{nil}
 		var err error
 		switch route.GetSendType() {
 		case neoschema.SendOK:
@@ -71,13 +79,13 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 		case neoschema.SendOKNoRequest:
 			err = client.SendOkNoRequest(w.recv, endpoint)
 		case neoschema.SendRequestResponse:
-			*res, err = client.Send[PackedAny](w.recv, endpoint, PackedAny{request})
+			res, err = client.Send[PackedAny](w.recv, endpoint, PackedAny{request})
 		case neoschema.SendNoResponse:
 			err = client.SendNoResponse(w.recv, endpoint, PackedAny{request})
 		case neoschema.SendPing:
 			err = client.SendPing(w.recv, endpoint)
 		case neoschema.SendNoRequest:
-			*res, err = client.SendNoRequest[PackedAny](w.recv, endpoint)
+			res, err = client.SendNoRequest[PackedAny](w.recv, endpoint)
 		}
 
 		// Return an error / the response when we get back stuff from the server
@@ -87,7 +95,7 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 			}
 			return model.Error("Sending %s failed: %v", endpoint, err)
 		}
-		if res == nil { // Handler without response thingy
+		if res.Value == nil { // Handler without response thingy
 			return model.Response(endpoint, request, nil)
 		}
 		return model.Response(endpoint, request, res.Value)
