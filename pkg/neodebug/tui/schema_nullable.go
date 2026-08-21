@@ -123,19 +123,15 @@ func (n *NullableNode) Update(msg tea.Msg) tea.Cmd {
 			}
 			return nil
 
-		case key.Matches(msg, n.up):
-			if n.null {
-				n.focused = false
-				n.GoUp()
-				return nil
-			}
+		case n.null && key.Matches(msg, n.up):
+			n.focused = false
+			n.GoUp()
+			return nil
 
-		case key.Matches(msg, n.down):
-			if n.null {
-				n.focused = false
-				n.GoDown()
-				return nil
-			}
+		case n.null && key.Matches(msg, n.down):
+			n.focused = false
+			n.GoDown()
+			return nil
 		}
 	}
 

@@ -171,15 +171,14 @@ func (s *SliceNode) Update(msg tea.Msg) tea.Cmd {
 		switch {
 		case s.gap >= 0 && key.Matches(msg, s.add):
 
-			// Add an item exactly at the gap index and select it
+			// Add an item exactly at the gap index
 			item := createNode(s.element, s.registry)
 			s.items = append(s.items[:s.gap], append([]SchemaNode{item}, s.items[s.gap:]...)...)
 			s.items[s.gap].Init()
 			s.redoBindings()
 
-			// Select the new item
-			s.items[s.gap].SelectFromTop()
-			s.gap = -1
+			// Make sure to adjust the gap
+			s.gap++
 
 			return nil
 		case s.gap >= 1 && key.Matches(msg, s.remove):
@@ -205,8 +204,9 @@ func (s *SliceNode) Update(msg tea.Msg) tea.Cmd {
 
 			if s.gap != -1 {
 				// If we're in gap selection and we know it's not the first one (check above), we need to select the item before the gap
-				s.items[s.gap-1].SelectFromTop()
+				s.items[s.gap-1].SelectFromBottom()
 				s.gap = -1
+				return nil
 			} else {
 				// This is impossible because items should forward their things from up / down events
 			}
@@ -220,8 +220,9 @@ func (s *SliceNode) Update(msg tea.Msg) tea.Cmd {
 
 			if s.gap != -1 {
 				// If we're in the gap selection, we need to select the item below
-				s.items[s.gap].SelectFromBottom()
+				s.items[s.gap].SelectFromTop()
 				s.gap = -1
+				return nil
 			} else {
 				// This is impossible because items should forward their things from up / down events
 			}
