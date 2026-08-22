@@ -16,6 +16,9 @@ type SchemaNode interface {
 	// Should start the selection at the last possible position.
 	SelectFromBottom()
 
+	// Clear the selection
+	Unselect()
+
 	// Should take a callback that is called when the upper boundary of the selection is reached and the selection should go up.
 	//
 	// This should also unselect this node at the same time.
@@ -25,6 +28,9 @@ type SchemaNode interface {
 	//
 	// This should also unselect this node at the same time.
 	OnDown(func())
+
+	// If the last key event was handled by this node or any of its children.
+	KeyHandled() bool
 
 	// Should set a suffix for the entire thing
 	SetSuffix(suffix string)

@@ -24,6 +24,16 @@ type StructNode struct {
 	children []StructField
 }
 
+// KeyHandled implements [SchemaNode].
+func (s *StructNode) KeyHandled() bool {
+	for _, field := range s.children {
+		if field.Node.Selected() != 0 {
+			return field.Node.KeyHandled()
+		}
+	}
+	return false
+}
+
 // Request implements SchemaNode.
 func (s *StructNode) Request() any {
 	req := map[string]any{}
@@ -70,8 +80,25 @@ func (s *StructNode) Init() {
 		child.Node.Init()
 		child.Node.SetSuffix(secondaryTextStyle.Render(","))
 
-		// Configure up down selection for the struct (we want to walk fields this way)
-		configureUpDownSelection(i, [3]SchemaNode{s.children[max(i-1, 0)].Node, child.Node, s.children[min(i+1, len(s.children)-1)].Node}, s.basicNode, len(s.children))
+		// When up, go to above child or above node
+		if i == 0 {
+			// The method can not be put in here directly (as s.GoUp instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the child is called after, the method is not called correctly.
+			child.Node.OnUp(func() {
+				s.GoUp()
+			})
+		} else {
+			child.Node.OnUp(s.children[i-1].Node.SelectFromBottom)
+		}
+
+		// When down, go to below child or below node
+		if i == len(s.children)-1 {
+			// The method can not be put in here directly (as s.GoDown instead of wrapping it in a func), otherwise the thing is copied meaning if OnUp on the child is called after, the method is not called correctly.
+			child.Node.OnDown(func() {
+				s.GoDown()
+			})
+		} else {
+			child.Node.OnDown(s.children[i+1].Node.SelectFromTop)
+		}
 	}
 }
 
@@ -85,6 +112,14 @@ func (s *StructNode) SelectFromTop() {
 func (s *StructNode) SelectFromBottom() {
 	// We don't actually have any selection state, just our children do, select the first children from the bottom
 	s.children[len(s.children)-1].Node.SelectFromBottom()
+}
+
+// Unselect implements [SchemaNode].
+func (s *StructNode) Unselect() {
+	// We don't actually have any selection state, just our children do, unselect all of them
+	for _, child := range s.children {
+		child.Node.Unselect()
+	}
 }
 
 // Height implements [SchemaNode].

@@ -197,7 +197,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 		case stateCreateRequest:
 			var cmd tea.Cmd
 			m.requestCreator, cmd = m.requestCreator.Update(msg)
-			m.handledKey = true // Always give this back cause other than priority keys everything should be handled here
+			m.handledKey = m.requestCreator.keyHandled
 			return m, cmd
 		}
 	}

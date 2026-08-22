@@ -5,18 +5,26 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-var _ SchemaNode = &ValueNode[any]{}
+var _ SchemaNode = &NullableNode{}
+
+type nullableState int
 
 type NullableNode struct {
 	basicNode
-	focused bool
-	null    bool
-	other   SchemaNode
+	focused    bool
+	keyHandled bool
+	null       bool
+	other      SchemaNode
 
 	// Keys
 	up         key.Binding
 	down       key.Binding
 	toggleNull key.Binding
+}
+
+// KeyHandled implements [SchemaNode].
+func (n *NullableNode) KeyHandled() bool {
+	return n.keyHandled
 }
 
 // OnUp needs to be forwarded to other as well
@@ -52,15 +60,17 @@ func (n *NullableNode) Children() []keyProvider {
 
 // FooterKeys implements SchemaNode.
 func (n *NullableNode) FooterKeys() []key.Binding {
-	return []key.Binding{n.toggleNull, n.up, n.down}
+	if n.null {
+		return []key.Binding{n.toggleNull, n.up, n.down}
+	}
+	return []key.Binding{n.toggleNull}
 }
 
 // FullKeyHelp implements SchemaNode.
 func (n *NullableNode) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
-		Title: "Nullable functionality",
+		Title: "Nullable editing",
 		Keys: [][]key.Binding{
-			[]key.Binding{n.up, n.down},
 			[]key.Binding{n.toggleNull},
 		},
 	}
@@ -68,9 +78,9 @@ func (n *NullableNode) FullKeyHelp() FullKeyHelp {
 
 // Init implements [SchemaNode].
 func (n *NullableNode) Init() {
-	n.toggleNull = key.NewBinding(key.WithKeys("ctrl+d"), key.WithHelp("ctrl+d", "toggle nil"))
 	n.up = key.NewBinding(standardUpKey, key.WithHelp(SymbolArrowUp, "up"))
 	n.down = key.NewBinding(standardDownKey, key.WithHelp(SymbolArrowDown, "down"))
+	n.toggleNull = key.NewBinding(key.WithKeys("n"), key.WithHelp("n", "toggle nil"))
 
 	n.other.Init()
 }
@@ -84,61 +94,89 @@ func (n *NullableNode) Height() int {
 	}
 }
 
-// SelectFromBottom implements [SchemaNode].
-func (n *NullableNode) SelectFromBottom() {
-	n.focused = true
-	if !n.null {
-		n.other.SelectFromBottom()
+// SelectFromTop implements [SchemaNode].
+func (n *NullableNode) SelectFromTop() {
+	if n.null {
+		n.focused = true
+	} else {
+		n.other.SelectFromTop()
 	}
 }
 
-// SelectFromTop implements [SchemaNode].
-func (n *NullableNode) SelectFromTop() {
-	n.focused = true
-	if !n.null {
-		n.other.SelectFromTop()
+// SelectFromBottom implements [SchemaNode].
+func (n *NullableNode) SelectFromBottom() {
+	if n.null {
+		n.focused = true
+	} else {
+		n.other.SelectFromBottom()
 	}
 }
 
 // Selected implements [SchemaNode].
 func (n *NullableNode) Selected() int {
-	if n.focused {
-		if !n.null {
-			return n.other.Selected()
+	if n.null {
+		if n.focused {
+			return 1
 		}
-		return 1
+		return 0
 	}
-	return 0
+	return n.other.Selected()
+}
+
+// Unselect implements [SchemaNode].
+func (n *NullableNode) Unselect() {
+	if n.null {
+		n.focused = false
+	}
+	n.other.Unselect()
 }
 
 // Update implements [SchemaNode].
 func (n *NullableNode) Update(msg tea.Msg) tea.Cmd {
+	n.keyHandled = false
+
+	// If null, handle all of the navigation keys
+	if n.null {
+		switch msg := msg.(type) {
+		case tea.KeyPressMsg:
+			switch {
+			case key.Matches(msg, n.up):
+				n.keyHandled = true
+				n.focused = false
+				n.GoUp()
+				return nil
+
+			case key.Matches(msg, n.down):
+				n.keyHandled = true
+				n.focused = false
+				n.GoDown()
+				return nil
+			}
+		}
+	}
+
+	cmd := n.other.Update(msg)
+	if n.other.KeyHandled() {
+		n.keyHandled = true
+		return cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, n.toggleNull):
+			n.keyHandled = true
 			n.null = !n.null
 			if !n.null {
+				n.focused = false
 				n.other.SelectFromTop()
+			} else {
+				n.focused = true
 			}
-			return nil
-
-		case n.null && key.Matches(msg, n.up):
-			n.focused = false
-			n.GoUp()
-			return nil
-
-		case n.null && key.Matches(msg, n.down):
-			n.focused = false
-			n.GoDown()
 			return nil
 		}
 	}
-
-	if n.focused && !n.null {
-		return n.other.Update(msg)
-	}
-	return nil
+	return cmd
 }
 
 // View implements [SchemaNode].

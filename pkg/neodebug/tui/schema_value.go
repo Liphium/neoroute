@@ -12,17 +12,21 @@ var _ SchemaNode = &ValueNode[any]{}
 
 type ValueNode[T any] struct {
 	basicNode
-	convert func(s string) (T, error)
-	value   T
-	prefix  string
+	convert    func(s string) (T, error)
+	value      T
+	focused    bool
+	keyHandled bool
+	prefix     string
 	// This suffix here is different from the one in basicNode in that it applies to the input field instead of to what's after the entire node (also after the error label)
 	suffix string
 	input  textinput.Model
 
 	// Keys
-	up    key.Binding
-	down  key.Binding
-	clear key.Binding
+	up     key.Binding
+	down   key.Binding
+	clear  key.Binding
+	insert key.Binding
+	finish key.Binding
 }
 
 // Request implements SchemaNode.
@@ -37,7 +41,15 @@ func (v *ValueNode[T]) Children() []keyProvider {
 
 // FooterKeys implements SchemaNode.
 func (v *ValueNode[T]) FooterKeys() []key.Binding {
-	return []key.Binding{v.up, v.down}
+	if v.input.Focused() {
+		return []key.Binding{v.finish, v.up, v.down}
+	}
+	return []key.Binding{v.insert, v.up, v.down}
+}
+
+// KeyHandled implements [SchemaNode].
+func (v *ValueNode[T]) KeyHandled() bool {
+	return v.keyHandled
 }
 
 // FullKeyHelp implements SchemaNode.
@@ -67,7 +79,9 @@ func (v *ValueNode[T]) Init() {
 	// Define all of the keys
 	v.up = key.NewBinding(standardUpKey, key.WithHelp("↑", "up"))
 	v.down = key.NewBinding(standardDownKey, key.WithHelp("↓", "down"))
-	v.clear = key.NewBinding(key.WithKeys("ctrl+backspace"), key.WithHelp("ctrl+backspace", "clear input"))
+	v.clear = key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "clear input"))
+	v.insert = key.NewBinding(key.WithKeys("i", "enter"), key.WithHelp("i", "insert value"))
+	v.finish = key.NewBinding(key.WithKeys("esc", "enter"), key.WithHelp("esc", "finish"))
 
 	v.input.Validate = func(s string) error {
 		var err error
@@ -85,19 +99,25 @@ func (v *ValueNode[T]) Height() int {
 	}
 }
 
-// SelectFromBottom implements [SchemaNode].
-func (v *ValueNode[T]) SelectFromBottom() {
-	v.input.Focus()
-}
-
 // SelectFromTop implements [SchemaNode].
 func (v *ValueNode[T]) SelectFromTop() {
-	v.input.Focus()
+	v.focused = true
+}
+
+// SelectFromBottom implements [SchemaNode].
+func (v *ValueNode[T]) SelectFromBottom() {
+	v.focused = true
+}
+
+// Unselect implements [SchemaNode].
+func (v *ValueNode[T]) Unselect() {
+	v.focused = false
+	v.input.Blur()
 }
 
 // Selected implements [SchemaNode].
 func (v *ValueNode[T]) Selected() int {
-	if v.input.Focused() {
+	if v.focused {
 		return 1
 	}
 	return 0
@@ -105,26 +125,55 @@ func (v *ValueNode[T]) Selected() int {
 
 // Update implements [SchemaNode].
 func (v *ValueNode[T]) Update(msg tea.Msg) tea.Cmd {
+	v.keyHandled = false
+	if !v.focused {
+		return nil
+	}
+
+	// Handle priority keybinds (up, down, finish)
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, v.up):
+			v.keyHandled = true
+			v.focused = false
 			v.input.Blur()
 			v.GoUp()
 			return nil
 
 		case key.Matches(msg, v.down):
+			v.keyHandled = true
+			v.focused = false
 			v.input.Blur()
 			v.GoDown()
 			return nil
 
-		case key.Matches(msg, v.clear):
-			v.input.SetValue("")
+		case v.input.Focused() && key.Matches(msg, v.finish):
+			v.keyHandled = true
+			v.input.Blur()
 			return nil
 		}
 	}
 
-	if v.input.Focused() {
+	if !v.input.Focused() {
+		// Handle keybinds during normal focus
+		switch msg := msg.(type) {
+		case tea.KeyPressMsg:
+			switch {
+			case key.Matches(msg, v.insert):
+				v.keyHandled = true
+				v.input.Focus()
+				return nil
+
+			case key.Matches(msg, v.clear):
+				v.keyHandled = true
+				v.input.SetValue("")
+				return nil
+			}
+		}
+	} else {
+		// Let the input take over when we're in insert mode
+		v.keyHandled = true
 		var cmd tea.Cmd
 		v.input, cmd = v.input.Update(msg)
 		return cmd
@@ -138,6 +187,8 @@ func (v *ValueNode[T]) View() (*tea.Cursor, string) {
 	textView := secondaryTextStyle.Render(v.prefix + v.input.Value())
 	if v.input.Focused() {
 		textView = v.input.View()
+	} else if v.focused {
+		textView = secondaryTextStyle.Render(v.prefix) + textStyle.Render(v.input.Value())
 	}
 
 	view := textView + secondaryTextStyle.Render(v.suffix) + v.basicNode.Suffix

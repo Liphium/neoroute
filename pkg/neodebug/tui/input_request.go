@@ -30,11 +30,12 @@ type SendMsg struct {
 var _ keyProvider = inputRequestCreator{}
 
 type inputRequestCreator struct {
-	height   int
-	width    int
-	route    string
-	schema   neoschema.PackedType
-	rootNode SchemaNode
+	height     int
+	width      int
+	route      string
+	schema     neoschema.PackedType
+	rootNode   SchemaNode
+	keyHandled bool
 
 	// keys
 	send key.Binding
@@ -82,7 +83,7 @@ func newInputRequestCreator(route string, schema neoschema.PackedType, width, he
 		rootNode: root,
 
 		// Define default keys
-		send: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "send")),
+		send: key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "send")),
 		back: key.NewBinding(key.WithKeys("esc"), key.WithHelp("esc", "cancel")),
 	}
 }
@@ -100,28 +101,33 @@ func (m inputRequestCreator) WantedHeight() int {
 }
 
 func (m inputRequestCreator) Update(msg tea.Msg) (inputRequestCreator, tea.Cmd) {
+	cmd := m.rootNode.Update(msg)
+	m.keyHandled = m.rootNode.KeyHandled()
+	if m.keyHandled {
+		return m, cmd
+	}
 
+	// Handle these keys only when there is nothing done inside the editor
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.send):
-
+			m.keyHandled = true
 			return m, model.Plain(SendMsg{
 				Route: m.route,
 				Value: m.rootNode.Request(),
 			})
+
 		case key.Matches(msg, m.back):
+			m.keyHandled = true
 			return m, model.Plain(SendMsg{Cancelled: true})
 		}
 	}
 
-	// Update the rootNode (handles all of the things anyway from here)
-	cmd := m.rootNode.Update(msg)
 	return m, cmd
 }
 
 func (m inputRequestCreator) View() (*tea.Cursor, string) {
-
 	maxShown := m.height
 	selected := m.rootNode.Selected()
 	n := m.rootNode.Height()
