@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -222,8 +223,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		if err != nil {
 
 			// Only log err if it is not due to expected connection closure
-			var closeErr websocket.CloseError
-			if errors.As(err, &closeErr) {
+			if closeErr, ok := errors.AsType[websocket.CloseError](err); ok {
 				neoroute.Logger.Info("websocket connection closed by remote",
 					"code", closeErr.Code,
 					"reason", closeErr.Reason,
@@ -244,7 +244,6 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 			go func() {
 				defer func() {
 					for _, fn := range runAfter {
-
 						fn()
 					}
 				}()
@@ -259,7 +258,7 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 					return
 				}
 			}()
-
 		}
+		io.Copy(io.Discard, reader)
 	}
 }
