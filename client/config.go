@@ -1,7 +1,6 @@
 package client
 
 import (
-	"log/slog"
 	"time"
 )
 
@@ -12,7 +11,7 @@ type Config struct {
 
 func (cfg Config) RunErrorHandler(err error) {
 	if cfg.ErrorHandler == nil {
-		slog.Info("ErrorHandler is not set in config. An error occurred", "error", err)
+		Logger.Info("ErrorHandler is not set in config. An error occurred", "error", err)
 		return
 	}
 	cfg.ErrorHandler(err)

@@ -74,7 +74,7 @@ func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 			return nil, fmt.Errorf("failed to unmarshal messages: %v", err)
 		}
 
-		if msg.Type != MessageTypeEvent {
+		if msg.Type != messageTypeEvent {
 			return nil, fmt.Errorf("message was not of type event: %v", msg.Type)
 		}
 

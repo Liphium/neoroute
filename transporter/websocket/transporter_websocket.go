@@ -26,17 +26,17 @@ type WebSocketTransporter[D any] struct {
 	sessions        map[string]*wsSession[D]
 }
 
-// GetRegistries implements neoschema.Transporter.
+// GetRegistries implements [neoschema.Transporter].
 func (t *WebSocketTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
 	return t.eventRegistries
 }
 
-// GetSchema implements neoschema.Transporter.
+// GetSchema implements [neoschema.Transporter].
 func (t *WebSocketTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
 	return neoschema.ToRouteSchema(t.router.GetRoutes())
 }
 
-// Type implements neoschema.Transporter.
+// Type implements [neoschema.Transporter].
 func (t *WebSocketTransporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterWebSocket
 }
@@ -81,7 +81,7 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 		// Perform handshake to get session data
 		sessionData, ok := transporter.config.HandshakeFunc(r)
 		if !ok {
-			http.Error(w, neoroute.ErrHandshakeFailed, http.StatusUnauthorized)
+			http.Error(w, router.Config().RunErrorHandler(neoroute.ErrHandshakeFailed, nil), http.StatusUnauthorized)
 			return
 		}
 
@@ -193,14 +193,12 @@ func (t *WebSocketTransporter[D]) getSession(id string) (*wsSession[D], bool) {
 }
 
 func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
-
 	session.mutex.Lock()
 	conn := session.conn
 	userSession := session.session
 	session.mutex.Unlock()
 
 	defer func() {
-
 		if rec := recover(); rec != nil {
 			neoroute.PrintRecoveredPanic("WebSocket", rec)
 		}
@@ -213,7 +211,6 @@ func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
 		session.mutex.Lock()
 		t.removeSession(session.session.Id())
 		session.mutex.Unlock()
-
 	}()
 
 	t.config.EnterNetworkFunc(session.session)

@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	MessageTypeResponse = 0
-	MessageTypeEvent    = 1
+	messageTypeResponse = 0
+	messageTypeEvent    = 1
 )
 
 //go:generate msgp -unexported
@@ -26,7 +26,7 @@ func messageEvent(event event) []byte {
 	}
 
 	msg := message{
-		Type: MessageTypeEvent,
+		Type: messageTypeEvent,
 		Data: eventData,
 	}
 
@@ -49,7 +49,7 @@ func messageResponse(resp response) []byte {
 	}
 
 	msg := message{
-		Type: MessageTypeResponse,
+		Type: messageTypeResponse,
 		Data: respData,
 	}
 

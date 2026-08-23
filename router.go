@@ -23,7 +23,7 @@ type NeoRouter[D any] struct {
 	config      Config[D]
 }
 
-func NewNeoRouter[D any](config Config[D]) *NeoRouter[D] {
+func NewRouter[D any](config Config[D]) *NeoRouter[D] {
 	return &NeoRouter[D]{
 		routes:      make(map[string]RouteData[D]),
 		middlewares: make(map[string][]func(c *Ctx[D]) bool),
@@ -86,6 +86,7 @@ func (r *NeoRouter[D]) getNeos(collectedRouters ...*NeoRouter[D]) []*NeoRouter[D
 }
 
 // Handle is called by transporters to handle incoming requests.
+//
 // ONLY USE THIS IN A TRANSPORTER IMPLEMENTATION, THIS IS NOT MEANT TO BE USED BY USERS OF THE LIBRARY.
 func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func()) {
 
@@ -100,8 +101,7 @@ func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte,
 	var data request
 	err := data.DecodeMsg(msgp.NewReader(reqReader))
 	if err != nil {
-		Logger.Info("failed to unmarshal request", "err", err)
-		return messageResponse(c.respondError(ErrInvalidRequestFormat)), nil
+		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
 	}
 
 	route := cleanRoute(data.Route)
@@ -113,7 +113,7 @@ func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte,
 	// Check if handler for route exists
 	routeData, exists := r.routes[route]
 	if !exists {
-		return messageResponse(c.respondError(ErrRouteNotExists)), nil
+		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRouteDoesntExist, c))), nil
 	}
 
 	// Run middlewares
@@ -122,7 +122,7 @@ func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte,
 		if middlewares, ok := r.middlewares[subroute]; ok {
 			for _, middleware := range middlewares {
 				if !middleware(c) {
-					return messageResponse(c.respondError(ErrMiddlewareDenied)), nil
+					return messageResponse(c.respondError(r.config.RunErrorHandler(ErrMiddlewareDenied, c))), nil
 				}
 			}
 		}

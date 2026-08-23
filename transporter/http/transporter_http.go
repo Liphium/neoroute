@@ -14,17 +14,17 @@ type HTTPTransporter[D any] struct {
 	router *neoroute.NeoRouter[D]
 }
 
-// GetRegistries implements neoschema.Transporter.
+// GetRegistries implements [neoschema.Transporter].
 func (h *HTTPTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
 	return []neoroute.IEventRegistry{} // No events over HTTP
 }
 
-// GetSchema implements neoschema.Transporter.
+// GetSchema implements [neoschema.Transporter].
 func (h *HTTPTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
 	return neoschema.ToRouteSchema(h.router.GetRoutes())
 }
 
-// Type implements neoschema.Transporter.
+// Type implements [neoschema.Transporter].
 func (h *HTTPTransporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterHTTP
 }
@@ -48,7 +48,7 @@ func NewHTTPTransporter[D any](router *neoroute.NeoRouter[D], handshake neoroute
 		// Perform handshake to get session data
 		sessionData, ok := handshake(r)
 		if !ok {
-			http.Error(w, neoroute.ErrHandshakeFailed, http.StatusUnauthorized)
+			http.Error(w, router.Config().RunErrorHandler(neoroute.ErrHandshakeFailed, nil), http.StatusUnauthorized)
 			return
 		}
 

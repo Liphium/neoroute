@@ -6,8 +6,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-// Context allows helper functions to accept Ctx, ResCtx, or
-// OkCtx interchangeably to extract their underlying data.
+// Context allows helper functions to accept Ctx, ResCtx, or OkCtx interchangeably to extract their underlying data.
 type Context[D any] interface {
 	BaseCtx() *Ctx[D] // BaseCtx returns the underlying Ctx, allowing access to the session, request data, etc.
 }
@@ -27,10 +26,6 @@ type Ctx[D any] struct {
 
 func (c *Ctx[D]) BaseCtx() *Ctx[D] {
 	return c
-}
-
-func (c *Ctx[D]) Id() int {
-	return c.id
 }
 
 func (c *Ctx[D]) Route() string {

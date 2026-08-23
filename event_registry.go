@@ -15,12 +15,16 @@ type IEventRegistry interface {
 
 var _ IEventRegistry = &EventRegistry{}
 
+// EventRegistry stores a list of events making it possible to link events directly to different transporters.EventRegistry
+//
+// This is especially important for schema generation, but also for you to not accidentally sent wrong events through wrong transporters.
 type EventRegistry struct {
 	mutex             sync.Mutex
 	registeredEvents  []string
 	registeredSchemas []func() reflect.Type
 }
 
+// NewEventRegistry returns a new EventRegistry instance.
 func NewEventRegistry() *EventRegistry {
 	return &EventRegistry{
 		mutex:             sync.Mutex{},
@@ -46,7 +50,6 @@ func (er *EventRegistry) GetSchemas() []func() reflect.Type {
 }
 
 // Register returns a new event builder.
-// First register all events only then start creating adapters.
 func Register[E msgp.Marshaler](e *EventRegistry, name string) func(ev E) event {
 
 	e.mutex.Lock()
