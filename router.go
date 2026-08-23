@@ -2,7 +2,10 @@ package neoroute
 
 import (
 	"errors"
+	"io"
 	"slices"
+
+	"github.com/tinylib/msgp/msgp"
 )
 
 type Router[D any] interface {
@@ -84,7 +87,7 @@ func (r *NeoRouter[D]) getNeos(collectedRouters ...*NeoRouter[D]) []*NeoRouter[D
 
 // Handle is called by transporters to handle incoming requests.
 // ONLY USE THIS IN A TRANSPORTER IMPLEMENTATION, THIS IS NOT MEANT TO BE USED BY USERS OF THE LIBRARY.
-func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []func()) {
+func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func()) {
 
 	c := &Ctx[D]{
 		neo:     r,
@@ -95,7 +98,7 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	}
 
 	var data request
-	_, err := data.UnmarshalMsg(reqData)
+	err := data.DecodeMsg(msgp.NewReader(reqReader))
 	if err != nil {
 		Logger.Info("failed to unmarshal request", "err", err)
 		return messageResponse(c.respondError(ErrInvalidRequestFormat)), nil

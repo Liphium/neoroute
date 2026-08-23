@@ -1,7 +1,6 @@
 package http
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/Liphium/neoroute"
@@ -56,23 +55,18 @@ func NewHTTPTransporter[D any](router *neoroute.NeoRouter[D], handshake neoroute
 		// Create session with handshake data
 		session := neoroute.NewSession(uuid.NewString(), sessionData, neoroute.SessionTransporterCallbacks[D]{})
 
-		// Read body data
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, neoroute.ErrReadingBody, http.StatusInternalServerError)
-			return
-		}
+		defer r.Body.Close()
 
 		// Send response
 		w.WriteHeader(http.StatusOK)
-		resp, runAfter := transporter.router.Handle(body, session)
+		resp, runAfter := transporter.router.Handle(r.Body, session)
 		defer func() {
 			for _, fn := range runAfter {
 				fn()
 			}
 		}()
 		if resp != nil {
-			_, err = w.Write(resp)
+			_, err := w.Write(resp)
 			if err != nil {
 				neoroute.Logger.Info("failed to send http response", "err", err)
 			}
