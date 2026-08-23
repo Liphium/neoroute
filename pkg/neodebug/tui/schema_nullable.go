@@ -184,7 +184,7 @@ func (n *NullableNode) View() (*tea.Cursor, string) {
 	if n.null {
 		style := secondaryTextStyle
 		if n.focused {
-			style = textStyle
+			style = highlightStyle.Bold(true)
 		}
 		return nil, style.Render("nil") + n.basicNode.Suffix
 	}

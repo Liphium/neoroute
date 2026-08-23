@@ -8,6 +8,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+// TODO: Use up and down keybinds without vim during editing
+
 var _ SchemaNode = &ValueNode[any]{}
 
 type ValueNode[T any] struct {
@@ -72,8 +74,8 @@ func (v *ValueNode[T]) Init() {
 	v.input.SetValue(fmt.Sprintf("%v", v.value))
 
 	styles := textinput.DefaultDarkStyles()
-	styles.Blurred.Prompt, styles.Focused.Prompt = secondaryTextStyle, secondaryTextStyle
-	styles.Blurred.Text, styles.Focused.Text = secondaryTextStyle, textStyle
+	styles.Blurred.Prompt, styles.Focused.Prompt = highlightStyle.Bold(true), highlightStyle.Bold(true)
+	styles.Blurred.Text, styles.Focused.Text = highlightStyle, highlightStyle
 	v.input.SetStyles(styles)
 
 	// Define all of the keys
@@ -184,14 +186,22 @@ func (v *ValueNode[T]) Update(msg tea.Msg) tea.Cmd {
 
 // View implements [SchemaNode].
 func (v *ValueNode[T]) View() (*tea.Cursor, string) {
+	style := secondaryTextStyle
+	if v.focused {
+		style = highlightStyle.Bold(true)
+	}
+
 	textView := secondaryTextStyle.Render(v.prefix + v.input.Value())
 	if v.input.Focused() {
 		textView = v.input.View()
 	} else if v.focused {
-		textView = secondaryTextStyle.Render(v.prefix) + textStyle.Render(v.input.Value())
+		textView = style.Render(v.prefix) + highlightStyle.Render(v.input.Value())
+		if v.input.Value() == "" && v.prefix == "" && v.suffix == "" {
+			textView = highlightStyle.Render("/* no value */")
+		}
 	}
 
-	view := textView + secondaryTextStyle.Render(v.suffix) + v.basicNode.Suffix
+	view := textView + style.Render(v.suffix) + v.basicNode.Suffix
 	if v.input.Err != nil {
 		view += "\n" + errorStyle.Render(v.input.Err.Error())
 	}

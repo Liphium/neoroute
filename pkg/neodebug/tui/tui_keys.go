@@ -96,5 +96,5 @@ func (m tui) fullHelpHint() string {
 	hintLabel := lipgloss.NewStyle().Bold(true).Foreground(textColor).Render("Hint:")
 	sec := secondaryTextStyle.Render
 	normal := textStyle.Render
-	return hintLabel + " " + sec("Instead of ") + normal(SymbolArrowUp) + sec(" and ") + normal(SymbolArrowDown) + sec(", you can use ") + normal("shift+tab") + sec(" and ") + normal("tab") + sec(", respectively.")
+	return hintLabel + " " + sec("Instead of ") + normal(SymbolArrowUp) + sec(" and ") + normal(SymbolArrowDown) + sec(", you can use ") + normal("shift+tab") + sec(" and ") + normal("tab") + sec(", respectively. ") + normal("Vim keybinds") + sec(" also work as you would expect.")
 }

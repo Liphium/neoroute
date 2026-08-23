@@ -32,7 +32,13 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 		}
 
 	case *neoschema.MapType:
-		return &MapNode{keyType: schema.Key, valueType: schema.Value, selected: -1, registry: registry, items: []MapEntry{}}
+		return &MapNode{
+			keyType:   schema.Key,
+			valueType: schema.Value,
+			selected:  -1,
+			registry:  registry,
+			items:     []MapEntry{},
+		}
 
 	case *neoschema.ArrayType:
 		return &SliceNode{
@@ -46,9 +52,6 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 
 	case *neoschema.BasicType:
 		return createBasic(schema)
-
-	default:
-
 	}
 	return nil
 }

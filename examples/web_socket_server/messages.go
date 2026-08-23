@@ -9,9 +9,10 @@ type EchoRequest struct {
 }
 
 type SubmitPunRequest struct {
-	Pun      string    `msg:"pun"`
-	Password *string   `msg:"password"`
-	SomeList []*string `msg:"some_list"`
+	Pun      string            `msg:"pun"`
+	Password *string           `msg:"password"`
+	SomeList []*string         `msg:"some_list"`
+	SomeMap  map[string]string `msg:"some_map"`
 }
 
 // Response

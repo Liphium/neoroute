@@ -66,8 +66,12 @@ var (
 
 // Important standards
 var (
-	standardUpKey   = key.WithKeys("up", "shift+tab")
-	standardDownKey = key.WithKeys("down", "tab")
+	standardUpKey        = key.WithKeys("up", "shift+tab", "k")
+	standardUpKeyNoVim   = key.WithKeys("up", "shift+tab")
+	standardDownKey      = key.WithKeys("down", "tab", "j")
+	standardDownKeyNoVim = key.WithKeys("down", "tab")
+	standardRightKey     = key.WithKeys("right", "l")
+	standardLeftKey      = key.WithKeys("left", "h")
 )
 
 type fullScreenView string
