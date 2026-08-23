@@ -85,11 +85,6 @@ func main() {
 	neoroute.RouteOk(r, "submit_pun", func(c *neoroute.OkCtx[struct{}], req SubmitPunRequest) error {
 		log.Println("message received")
 
-		if req.Password == nil {
-			return neoroute.NewError("Please provide a password!")
-		}
-		log.Println("password received:", req.Password)
-
 		// Check pun contains go
 		if !strings.Contains(strings.ToLower(req.Pun), "go") {
 			return neoroute.NewError("Pun has to contain at least one instance of go. For example How is it GOing.")

@@ -8,8 +8,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-// TODO: Use up and down keybinds without vim during editing
-
 var _ SchemaNode = &ValueNode[any]{}
 
 type ValueNode[T any] struct {
@@ -136,14 +134,14 @@ func (v *ValueNode[T]) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch {
-		case key.Matches(msg, v.up):
+		case matchesFocusedNavigation(msg, v.input.Focused(), v.up):
 			v.keyHandled = true
 			v.focused = false
 			v.input.Blur()
 			v.GoUp()
 			return nil
 
-		case key.Matches(msg, v.down):
+		case matchesFocusedNavigation(msg, v.input.Focused(), v.down):
 			v.keyHandled = true
 			v.focused = false
 			v.input.Blur()

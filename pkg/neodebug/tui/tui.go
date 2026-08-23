@@ -64,16 +64,6 @@ var (
 	separatorStyle = lipgloss.NewStyle().Foreground(separatorColor)
 )
 
-// Important standards
-var (
-	standardUpKey        = key.WithKeys("up", "shift+tab", "k")
-	standardUpKeyNoVim   = key.WithKeys("up", "shift+tab")
-	standardDownKey      = key.WithKeys("down", "tab", "j")
-	standardDownKeyNoVim = key.WithKeys("down", "tab")
-	standardRightKey     = key.WithKeys("right", "l")
-	standardLeftKey      = key.WithKeys("left", "h")
-)
-
 type fullScreenView string
 
 const (
@@ -196,6 +186,7 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			handled = true
 			m.help.ShowAll = !m.help.ShowAll
 			m.relayoutHeight()
+			return m, nil
 
 		case key.Matches(msg, m.expandHistory):
 			handled = true
@@ -213,7 +204,7 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.setFull(fullScreenInput)
 			}
 		}
-		if handled {
+		if handled || m.help.ShowAll /* make sure no keys can be pressed in help menu */ {
 			break
 		}
 

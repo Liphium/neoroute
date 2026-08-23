@@ -110,10 +110,10 @@ func (m inputRouteSelect) Update(msg tea.Msg) (inputRouteSelect, tea.Cmd) {
 		// Handle the keys that are specific to the input
 		handled := false
 		switch {
-		case key.Matches(msg, m.up):
+		case matchesFocusedNavigation(msg, m.input.Focused(), m.up):
 			handled = true
 			m.selectedRoute = max(0, m.selectedRoute-1)
-		case key.Matches(msg, m.down):
+		case matchesFocusedNavigation(msg, m.input.Focused(), m.down):
 			handled = true
 			m.selectedRoute = min(len(m.results)-1, m.selectedRoute+1)
 		case key.Matches(msg, m.clearSearch):

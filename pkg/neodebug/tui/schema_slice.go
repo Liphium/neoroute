@@ -221,14 +221,14 @@ func (s *SliceNode) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyPressMsg:
 		switch {
 		// Handle up only for the manageSelection
-		case s.manageSelection && key.Matches(msg, s.up):
+		case s.manageSelection && matchesFocusedNavigation(msg, false, s.up):
 			s.keyHandled = true
 			s.manageSelection = false
 			s.GoUp()
 			return nil
 
 		// Handle down only for the manageSelection
-		case s.manageSelection && key.Matches(msg, s.down):
+		case s.manageSelection && matchesFocusedNavigation(msg, false, s.down):
 			s.keyHandled = true
 			s.manageSelection = false
 

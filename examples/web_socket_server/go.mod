@@ -8,12 +8,16 @@ replace github.com/Liphium/neoroute/client => ../../client/
 
 replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
 
+replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
+
 replace github.com/Liphium/neoroute/transporter/websocket => ../../transporter/websocket
+
+replace github.com/Liphium/neoroute/transporter/http => ../../transporter/http
 
 replace github.com/Liphium/neoroute/pkg/neodebug => ../../pkg/neodebug
 
 require (
-	github.com/Liphium/neoroute v0.2.0
+	github.com/Liphium/neoroute v0.8.0
 	github.com/coder/websocket v1.8.15 // indirect
 	github.com/tinylib/msgp v1.6.4
 )
@@ -27,8 +31,9 @@ require (
 	charm.land/bubbles/v2 v2.1.1 // indirect
 	charm.land/bubbletea/v2 v2.0.8 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/Liphium/neoroute/client v0.0.0 // indirect
-	github.com/Liphium/neoroute/client/transporter/websocket v0.0.0-00010101000000-000000000000 // indirect
+	github.com/Liphium/neoroute/client v0.6.0 // indirect
+	github.com/Liphium/neoroute/client/transporter/http v0.7.0 // indirect
+	github.com/Liphium/neoroute/client/transporter/websocket v0.8.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260811164956-006e29f97886 // indirect

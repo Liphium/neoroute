@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"slices"
 
 	"github.com/Liphium/neoroute"
 	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/pkg/neodebug"
+	"github.com/Liphium/neoroute/pkg/neodebug/config"
 	http_transporter "github.com/Liphium/neoroute/transporter/http"
 )
 
@@ -26,6 +30,24 @@ type SessionData struct {
 }
 
 func main() {
+
+	// Use --debug-token to connect with secret_token as the token
+	if slices.Contains(os.Args, "--debug") {
+		neodebug.Run(config.DebugConfig{
+			TransporterName: "main",
+			TransporterURL:  "http://localhost:6121?token=secret_token",
+		})
+		return
+	}
+
+	// Use --debug to connect without any token
+	if slices.Contains(os.Args, "--debug") {
+		neodebug.Run(config.DebugConfig{
+			TransporterName: "main",
+			TransporterURL:  "http://localhost:6121",
+		})
+		return
+	}
 
 	// Create router and set it for transporter
 	router := neoroute.NewNeoRouter[SessionData](neoroute.Config[SessionData]{

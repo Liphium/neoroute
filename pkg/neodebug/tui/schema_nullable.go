@@ -140,13 +140,13 @@ func (n *NullableNode) Update(msg tea.Msg) tea.Cmd {
 		switch msg := msg.(type) {
 		case tea.KeyPressMsg:
 			switch {
-			case key.Matches(msg, n.up):
+			case matchesFocusedNavigation(msg, false, n.up):
 				n.keyHandled = true
 				n.focused = false
 				n.GoUp()
 				return nil
 
-			case key.Matches(msg, n.down):
+			case matchesFocusedNavigation(msg, false, n.down):
 				n.keyHandled = true
 				n.focused = false
 				n.GoDown()

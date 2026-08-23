@@ -81,6 +81,9 @@ func (m *History) SetWidth(width int) {
 
 func (m *History) SetHeight(height int) {
 	m.viewport.SetHeight(height)
+	if m.snapToBottom {
+		m.viewport.GotoBottom()
+	}
 }
 
 func (m *History) GotoBottom() {

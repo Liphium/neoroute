@@ -17,13 +17,10 @@ type ConnectedMsg struct {
 type DoWaitMsg struct{}
 
 func Connect(transporter neoschema.TransporterSchema) tea.Cmd {
-
-	// TODO: Set the logger inside of neoroute to one that just pipes everything right into our history or sth
-
 	return func() tea.Msg {
 		switch transporter.Type {
 		case neoschema.TransporterHTTP:
-			return withClose(model.Error("HTTP request transporters are currently not supported."))
+			return connectHTTP(transporter)
 		case neoschema.TransporterWebSocket:
 			return connectWebsocket(transporter)
 		}

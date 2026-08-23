@@ -212,12 +212,12 @@ func (m *MapNode) Update(msg tea.Msg) tea.Cmd {
 	if m.manageSelection {
 		if msg, ok := msg.(tea.KeyPressMsg); ok {
 			switch {
-			case key.Matches(msg, m.up):
+			case matchesFocusedNavigation(msg, false, m.up):
 				m.keyHandled = true
 				m.manageSelection = false
 				m.GoUp()
 
-			case key.Matches(msg, m.down):
+			case matchesFocusedNavigation(msg, false, m.down):
 				m.keyHandled = true
 				m.manageSelection = false
 
