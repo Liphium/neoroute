@@ -332,7 +332,9 @@ func (s *SliceNode) View() (*tea.Cursor, string) {
 		c, v := item.View()
 		if sel != 0 {
 			cursor = c
-			fieldPadding = len(prefix)
+			if sel == 1 {
+				fieldPadding = len(prefix)
+			}
 			prefixStyle = textStyle
 		}
 		fb.WriteString(prefixStyle.Render(prefix) + v)

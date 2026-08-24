@@ -347,9 +347,11 @@ func (m *MapNode) View() (*tea.Cursor, string) {
 		if item.Key.Selected() != 0 {
 			cursor = c1
 		}
-		if item.Value.Selected() != 0 {
+		if valSel := item.Value.Selected(); valSel != 0 {
 			lines := strings.Split(k, "\n")
-			fieldPadding = lipgloss.Width(lines[len(lines)-1]) + 1 /* space for separation */
+			if valSel == 1 {
+				fieldPadding = lipgloss.Width(lines[len(lines)-1]) + 1 /* space for separation */
+			}
 			cursor = c2
 		}
 
