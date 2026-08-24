@@ -39,6 +39,7 @@ func Generate(config GeneratorConfig) {
 		fmt.Println(" ")
 		fmt.Println("Try one of the following:")
 		fmt.Println("- go")
+		fmt.Println("- typescript")
 	}
 }
 
