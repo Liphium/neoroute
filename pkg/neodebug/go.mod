@@ -1,33 +1,27 @@
-module http_server
+module github.com/Liphium/neoroute/pkg/neodebug
 
 go 1.26
 
 replace github.com/Liphium/neoroute => ../../
 
-replace github.com/Liphium/neoroute/transporter/http => ../../transporter/http
-
-replace github.com/Liphium/neoroute/pkg/neodebug => ../../pkg/neodebug
+replace github.com/Liphium/neoroute/client => ../../client
 
 replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
-
-replace github.com/Liphium/neoroute/transporter/websocket => ../../transporter/websocket
 
 replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
 
 require (
+	charm.land/bubbles/v2 v2.1.1
+	charm.land/bubbletea/v2 v2.0.8
+	charm.land/lipgloss/v2 v2.0.6
 	github.com/Liphium/neoroute v0.8.0
-	github.com/Liphium/neoroute/pkg/neodebug v0.0.0-00010101000000-000000000000
-	github.com/Liphium/neoroute/transporter/http v0.7.0
+	github.com/Liphium/neoroute/client v0.6.0
+	github.com/Liphium/neoroute/client/transporter/http v0.7.0
+	github.com/Liphium/neoroute/client/transporter/websocket v0.8.0
 	github.com/tinylib/msgp v1.6.4
 )
 
 require (
-	charm.land/bubbles/v2 v2.1.1 // indirect
-	charm.land/bubbletea/v2 v2.0.8 // indirect
-	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/Liphium/neoroute/client v0.6.0 // indirect
-	github.com/Liphium/neoroute/client/transporter/http v0.7.0 // indirect
-	github.com/Liphium/neoroute/client/transporter/websocket v0.8.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260811164956-006e29f97886 // indirect
@@ -38,7 +32,6 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/coder/websocket v1.8.15 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.24 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

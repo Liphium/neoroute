@@ -24,21 +24,9 @@ func Generate(config GeneratorConfig) {
 	Config = config
 
 	// Find the server and run it
-	cmd := exec.Command(strings.Split(Config.Command, " ")[0], strings.Split(Config.Command, " ")[1:]...)
-	var err error
-	cmd.Dir, err = filepath.Abs(Config.ServerPath)
+	schema, err := GetSchema(config.ServerPath, config.Command)
 	if err != nil {
-		panic(fmt.Errorf("couldn't get absolute path of server: %v", err))
-	}
-
-	bytes, err := cmd.Output()
-	if err != nil {
-		panic(fmt.Errorf("couldn't run app: %v", err))
-	}
-
-	var schema neoschema.Schema
-	if err := json.Unmarshal(bytes, &schema); err != nil {
-		panic(fmt.Errorf("invalid schema: %v", err))
+		panic(err)
 	}
 
 	switch config.TargetLanguage {
@@ -51,5 +39,30 @@ func Generate(config GeneratorConfig) {
 		fmt.Println(" ")
 		fmt.Println("Try one of the following:")
 		fmt.Println("- go")
+		fmt.Println("- typescript")
 	}
+}
+
+// GetSchema gets the schema of any neoroute server supporting generation of the schema (or a custom command).
+func GetSchema(serverPath string, command string) (neoschema.Schema, error) {
+	var schema neoschema.Schema
+
+	// Find the server and run it
+	cmd := exec.Command(strings.Split(command, " ")[0], strings.Split(command, " ")[1:]...)
+	var err error
+	cmd.Dir, err = filepath.Abs(serverPath)
+	if err != nil {
+		return schema, fmt.Errorf("couldn't get absolute path of server: %v", err)
+	}
+
+	bytes, err := cmd.Output()
+	if err != nil {
+		return schema, fmt.Errorf("couldn't run app: %v", err)
+	}
+
+	if err := json.Unmarshal(bytes, &schema); err != nil {
+		return schema, fmt.Errorf("invalid schema: %v", err)
+	}
+
+	return schema, nil
 }

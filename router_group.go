@@ -1,5 +1,9 @@
 package neoroute
 
+import (
+	"strings"
+)
+
 func NewRouterGroup[D any](router *NeoRouter[D], routers ...*NeoRouter[D]) *Group[D] {
 	return &Group[D]{
 		neos:   append([]*NeoRouter[D]{router}, routers...),
@@ -29,7 +33,7 @@ func (m *Group[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Ro
 
 func (m *Group[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
 	for _, neo := range m.neos {
-		neo.Use(route, middleware)
+		neo.Use(cleanForMiddleware(m.prefix+string(RouteSeparator)+route), middleware)
 	}
 }
 
@@ -42,4 +46,8 @@ func (m *Group[D]) getRoute() string {
 
 func (m *Group[D]) getNeos(_ ...*NeoRouter[D]) []*NeoRouter[D] {
 	return m.neos
+}
+
+func cleanForMiddleware(route string) string {
+	return strings.TrimSuffix(cleanRoute(route), string(RouteSeparator))
 }
