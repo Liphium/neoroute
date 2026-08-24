@@ -2,6 +2,7 @@ package neoroute
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 )
 
@@ -116,6 +117,7 @@ func (r *NeoRouter[D]) Handle(reqData []byte, session *Session[D]) ([]byte, []fu
 	// Run middlewares
 	subRoutes := buildSubroutes(route)
 	for _, subroute := range subRoutes {
+		fmt.Println("subroute", subroute)
 		if middlewares, ok := r.middlewares[subroute]; ok {
 			for _, middleware := range middlewares {
 				if !middleware(c) {

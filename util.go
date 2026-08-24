@@ -24,7 +24,7 @@ func buildSubroutes(route string) []string {
 		}
 		subRoutes = append(subRoutes, cleanRoute(subroute))
 	}
-	return subRoutes
+	return append([]string{""}, subRoutes...)
 }
 
 func cleanRoute(route string) string {

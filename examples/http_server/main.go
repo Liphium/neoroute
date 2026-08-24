@@ -32,7 +32,7 @@ type SessionData struct {
 func main() {
 
 	// Use --debug-token to connect with secret_token as the token
-	if slices.Contains(os.Args, "--debug") {
+	if slices.Contains(os.Args, "--debug-token") {
 		neodebug.Run(config.DebugConfig{
 			TransporterName: "main",
 			TransporterURL:  "http://localhost:6121?token=secret_token",
@@ -78,7 +78,7 @@ func main() {
 
 	// Route: simple.route
 	// Wrap the RouteResponse call with a Use to directly apply a middleware to that route specifically.
-	neoroute.RouteNoRequest(rGroup, "simple.route", func(c *neoroute.ResCtx[SessionData, Response]) error {
+	neoroute.RouteNoRequest(rGroup, "simple/route", func(c *neoroute.ResCtx[SessionData, Response]) error {
 		return c.Respond(Response{Field1: "simple response that had no input", Field2: 68})
 	}).Use("", func(c *neoroute.Ctx[SessionData]) bool {
 		fmt.Println("middleware mounted directly on route was used")

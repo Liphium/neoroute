@@ -158,7 +158,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 			return m, model.Plain(model.Error("Couldn't find route selected."))
 		}
 		if !route.HasRequest {
-			return m, model.Plain(model.Info("Coming soon..."))
+			return m, m.connection.Send(msg.Route, nil)
 		}
 
 		// Switch to new creation state

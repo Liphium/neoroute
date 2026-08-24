@@ -21,7 +21,7 @@ func (r *RouteRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[
 
 func (r *RouteRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
 	for _, neo := range r.neos {
-		neo.Use(route, middleware)
+		neo.Use(cleanForMiddleware(route), middleware)
 	}
 }
 
