@@ -28,7 +28,7 @@ type SessionData struct {
 func main() {
 
 	// Create router and set it for transporter
-	router := neoroute.NewNeoRouter[SessionData](neoroute.Config[SessionData]{
+	router := neoroute.NewRouter[SessionData](neoroute.Config[SessionData]{
 		ErrorHandler: func(err error, c *neoroute.Ctx[SessionData]) string {
 			return fmt.Sprintf("error: %v", err)
 		},
@@ -43,7 +43,7 @@ func main() {
 		}, true
 	})
 
-	router2 := neoroute.NewNeoRouter[SessionData](neoroute.Config[SessionData]{
+	router2 := neoroute.NewRouter[SessionData](neoroute.Config[SessionData]{
 		ErrorHandler: func(err error, c *neoroute.Ctx[SessionData]) string {
 			return fmt.Sprintf("error: %v", err)
 		},
@@ -102,7 +102,7 @@ func main() {
 	// This will print a schema if you pass the --neo-generate flag
 	g := neoschema.NewGenerator()
 	g.Transporter("main", t)
-	g.PrintOrPanic()
+	g.PrintIfDesired()
 
 	// Create server
 	mux := http.NewServeMux()

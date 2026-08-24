@@ -29,7 +29,7 @@ func main() {
 	adapterReg := neoroute.NewAdapterRegistry()
 
 	// Setup router
-	r := neoroute.NewNeoRouter[struct{}](neoroute.Config[struct{}]{
+	r := neoroute.NewRouter[struct{}](neoroute.Config[struct{}]{
 		ErrorHandler: func(err error, c *neoroute.Ctx[struct{}]) string {
 			log.Println("error occurred: ", err)
 			return "Internal server error."
@@ -95,7 +95,7 @@ func main() {
 	// This will print a schema if you pass the --neo-generate flag
 	g := neoschema.NewGenerator()
 	g.Transporter("main", t)
-	g.PrintOrPanic()
+	g.PrintIfDesired()
 
 	// Create websocket transporter and host it
 	mux := http.NewServeMux()
