@@ -8,7 +8,7 @@ type Generator struct {
 //
 // Can generate schemas for your transporters to make your life easier.
 //
-// You'll of course need the other part of the generator is well, this just generates a json file that can be parsed and used to generate bindings that can be used by client libraries's generators.
+// You'll of course need the other part of the generator as well, this just generates a json file that can be parsed and used to generate bindings using neogen or other tools.
 func NewGenerator() *Generator {
 	return &Generator{
 		transporters: map[string]Transporter{},
