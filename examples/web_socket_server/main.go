@@ -3,11 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/Liphium/neoroute"
 	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/pkg/neodebug"
+	"github.com/Liphium/neoroute/pkg/neodebug/config"
 	"github.com/Liphium/neoroute/transporter/websocket"
 )
 
@@ -22,6 +26,14 @@ var eventReg = neoroute.NewEventRegistry()
 var CreateNewPunSubmittedEvent = neoroute.Register[NewPunEvent](eventReg, "new_pun_submitted")
 
 func main() {
+	if slices.Contains(os.Args, "--debug") {
+		neodebug.Run(config.DebugConfig{
+			TransporterName: "main",
+			TransporterURL:  "http://localhost:6121",
+		})
+		return
+	}
+
 	counter := Counter{
 		puns: []string{},
 	}
@@ -72,6 +84,7 @@ func main() {
 
 	neoroute.RouteOk(r, "submit_pun", func(c *neoroute.OkCtx[struct{}], req SubmitPunRequest) error {
 		log.Println("message received")
+
 		// Check pun contains go
 		if !strings.Contains(strings.ToLower(req.Pun), "go") {
 			return neoroute.NewError("Pun has to contain at least one instance of go. For example How is it GOing.")
