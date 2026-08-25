@@ -15,16 +15,3 @@ type testRouter struct {
 func TestRouter(t *testing.T) {
 
 }
-
-func applyRouterType(router Router[NoData], routerType string) Router[D] {
-	switch routerType {
-	case routerTypeNeo:
-		return router.AddRouters(NewRouter(Config[D]{}))
-	case routerTypeGroup:
-
-	case routerTypeRoute:
-
-	default:
-		panic("unknown router type: " + routerType)
-	}
-}
