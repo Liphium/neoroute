@@ -14,10 +14,10 @@ import (
 )
 
 // ApplyHTTP makes a sender send Neoroute requests over HTTP, using the given method and URL.
-func ApplyHTTP(s client.Sender, method string, u *url.URL) {
+func ApplyHTTP(c *client.Client, method string, u *url.URL) {
 	sendMutex := sync.Mutex{}
 
-	s.SetSendFunc(func(data []byte) error {
+	c.SetSendFunc(func(data []byte) error {
 		sendMutex.Lock()
 		defer sendMutex.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
@@ -46,7 +46,7 @@ func ApplyHTTP(s client.Sender, method string, u *url.URL) {
 		}
 
 		// Let sender handle the response routing
-		go s.Handle(bodyBytes)
+		go c.Handle(bodyBytes)
 
 		return nil
 	})

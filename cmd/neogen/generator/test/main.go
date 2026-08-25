@@ -60,7 +60,7 @@ func (m *MockEventRegistry) GetSchemas() []func() reflect.Type {
 func main() {
 	gen := neoschema.NewGenerator()
 
-	data := reflect.TypeOf(GenericData{})
+	data := reflect.TypeFor[GenericData]()
 
 	routes := map[string]neoschema.RequestResponse{
 		"requestResponse": {
@@ -98,16 +98,14 @@ func main() {
 	reg := &MockEventRegistry{
 		events: []string{"recursive", "normal"},
 		schemas: []func() reflect.Type{
-			func() reflect.Type { return reflect.TypeOf(Recursive{}) },
-			func() reflect.Type { return reflect.TypeOf(Normal{}) },
+			func() reflect.Type { return reflect.TypeFor[Recursive]() },
+			func() reflect.Type { return reflect.TypeFor[Normal]() },
 		},
 	}
 
 	gen.Transporter("websocket", &CustomTransporter{
-		MockTransporter: MockTransporter{
-			tType:  neoschema.TransporterWebSocket,
-			routes: routes,
-		},
+		tType:      neoschema.TransporterWebSocket,
+		routes:     routes,
 		registries: []neoroute.IEventRegistry{reg},
 	})
 

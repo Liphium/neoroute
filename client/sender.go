@@ -15,9 +15,10 @@ type Client struct {
 	receiver  map[string]func(*Ctx) // Only used with receiver
 }
 
-// NewSender returns an initialized sender
-// Make sure to use a different sender for every transporter
-func NewSender(config Config) *Client {
+// NewClient returns an initialized client.
+//
+// Make sure to use a different client for every transporter.
+func NewClient(config Config) *Client {
 	if config.RequestTimeout == 0 {
 		config.RequestTimeout = 5 * time.Second
 	}
