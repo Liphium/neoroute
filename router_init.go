@@ -32,11 +32,13 @@ func (r *Router[D]) buildMap(current map[string]exportedRoute[D]) map[string]exp
 		}
 	}
 
-	// Add own route
-	ownRoute := cleanRoute(r.prefix)
-	current[ownRoute] = exportedRoute[D]{
-		middlewares: r.getMiddlewaresFor(ownRoute),
-		RouteData:   r.route,
+	// Add own route (if there even is one)
+	if r.prefix != "" {
+		ownRoute := cleanRoute(r.prefix)
+		current[ownRoute] = exportedRoute[D]{
+			middlewares: r.getMiddlewaresFor(ownRoute),
+			RouteData:   r.route,
+		}
 	}
 
 	return current
