@@ -16,7 +16,6 @@ type Context[D any] interface {
 // --------------------------------------------------------------------------------
 
 type Ctx[D any] struct {
-	neo      *NeoRouter[D]
 	id       int         // request id, used for responses
 	reqData  []byte      // data field from Request struct
 	route    string      // the route that matched the request

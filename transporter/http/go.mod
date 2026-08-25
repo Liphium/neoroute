@@ -1,6 +1,6 @@
 module github.com/Liphium/neoroute/transporter/http
 
-go 1.26
+go 1.27
 
 replace github.com/Liphium/neoroute => ../../.
 

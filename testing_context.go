@@ -8,23 +8,22 @@ import (
 )
 
 // NewTestingResCtx creates a new ResCtx for testing with the given neo, route and session.
-func NewTestingResCtx[D any, RS msgp.Marshaler](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS] {
+func NewTestingResCtx[D any, RS msgp.Marshaler](route string, session *Session[D]) *ResCtx[D, RS] {
 	return &ResCtx[D, RS]{
-		Ctx: NewTestingCtx(neo, route, session),
+		Ctx: NewTestingCtx(route, session),
 	}
 }
 
 // NewTestingOkCtx creates a new OkCtx for testing with the given neo, route and session.
-func NewTestingOkCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *OkCtx[D] {
+func NewTestingOkCtx[D any](route string, session *Session[D]) *OkCtx[D] {
 	return &OkCtx[D]{
-		Ctx: NewTestingCtx(neo, route, session),
+		Ctx: NewTestingCtx(route, session),
 	}
 }
 
 // NewTestingCtx creates a new context for testing with the given neo, route and session.
-func NewTestingCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *Ctx[D] {
+func NewTestingCtx[D any](route string, session *Session[D]) *Ctx[D] {
 	return &Ctx[D]{
-		neo:     neo,
 		id:      1,
 		route:   route,
 		session: session,

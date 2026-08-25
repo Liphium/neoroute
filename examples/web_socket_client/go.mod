@@ -1,6 +1,6 @@
 module web_socket
 
-go 1.26
+go 1.27
 
 replace github.com/Liphium/neoroute/client => ../../client/
 

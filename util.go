@@ -29,9 +29,6 @@ func buildSubroutes(route string) []string {
 
 func cleanRoute(route string) string {
 
-	// Remove leading and trailing separators
-	route = strings.Trim(route, string(RouteSeparator))
-
 	route = strings.ToLower(route)
 
 	unfilteredRunes := []rune(route)
@@ -61,5 +58,8 @@ func cleanRoute(route string) string {
 		result.WriteRune(runes[i])
 	}
 
-	return result.String()
+	// Remove leading and trailing separators
+	route = strings.Trim(result.String(), string(RouteSeparator))
+
+	return route
 }

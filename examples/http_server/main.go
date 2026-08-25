@@ -85,6 +85,16 @@ func main() {
 		return true
 	})
 
+	r := neoroute.NewRouter(neoroute.Config[struct{}]{})
+
+	t1 := r.Group("test")
+	t1.Use("", func(c *neoroute.Ctx[struct{}]) bool { return false })
+
+	t2 := r.Group("test")
+	t2.Use("", func(c *neoroute.Ctx[struct{}]) bool { return false })
+
+	neoroute.RoutePing(t1, "test", func(c *neoroute.Ctx[struct{}]) {})
+
 	// Create group for group1
 	group1 := rGroup.Group("group1")
 

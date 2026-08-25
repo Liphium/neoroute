@@ -11,7 +11,7 @@ import (
 var _ neoschema.Transporter = &HTTPTransporter[any]{}
 
 type HTTPTransporter[D any] struct {
-	router *neoroute.NeoRouter[D]
+	router *neoroute.Router[D]
 }
 
 // GetRegistries implements [neoschema.Transporter].
@@ -33,10 +33,11 @@ func (h *HTTPTransporter[D]) Type() neoschema.TransporterType {
 //
 // If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 // If the bool is false, the handshake will be considered failed and the connection will be rejected.
-func NewHTTPTransporter[D any](router *neoroute.NeoRouter[D], handshake neoroute.HandshakeFunc[D]) (http.HandlerFunc, *HTTPTransporter[D]) {
+func NewHTTPTransporter[D any](router *neoroute.Router[D], handshake neoroute.HandshakeFunc[D]) (http.HandlerFunc, *HTTPTransporter[D]) {
 	transporter := &HTTPTransporter[D]{
 		router: router,
 	}
+	router.Init()
 	hook := func(w http.ResponseWriter, r *http.Request) {
 
 		defer func() {

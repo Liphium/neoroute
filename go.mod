@@ -1,6 +1,6 @@
 module github.com/Liphium/neoroute
 
-go 1.26
+go 1.27
 
 require github.com/tinylib/msgp v1.6.4
 

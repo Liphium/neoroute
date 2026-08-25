@@ -3,95 +3,71 @@ package neoroute
 import (
 	"errors"
 	"io"
-	"slices"
 
 	"github.com/tinylib/msgp/msgp"
 )
 
-type Router[D any] interface {
-	Group(route string) Router[D]
-	AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D]
-	Use(route string, middleware func(c *Ctx[D]) bool)
-	getRoute() string
-	getNeos(...*NeoRouter[D]) []*NeoRouter[D]
+type MiddlewareFunc[D any] = func(c *Ctx[D]) bool
+
+type Router[D any] struct {
+	prefix       string
+	actualRoutes map[string]exportedRoute[D]
+	config       Config[D]
+
+	// temporary during tree building phase
+	middlewares map[string][]MiddlewareFunc[D]
+	route       RouteData[D]
+	children    map[string][]*Router[D]
 }
 
-type NeoRouter[D any] struct {
-	neos        []*NeoRouter[D]
-	routes      map[string]RouteData[D]
-	middlewares map[string][]func(c *Ctx[D]) bool
-	config      Config[D]
-}
-
-func NewRouter[D any](config Config[D]) *NeoRouter[D] {
-	return &NeoRouter[D]{
-		routes:      make(map[string]RouteData[D]),
-		middlewares: make(map[string][]func(c *Ctx[D]) bool),
-		config:      config,
-		neos:        make([]*NeoRouter[D], 0),
-	}
-}
-
-func (r *NeoRouter[D]) Config() Config[D] {
+func (r *Router[D]) Config() Config[D] {
 	return r.config
 }
 
-func (r *NeoRouter[D]) Group(route string) Router[D] {
-	return &Group[D]{
-		neos:   []*NeoRouter[D]{r},
-		prefix: route,
-		parent: nil,
+// GetRoutes is used for schema generation.
+func (r Router[D]) GetRoutes() map[string]RouteData[D] {
+	routes := map[string]RouteData[D]{}
+	for route, exported := range r.actualRoutes {
+		routes[route] = exported.RouteData
 	}
+	return routes
 }
 
-func (r *NeoRouter[D]) GetRoutes() map[string]RouteData[D] {
-	return r.routes
+type exportedRoute[D any] struct {
+	middlewares []MiddlewareFunc[D]
+	RouteData[D]
 }
 
-func (r *NeoRouter[D]) AddRouters(router *NeoRouter[D], routers ...*NeoRouter[D]) Router[D] {
-	r.neos = append(r.neos, append([]*NeoRouter[D]{router}, routers...)...)
+// Group creates a new route group for the given prefix.
+func (n *Router[D]) Group(subroute string) *Router[D] {
+	subroute = cleanRoute(subroute)
+
+	r := &Router[D]{
+		prefix:       subroute,
+		actualRoutes: make(map[string]exportedRoute[D]),
+		children:     make(map[string][]*Router[D]),
+		middlewares:  make(map[string][]MiddlewareFunc[D]),
+		route:        RouteData[D]{},
+	}
+	n.children[subroute] = append(n.children[subroute], r)
 	return r
 }
 
-func (r *NeoRouter[D]) Use(route string, middleware func(c *Ctx[D]) bool) {
-	route = cleanRoute(r.getRoute() + string(RouteSeparator) + route)
-
-	neos := r.getNeos()
-	for _, neo := range neos {
-		neo.middlewares[route] = append(neo.middlewares[route], middleware)
-	}
+func (r *Router[D]) AddRouters(router *Router[D], routers ...*Router[D]) *Router[D] {
+	r.children[""] = append(r.children[""], append(routers, router)...)
+	return r
 }
 
-func (r *NeoRouter[D]) getRoute() string {
-	return ""
-}
-
-func (r *NeoRouter[D]) getNeos(collectedRouters ...*NeoRouter[D]) []*NeoRouter[D] {
-	neos := []*NeoRouter[D]{r}
-
-	collectedRouters = append(collectedRouters, r)
-
-	for _, neo := range r.neos {
-		if slices.Contains(collectedRouters, neo) {
-			continue
-		}
-
-		childNeos := neo.getNeos(collectedRouters...)
-
-		neos = append(neos, childNeos...)
-
-		collectedRouters = append(collectedRouters, childNeos...)
-	}
-	return neos
+func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) bool) {
+	subroute = cleanRoute(subroute)
+	r.middlewares[subroute] = append(r.middlewares[subroute], middleware)
 }
 
 // Handle is called by transporters to handle incoming requests.
 //
 // ONLY USE THIS IN A TRANSPORTER IMPLEMENTATION, THIS IS NOT MEANT TO BE USED BY USERS OF THE LIBRARY.
-func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func()) {
-
+func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func()) {
 	c := &Ctx[D]{
-		neo:     r,
 		id:      -1,
 		reqData: []byte{},
 		route:   "",
@@ -111,25 +87,20 @@ func (r *NeoRouter[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte,
 	c.route = route
 
 	// Check if handler for route exists
-	routeData, exists := r.routes[route]
+	routeData, exists := r.actualRoutes[route]
 	if !exists {
 		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRouteDoesntExist, c))), nil
 	}
 
 	// Run middlewares
-	subRoutes := buildSubroutes(route)
-	for _, subroute := range subRoutes {
-		if middlewares, ok := r.middlewares[subroute]; ok {
-			for _, middleware := range middlewares {
-				if !middleware(c) {
-					return messageResponse(c.respondError(r.config.RunErrorHandler(ErrMiddlewareDenied, c))), nil
-				}
-			}
+	for _, middleware := range routeData.middlewares {
+		if !middleware(c) {
+			return messageResponse(c.respondError(r.config.RunErrorHandler(ErrMiddlewareDenied, c))), nil
 		}
 	}
 
 	// Handle request
-	err = routeData.handler(c) // TODO: add panic protection
+	err = routeData.handler(c)
 	if err == nil {
 
 		// Handlers never should return nil.

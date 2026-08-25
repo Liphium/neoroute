@@ -1,6 +1,9 @@
 package neoroute
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func Test_sameElements(t *testing.T) {
 	// Test case for ints
@@ -35,4 +38,25 @@ func Test_sameElements(t *testing.T) {
 			t.Errorf("Expected true for matching string slices")
 		}
 	})
+}
+
+func Test_allOrderedSubsets(t *testing.T) {
+	tests := []struct {
+		name  string
+		items []int
+		want  [][]int
+	}{
+		{"empty", []int{}, [][]int{}},
+		{"single", []int{1}, [][]int{{1}}},
+		{"two", []int{1, 2}, [][]int{{1}, {1, 2}, {2}, {2, 1}}},
+		{"three", []int{1, 2, 3}, [][]int{{1}, {1, 2}, {1, 2, 3}, {1, 3}, {1, 3, 2}, {2}, {2, 1}, {2, 1, 3}, {2, 3}, {2, 3, 1}, {3}, {3, 1}, {3, 1, 2}, {3, 2}, {3, 2, 1}}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := allOrderedSubsets(tt.items); !slices.EqualFunc(got, tt.want, slices.Equal) {
+				t.Errorf("allOrderedSubsets() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

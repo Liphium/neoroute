@@ -20,7 +20,7 @@ var _ neoschema.Transporter = &WebSocketTransporter[any]{}
 
 type WebSocketTransporter[D any] struct {
 	eventRegistries []neoroute.IEventRegistry
-	router          *neoroute.NeoRouter[D]
+	router          *neoroute.Router[D]
 	config          WSConfig[D]
 	mutex           sync.Mutex
 	sessions        map[string]*wsSession[D]
@@ -62,7 +62,7 @@ type wsSession[D any] struct {
 	session   *neoroute.Session[D]
 }
 
-func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConfig[D]) (http.HandlerFunc, *WebSocketTransporter[D]) {
+func NewWebSocketTransporter[D any](router *neoroute.Router[D], config WSConfig[D]) (http.HandlerFunc, *WebSocketTransporter[D]) {
 	transporter := &WebSocketTransporter[D]{
 		router:          router,
 		config:          config,
@@ -107,7 +107,7 @@ func NewWebSocketTransporter[D any](router *neoroute.NeoRouter[D], config WSConf
 // SetRouter sets the router for the transporter.
 // This should be done before starting to listen for connections.
 // This should only be done once and not changed later.
-func (t *WebSocketTransporter[D]) SetRouter(r *neoroute.NeoRouter[D]) {
+func (t *WebSocketTransporter[D]) SetRouter(r *neoroute.Router[D]) {
 	t.router = r
 }
 
@@ -127,7 +127,7 @@ func (t *WebSocketTransporter[D]) addSession(sessionData D, conn *websocket.Conn
 	for {
 		id := uuid.NewString()
 		if _, exists := t.sessions[id]; !exists {
-			userSession = neoroute.NewSession[D](id, sessionData, neoroute.SessionTransporterCallbacks[D]{
+			userSession = neoroute.NewSession(id, sessionData, neoroute.SessionTransporterCallbacks[D]{
 				Adapt:      t.adaptFunc(id),
 				Disconnect: conn.CloseNow,
 			})

@@ -48,6 +48,11 @@ func Test_cleanRoute(t *testing.T) {
 			route: "" + string(RouteSeparator) + "",
 			want:  "",
 		},
+		{
+			name:  "routes with spaces",
+			route: " /  route / subroute / ",
+			want:  "route/subroute",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -69,27 +74,22 @@ func Test_buildSubroutes(t *testing.T) {
 		{
 			name:  "3 level route",
 			route: "group1/group2/route",
-			want:  []string{"group1", "group1/group2", "group1/group2/route"},
+			want:  []string{"", "group1", "group1/group2", "group1/group2/route"},
 		},
 		{
 			name:  "route with leading and trailing separators",
 			route: string(RouteSeparator) + "group1/group2/route" + string(RouteSeparator),
-			want:  []string{"group1", "group1/group2", "group1/group2/route"},
+			want:  []string{"", "group1", "group1/group2", "group1/group2/route"},
 		},
 		{
 			name:  "route with multiple separators in a row",
 			route: "group_1" + string(RouteSeparator) + string(RouteSeparator) + "group2" + string(RouteSeparator) + "route",
-			want:  []string{"group_1", "group_1/group2", "group_1/group2/route"},
-		},
-		{
-			name:  "empty route",
-			route: "",
-			want:  []string{""},
+			want:  []string{"", "group_1", "group_1/group2", "group_1/group2/route"},
 		},
 		{
 			name:  "single route",
 			route: "route_1",
-			want:  []string{"route_1"},
+			want:  []string{"", "route_1"},
 		},
 	}
 	for _, tt := range tests {
