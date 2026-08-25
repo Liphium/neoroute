@@ -20,6 +20,15 @@ type Router[D any] struct {
 	children    map[string][]*Router[D]
 }
 
+func NewRouter[D any](config Config[D]) *Router[D] {
+	return &Router[D]{
+		config:       config,
+		actualRoutes: make(map[string]exportedRoute[D]),
+		children:     make(map[string][]*Router[D]),
+		middlewares:  make(map[string][]MiddlewareFunc[D]),
+	}
+}
+
 func (r *Router[D]) Config() Config[D] {
 	return r.config
 }
@@ -58,9 +67,10 @@ func (r *Router[D]) AddRouters(router *Router[D], routers ...*Router[D]) *Router
 	return r
 }
 
-func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) bool) {
+func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) bool) *Router[D] {
 	subroute = cleanRoute(subroute)
 	r.middlewares[subroute] = append(r.middlewares[subroute], middleware)
+	return r
 }
 
 // Handle is called by transporters to handle incoming requests.
