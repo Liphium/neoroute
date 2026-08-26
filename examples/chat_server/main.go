@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -91,6 +92,7 @@ func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 	slog.Info("Received new message", "text", req.Text, "sender", req.Sender)
 
 	// Broadcast the message to all connected clients
+	fmt.Println("connected clients: ", adapterRegistry.GetAdapters())
 	adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
 		Text:      req.Text,
 		Sender:    req.Sender,
@@ -105,14 +107,14 @@ func InitTransporter(router *neoroute.Router[neoroute.NoData]) *http.ServeMux {
 	// Create HTTP transporter
 	httpHook, httpT := http_transporter.NewTransporter(router, http_transporter.Config[neoroute.NoData]{
 		HandshakeFunc: func(r *http.Request) (neoroute.NoData, bool) {
-			return neoroute.NoData{}, false
+			return neoroute.NoData{}, true
 		},
 	})
 
 	// Create WebSocket transporter
 	wsHook, wsT := websocket_transporter.NewTransporter(router, websocket_transporter.Config[neoroute.NoData]{
 		HandshakeFunc: func(r *http.Request) (neoroute.NoData, bool) {
-			return neoroute.NoData{}, false
+			return neoroute.NoData{}, true
 		},
 		AcceptOptions: &websocket.AcceptOptions{
 			InsecureSkipVerify: true,
@@ -128,6 +130,9 @@ func InitTransporter(router *neoroute.Router[neoroute.NoData]) *http.ServeMux {
 		},
 	})
 
+	// Register events with the WebSocket transporter
+	wsT.AddEventRegistry(eventRegistry)
+
 	// Register transporters for schema generation
 	g := neoschema.NewGenerator()
 	g.Transporter("ws", wsT)
@@ -135,9 +140,6 @@ func InitTransporter(router *neoroute.Router[neoroute.NoData]) *http.ServeMux {
 
 	// Then let the program panic and print the schema when --neo-generate is set
 	g.PrintIfDesired()
-
-	// Register events with the WebSocket transporter
-	wsT.AddEventRegistry(eventRegistry)
 
 	// Mount HTTP and WebSocket transporter
 	mux := http.NewServeMux()

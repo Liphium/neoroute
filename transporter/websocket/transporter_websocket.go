@@ -43,6 +43,7 @@ func (t *Transporter[D]) Type() neoschema.TransporterType {
 
 type Config[D any] struct {
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
+	//
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
 	HandshakeFunc func(*http.Request) (D, bool)
 
@@ -207,13 +208,17 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 			session.cancel()
 		}
 		conn.CloseNow()
-		t.config.DisconnectHandler(session.session)
+		if handler := t.config.DisconnectHandler; handler != nil {
+			handler(session.session)
+		}
 		session.mutex.Lock()
 		t.removeSession(session.session.Id())
 		session.mutex.Unlock()
 	}()
 
-	t.config.EnterNetworkFunc(session.session)
+	if handler := t.config.EnterNetworkFunc; handler != nil {
+		handler(session.session)
+	}
 
 	for {
 		messageType, reader, err := conn.Reader(context.Background())
