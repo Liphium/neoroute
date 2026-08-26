@@ -43,4 +43,5 @@ func Run(cfg config.DebugConfig) {
 		fmt.Println("neodebug crashed:", err)
 		os.Exit(1)
 	}
+	os.Exit(0)
 }
