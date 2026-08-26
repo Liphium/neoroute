@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -92,7 +91,6 @@ func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 	slog.Info("Received new message", "text", req.Text, "sender", req.Sender)
 
 	// Broadcast the message to all connected clients
-	fmt.Println("connected clients: ", adapterRegistry.GetAdapters())
 	adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
 		Text:      req.Text,
 		Sender:    req.Sender,
