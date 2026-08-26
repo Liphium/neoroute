@@ -5,7 +5,7 @@ go 1.27
 replace github.com/Liphium/neoroute => ../../.
 
 require (
-	github.com/Liphium/neoroute v0.2.0
+	github.com/Liphium/neoroute v0.0.0
 	github.com/google/uuid v1.6.0
 )
 

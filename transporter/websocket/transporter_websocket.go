@@ -1,4 +1,4 @@
-package websocket
+package websocket_transporter
 
 import (
 	"context"
@@ -16,35 +16,35 @@ import (
 	"github.com/coder/websocket"
 )
 
-var _ neoschema.Transporter = &WebSocketTransporter[any]{}
+var _ neoschema.Transporter = &Transporter[any]{}
 
-type WebSocketTransporter[D any] struct {
+type Transporter[D any] struct {
 	eventRegistries []neoroute.IEventRegistry
 	router          *neoroute.Router[D]
-	config          WSConfig[D]
+	config          Config[D]
 	mutex           sync.Mutex
 	sessions        map[string]*wsSession[D]
 }
 
 // GetRegistries implements [neoschema.Transporter].
-func (t *WebSocketTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
+func (t *Transporter[D]) GetRegistries() []neoroute.IEventRegistry {
 	return t.eventRegistries
 }
 
 // GetSchema implements [neoschema.Transporter].
-func (t *WebSocketTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
+func (t *Transporter[D]) GetSchema() map[string]neoschema.RequestResponse {
 	return neoschema.ToRouteSchema(t.router.GetRoutes())
 }
 
 // Type implements [neoschema.Transporter].
-func (t *WebSocketTransporter[D]) Type() neoschema.TransporterType {
+func (t *Transporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterWebSocket
 }
 
-type WSConfig[D any] struct {
+type Config[D any] struct {
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
-	HandshakeFunc neoroute.HandshakeFunc[D]
+	HandshakeFunc func(*http.Request) (D, bool)
 
 	// Options for accepting the websocket connection, if not set, default options from the library are used.
 	AcceptOptions *websocket.AcceptOptions
@@ -62,8 +62,8 @@ type wsSession[D any] struct {
 	session   *neoroute.Session[D]
 }
 
-func NewWebSocketTransporter[D any](router *neoroute.Router[D], config WSConfig[D]) (http.HandlerFunc, *WebSocketTransporter[D]) {
-	transporter := &WebSocketTransporter[D]{
+func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.HandlerFunc, *Transporter[D]) {
+	transporter := &Transporter[D]{
 		router:          router,
 		config:          config,
 		sessions:        make(map[string]*wsSession[D]),
@@ -107,17 +107,17 @@ func NewWebSocketTransporter[D any](router *neoroute.Router[D], config WSConfig[
 // SetRouter sets the router for the transporter.
 // This should be done before starting to listen for connections.
 // This should only be done once and not changed later.
-func (t *WebSocketTransporter[D]) SetRouter(r *neoroute.Router[D]) {
+func (t *Transporter[D]) SetRouter(r *neoroute.Router[D]) {
 	t.router = r
 }
 
-func (t *WebSocketTransporter[D]) AddEventRegistry(e *neoroute.EventRegistry) {
+func (t *Transporter[D]) AddEventRegistry(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistries = append(t.eventRegistries, e)
 	t.mutex.Unlock()
 }
 
-func (t *WebSocketTransporter[D]) addSession(sessionData D, conn *websocket.Conn) *wsSession[D] {
+func (t *Transporter[D]) addSession(sessionData D, conn *websocket.Conn) *wsSession[D] {
 
 	// Check if session already exists and if it should be overwritten
 	t.mutex.Lock()
@@ -150,13 +150,13 @@ func (t *WebSocketTransporter[D]) addSession(sessionData D, conn *websocket.Conn
 	return session
 }
 
-func (t *WebSocketTransporter[D]) removeSession(id string) {
+func (t *Transporter[D]) removeSession(id string) {
 	t.mutex.Lock()
 	delete(t.sessions, id)
 	t.mutex.Unlock()
 }
 
-func (t *WebSocketTransporter[D]) adaptFunc(sessionId string) func() (neoroute.Adapter, error) {
+func (t *Transporter[D]) adaptFunc(sessionId string) func() (neoroute.Adapter, error) {
 	return func() (neoroute.Adapter, error) {
 		wsSession, ok := t.getSession(sessionId)
 		if !ok {
@@ -185,14 +185,14 @@ func (t *WebSocketTransporter[D]) adaptFunc(sessionId string) func() (neoroute.A
 	}
 }
 
-func (t *WebSocketTransporter[D]) getSession(id string) (*wsSession[D], bool) {
+func (t *Transporter[D]) getSession(id string) (*wsSession[D], bool) {
 	t.mutex.Lock()
 	session, ok := t.sessions[id]
 	t.mutex.Unlock()
 	return session, ok
 }
 
-func (t *WebSocketTransporter[D]) handleSession(session *wsSession[D]) {
+func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 	session.mutex.Lock()
 	conn := session.conn
 	userSession := session.session

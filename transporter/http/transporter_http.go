@@ -1,4 +1,4 @@
-package http
+package http_transporter
 
 import (
 	"net/http"
@@ -8,33 +8,41 @@ import (
 	"github.com/google/uuid"
 )
 
-var _ neoschema.Transporter = &HTTPTransporter[any]{}
+var _ neoschema.Transporter = &Transporter[any]{}
 
-type HTTPTransporter[D any] struct {
+// Transporter is an HTTP transporter that handles incoming HTTP requests.
+type Transporter[D any] struct {
 	router *neoroute.Router[D]
 }
 
+// Config holds the configuration for the HTTP transporter.
+
+type Config[D any] struct {
+
+	// If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
+	//
+	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
+	HandshakeFunc func(*http.Request) (D, bool)
+}
+
 // GetRegistries implements [neoschema.Transporter].
-func (h *HTTPTransporter[D]) GetRegistries() []neoroute.IEventRegistry {
+func (h *Transporter[D]) GetRegistries() []neoroute.IEventRegistry {
 	return []neoroute.IEventRegistry{} // No events over HTTP
 }
 
 // GetSchema implements [neoschema.Transporter].
-func (h *HTTPTransporter[D]) GetSchema() map[string]neoschema.RequestResponse {
+func (h *Transporter[D]) GetSchema() map[string]neoschema.RequestResponse {
 	return neoschema.ToRouteSchema(h.router.GetRoutes())
 }
 
 // Type implements [neoschema.Transporter].
-func (h *HTTPTransporter[D]) Type() neoschema.TransporterType {
+func (h *Transporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterHTTP
 }
 
-// NewHTTPTransporter creates a new HTTP transporter with the given handshake function and returns it along with an http.HandlerFunc that can be used to handle incoming HTTP requests.
-//
-// If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
-// If the bool is false, the handshake will be considered failed and the connection will be rejected.
-func NewHTTPTransporter[D any](router *neoroute.Router[D], handshake neoroute.HandshakeFunc[D]) (http.HandlerFunc, *HTTPTransporter[D]) {
-	transporter := &HTTPTransporter[D]{
+// NewTransporter creates a new HTTP transporter with the given handshake function and returns it along with an http.HandlerFunc that can be used to handle incoming HTTP requests.
+func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.HandlerFunc, *Transporter[D]) {
+	transporter := &Transporter[D]{
 		router: router,
 	}
 	router.Init()
@@ -47,7 +55,7 @@ func NewHTTPTransporter[D any](router *neoroute.Router[D], handshake neoroute.Ha
 		}()
 
 		// Perform handshake to get session data
-		sessionData, ok := handshake(r)
+		sessionData, ok := config.HandshakeFunc(r)
 		if !ok {
 			http.Error(w, router.Config().RunErrorHandler(neoroute.ErrHandshakeFailed, nil), http.StatusUnauthorized)
 			return
