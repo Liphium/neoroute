@@ -25,7 +25,7 @@ type TestingAdapter struct {
 // NewTestingAdapter creates a new TestingAdapter with the given event registries.
 // This adapter can be registered in tests instead of a real adapter to collect
 // sent events and check if the correct events were sent.
-func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
+func NewTestingAdapter(eventRegistries []*EventRegistry) *TestingAdapter {
 	adapter := &TestingAdapter{
 		transporterType: "TestingAdapter",
 		eventRegistries: eventRegistries,
