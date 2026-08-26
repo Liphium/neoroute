@@ -3,6 +3,7 @@ package neoroute
 import (
 	"errors"
 	"io"
+	"sync"
 
 	"github.com/tinylib/msgp/msgp"
 )
@@ -10,6 +11,7 @@ import (
 type MiddlewareFunc[D any] = func(c *Ctx[D]) bool
 
 type Router[D any] struct {
+	initOnce     sync.Once
 	actualRoutes map[string]exportedRoute[D]
 	config       Config[D]
 

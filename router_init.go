@@ -11,7 +11,10 @@ func (r *Router[D]) Init() {
 		panic("init of router that is not a root router (has a route), if you are seeing this please make sure you are not mounting a router returned by Route() into a transporter, please create a new router instead or use a group")
 	}
 
-	r.actualRoutes = r.buildMap()
+	// Only run buildMap once, as it is expensive and a second time would generate the exact same thing
+	r.initOnce.Do(func() {
+		r.actualRoutes = r.buildMap()
+	})
 }
 
 // buildMap buildes a map of extracted routes, it makes sure all middlewares are added to the routes and that no duplicate routes exist.
