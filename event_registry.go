@@ -50,7 +50,7 @@ func (er *EventRegistry) GetSchemas() []func() reflect.Type {
 }
 
 // Register returns a new event builder.
-func Register[E msgp.Marshaler](e *EventRegistry, name string) func(ev E) event {
+func (e *EventRegistry) Register[E msgp.Marshaler](name string) func(ev E) event {
 
 	e.mutex.Lock()
 	e.registeredEvents = append(e.registeredEvents, name)
