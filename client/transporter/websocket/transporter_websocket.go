@@ -69,6 +69,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	return w.done, nil
 }
 
+// Close closes the WebSocket connection.
 func (w *WebSocketTransporter) Close() error {
 	return w.conn.Close(ws.StatusNormalClosure, "")
 }

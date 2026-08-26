@@ -198,6 +198,7 @@ func addRoute[D any](r *Router[D], route string, routeData RouteData[D]) *Router
 	}
 
 	router := r.Group(route)
+	router.hasRoute = true
 	router.route = routeData
 	return router
 }

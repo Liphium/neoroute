@@ -10,12 +10,12 @@ import (
 type MiddlewareFunc[D any] = func(c *Ctx[D]) bool
 
 type Router[D any] struct {
-	prefix       string
 	actualRoutes map[string]exportedRoute[D]
 	config       Config[D]
 
 	// temporary during tree building phase
 	middlewares map[string][]MiddlewareFunc[D]
+	hasRoute    bool
 	route       RouteData[D]
 	children    map[string][]*Router[D]
 }
@@ -52,7 +52,6 @@ func (n *Router[D]) Group(subroute string) *Router[D] {
 	subroute = cleanRoute(subroute)
 
 	r := &Router[D]{
-		prefix:       subroute,
 		actualRoutes: make(map[string]exportedRoute[D]),
 		children:     make(map[string][]*Router[D]),
 		middlewares:  make(map[string][]MiddlewareFunc[D]),
