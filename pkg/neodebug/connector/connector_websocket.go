@@ -16,8 +16,8 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 	msgChan := make(chan tea.Msg)
 
 	// Create the actual transporter
-	r := client.NewReceiver(client.Config{}) // We don't really need the error handler as we handle errors below
-	transporter := websocket.NewWebSocketTransporter(r)
+	c := client.NewClient(client.Config{}) // We don't really need the error handler as we handle errors below
+	transporter := websocket.NewWebSocketTransporter(c)
 
 	// Connect to the transporter using the URL in the config
 	url, err := url.Parse(config.Config.TransporterURL)
@@ -35,7 +35,7 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 
 	// Listen for all events and make it emit messages
 	for event := range maps.Keys(schema.Events) {
-		client.Receive(r, event, func(c *client.Ctx, ev PackedAny) {
+		c.Receive(event, func(c *client.Ctx, ev PackedAny) {
 			msgChan <- model.Event(event, ev.Value)
 		})
 	}
@@ -44,7 +44,7 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 		ConnectedMsg{
 			Connection: WebSocketConnection{
 				transporter: transporter,
-				recv:        r,
+				client:      c,
 				schema:      schema,
 				msgChan:     msgChan,
 			},
@@ -58,7 +58,7 @@ var _ Connection = WebSocketConnection{}
 type WebSocketConnection struct {
 	schema      neoschema.TransporterSchema
 	transporter *websocket.WebSocketTransporter
-	recv        *client.Receiver
+	client      *client.Client
 	msgChan     chan tea.Msg
 }
 
@@ -75,17 +75,17 @@ func (w WebSocketConnection) Send(endpoint string, request any) tea.Cmd {
 		var err error
 		switch route.GetSendType() {
 		case neoschema.SendOK:
-			err = client.SendOk(w.recv, endpoint, PackedAny{request})
+			err = w.client.SendOk(endpoint, PackedAny{request})
 		case neoschema.SendOKNoRequest:
-			err = client.SendOkNoRequest(w.recv, endpoint)
+			err = w.client.SendOkNoRequest(endpoint)
 		case neoschema.SendRequestResponse:
-			res, err = client.Send[PackedAny](w.recv, endpoint, PackedAny{request})
+			res, err = w.client.Send[PackedAny](endpoint, PackedAny{request})
 		case neoschema.SendNoResponse:
-			err = client.SendNoResponse(w.recv, endpoint, PackedAny{request})
+			err = w.client.SendNoResponse(endpoint, PackedAny{request})
 		case neoschema.SendPing:
-			err = client.SendPing(w.recv, endpoint)
+			err = w.client.SendPing(endpoint)
 		case neoschema.SendNoRequest:
-			res, err = client.SendNoRequest[PackedAny](w.recv, endpoint)
+			res, err = w.client.SendNoRequest[PackedAny](endpoint)
 		}
 
 		// Return an error / the response when we get back stuff from the server
