@@ -145,6 +145,18 @@ func InitTransporter(router *neoroute.Router[neoroute.NoData]) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /http", httpHook)
 	mux.HandleFunc("GET /ws", wsHook)
+	mux.HandleFunc("OPTIONS /ws", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.WriteHeader(http.StatusOK)
+	})
+	mux.HandleFunc("OPTIONS /http", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.WriteHeader(http.StatusOK)
+	})
 
 	return mux
 }
