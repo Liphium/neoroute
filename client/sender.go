@@ -37,6 +37,9 @@ func (s *Client) getRequestId() int {
 	return s.requestId
 }
 
+// SetSendFunc sets the send function for the client.
+//
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (s *Client) SetSendFunc(sendFunc func(data []byte) error) {
 	s.mutex.Lock()
 	s.sendFunc = sendFunc
@@ -45,6 +48,7 @@ func (s *Client) SetSendFunc(sendFunc func(data []byte) error) {
 
 // Handle should be called by a transporter method when it receives a message.
 // Make sure to call handle in a new go routine to avoid blocking.
+//
 // ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (s *Client) Handle(reqData []byte) {
 

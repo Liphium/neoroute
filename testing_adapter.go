@@ -8,6 +8,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
+// TestingAdapter is an adapter that collects sent events for testing purposes.
 type TestingAdapter struct {
 	eventRegistries []*EventRegistry
 	mutex           sync.Mutex

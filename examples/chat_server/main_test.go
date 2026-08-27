@@ -52,6 +52,9 @@ func TestSend(t *testing.T) {
 		})
 		neoroute.AssertResponseOk(t, ret)
 
+		// Evaluate RunAfter functions
+		neoroute.EvaluateCtxTesting(ctx.BaseCtx())
+
 		// Verify message received by all connections
 		for _, adapter := range []*neoroute.TestingAdapter{adapter1, adapter2} {
 			events := neoroute.AssertEvents(t, adapter, 1)

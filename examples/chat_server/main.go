@@ -90,12 +90,14 @@ func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 
 	slog.Info("Received new message", "text", req.Text, "sender", req.Sender)
 
-	// Broadcast the message to all connected clients
-	adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
-		Text:      req.Text,
-		Sender:    req.Sender,
-		Timestamp: time.Now().Unix(),
-	}))
+	// Send broadcast message to all connected clients after the response is sent
+	c.RunAfter(func() {
+		adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
+			Text:      req.Text,
+			Sender:    req.Sender,
+			Timestamp: time.Now().Unix(),
+		}))
+	})
 
 	return c.RespondOk()
 }

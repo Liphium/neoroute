@@ -16,7 +16,6 @@ type Transporter[D any] struct {
 }
 
 // Config holds the configuration for the HTTP transporter.
-
 type Config[D any] struct {
 
 	// If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.

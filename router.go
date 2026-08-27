@@ -10,6 +10,7 @@ import (
 
 type MiddlewareFunc[D any] = func(c *Ctx[D]) bool
 
+// Router is the main router struct, it holds the routes and middleware functions.
 type Router[D any] struct {
 	initOnce     sync.Once
 	actualRoutes map[string]exportedRoute[D]
@@ -22,6 +23,8 @@ type Router[D any] struct {
 	children    map[string][]*Router[D]
 }
 
+// NewRouter returns a new Router instance with the given config.
+// Use this to create a new router instance to pass to the transporters.
 func NewRouter[D any](config Config[D]) *Router[D] {
 	return &Router[D]{
 		config:       config,
@@ -31,6 +34,7 @@ func NewRouter[D any](config Config[D]) *Router[D] {
 	}
 }
 
+// Config returns the router's config.
 func (r *Router[D]) Config() Config[D] {
 	return r.config
 }
@@ -63,11 +67,20 @@ func (n *Router[D]) Group(subroute string) *Router[D] {
 	return r
 }
 
+// AddRouters adds one or more routers to the current router.
+//
+// This can be used to add routes to multiple routers at once.
 func (r *Router[D]) AddRouters(router *Router[D], routers ...*Router[D]) *Router[D] {
 	r.children[""] = append(r.children[""], append(routers, router)...)
 	return r
 }
 
+// Use adds a middleware function to the router.
+//
+// Middlewares will be executed in the order of root route to full route.
+// And for every specific subroute, the middlewares will be executed in the order they are added.
+//
+// For for route1/route2/route3, the middlewares will be executed in the order of route1, route2, and route3.
 func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) bool) *Router[D] {
 	subroute = cleanRoute(subroute)
 	r.middlewares[subroute] = append(r.middlewares[subroute], middleware)

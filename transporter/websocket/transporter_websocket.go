@@ -18,6 +18,7 @@ import (
 
 var _ neoschema.Transporter = &Transporter[any]{}
 
+// Transporter is the WebSocket transporter implementation.
 type Transporter[D any] struct {
 	eventRegistries []neoroute.IEventRegistry
 	router          *neoroute.Router[D]
@@ -41,6 +42,7 @@ func (t *Transporter[D]) Type() neoschema.TransporterType {
 	return neoschema.TransporterWebSocket
 }
 
+// Config holds the configuration for the WebSocket transporter.
 type Config[D any] struct {
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	//
@@ -63,6 +65,7 @@ type wsSession[D any] struct {
 	session   *neoroute.Session[D]
 }
 
+// NewTransporter returns a new WebSocket transporter.
 func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.HandlerFunc, *Transporter[D]) {
 	transporter := &Transporter[D]{
 		router:          router,
@@ -112,6 +115,8 @@ func (t *Transporter[D]) SetRouter(r *neoroute.Router[D]) {
 	t.router = r
 }
 
+// AddEventRegistry adds an event registry to the transporter.
+// This allows the transporter to send events registered in the event registry.
 func (t *Transporter[D]) AddEventRegistry(e *neoroute.EventRegistry) {
 	t.mutex.Lock()
 	t.eventRegistries = append(t.eventRegistries, e)

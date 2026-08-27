@@ -10,6 +10,7 @@ type Config[D any] struct {
 	ErrorHandler func(err error, c *Ctx[D]) string
 }
 
+// RunErrorHandler calls the configured ErrorHandler, or returns a default message if none is set.
 func (cfg Config[D]) RunErrorHandler(err error, c *Ctx[D]) string {
 	if cfg.ErrorHandler == nil {
 		Logger.Info("ErrorHandler is not set in config. A route returned an error", "error", err)

@@ -34,6 +34,7 @@ func NewEventRegistry() *EventRegistry {
 }
 
 // GetEvents returns the registered events in the registry.
+//
 // ONLY USE THIS WHEN IMPLEMENTING AN ADAPTER.
 func (er *EventRegistry) GetEvents() []string {
 	er.mutex.Lock()
@@ -42,6 +43,7 @@ func (er *EventRegistry) GetEvents() []string {
 }
 
 // GetSchemas returns the registered schemas for the registered events in the registry (same index as event names).
+//
 // ONLY USE THIS WHEN IMPLEMENTING AN ADAPTER.
 func (er *EventRegistry) GetSchemas() []func() reflect.Type {
 	er.mutex.Lock()

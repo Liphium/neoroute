@@ -5,6 +5,9 @@ import (
 	"sync"
 )
 
+// Session is assigned to a single client, it holds data and the sessionId.
+//
+// The data can be accessed and updated using the Data, SetData and UpdateData methods.
 type Session[D any] struct {
 	mutex       sync.Mutex
 	id          string
@@ -12,12 +15,16 @@ type Session[D any] struct {
 	callbacks   SessionTransporterCallbacks[D]
 }
 
+// SessionTransporterCallbacks holds the callbacks for a session transporter.
+//
+// USE ONLY IF YOU ARE IMPLEMENTING A TRANSPORTER.
 type SessionTransporterCallbacks[D any] struct {
 	Adapt      func() (Adapter, error)
 	Disconnect func() error
 }
 
 // NewSession creates a new session with the given id and returns a pointer to it.
+//
 // ONLY USE THIS FUNCTION IF YOU ARE IMPLEMENTING A TRANSPORTER.
 func NewSession[D any](id string, data D, callbacks SessionTransporterCallbacks[D]) *Session[D] {
 	return &Session[D]{

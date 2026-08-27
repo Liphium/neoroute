@@ -16,6 +16,7 @@ type message struct {
 	Data []byte `msg:"data"`
 }
 
+// messageEvent marshals an event into a message.
 func messageEvent(event event) []byte {
 
 	// Marshal event data
@@ -39,6 +40,7 @@ func messageEvent(event event) []byte {
 	return msgBytes
 }
 
+// messageResponse marshals a response into a message.
 func messageResponse(resp response) []byte {
 
 	// Marshal response data
