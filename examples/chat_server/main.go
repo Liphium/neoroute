@@ -143,8 +143,8 @@ func InitTransporter(router *neoroute.Router[neoroute.NoData]) *http.ServeMux {
 
 	// Mount HTTP and WebSocket transporter
 	mux := http.NewServeMux()
-	mux.HandleFunc("/http", httpHook)
-	mux.HandleFunc("/ws", wsHook)
+	mux.HandleFunc("POST /http", httpHook)
+	mux.HandleFunc("GET /ws", wsHook)
 
 	return mux
 }

@@ -32,7 +32,7 @@ func main() {
 			os.Exit(1)
 		},
 		RequestTimeout: 10 * time.Second,
-	}, "GET", u)
+	}, "POST", u)
 
 	// Use the generated connector to send the message
 	sendErr := httpConn.SendSend(generated.SendRequest{
