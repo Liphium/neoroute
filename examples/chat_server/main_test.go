@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/Liphium/neoroute"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestSend(t *testing.T) {
@@ -16,11 +17,7 @@ func TestSend(t *testing.T) {
 			Text:   "some text",
 			Sender: "sender1",
 		})
-		if userErr, err := neoroute.GetTestingResponseOk(ret); err != nil {
-			t.Errorf("Send failed: %v", err)
-		} else if userErr != "" {
-			t.Errorf("Send failed: %s", userErr)
-		}
+		neoroute.AssertResponseOk(t, ret)
 	})
 
 	t.Run("send empty message", func(t *testing.T) {
@@ -32,11 +29,7 @@ func TestSend(t *testing.T) {
 			Text:   "",
 			Sender: "sender1",
 		})
-		if userErr, err := neoroute.GetTestingResponseOk(ret); err != nil {
-			t.Errorf("Send failed: %v", err)
-		} else if userErr != "text is required" {
-			t.Errorf("Did not receive user error for empty text: %v", userErr)
-		}
+		neoroute.AssertResponseUserError(t, ret, "text is required")
 	})
 
 	t.Run("broadcast message to two connections", func(t *testing.T) {
@@ -45,8 +38,8 @@ func TestSend(t *testing.T) {
 		connectionId2 := "connection2"
 
 		// Register two connections
-		adapter1 := neoroute.NewTestingAdapter([]*neoroute.EventRegistry{eventRegistry})
-		adapter2 := neoroute.NewTestingAdapter([]*neoroute.EventRegistry{eventRegistry})
+		adapter1 := neoroute.NewTestingAdapter(eventRegistry)
+		adapter2 := neoroute.NewTestingAdapter(eventRegistry)
 		adapterRegistry.Register(connectionId1, adapter1)
 		adapterRegistry.Register(connectionId2, adapter2)
 
@@ -58,49 +51,16 @@ func TestSend(t *testing.T) {
 			Text:   "some text",
 			Sender: connectionId1,
 		})
-		if userErr, err := neoroute.GetTestingResponseOk(ret); err != nil {
-			t.Errorf("Send failed: %v", err)
-		} else if userErr != "" {
-			t.Errorf("Send failed: %s", userErr)
-		}
+		neoroute.AssertResponseOk(t, ret)
 
 		// Verify message received by all connections
-		if events, err := adapter1.GetEvents(); err != nil {
-			t.Errorf("GetEvents failed: %v", err)
-		} else if len(events) != 1 {
-			t.Errorf("Expected 1 event, got %d", len(events))
-		} else if events[0].Name != "message" {
-			t.Errorf("Expected event name 'message', got '%s'", events[0].Name)
-		} else {
-			ev, err := neoroute.UnmarshalEventTesting[MessageEvent](events[0].Data)
-			if err != nil {
-				t.Errorf("UnmarshalEventTesting failed: %v", err)
-			}
-			if ev.Text != "some text" {
-				t.Errorf("Expected text 'some text', got '%s'", ev.Text)
-			}
-			if ev.Sender != connectionId1 {
-				t.Errorf("Expected sender '%s', got '%s'", connectionId1, ev.Sender)
-			}
+		for _, adapter := range []*neoroute.TestingAdapter{adapter1, adapter2} {
+			events := neoroute.AssertEvents(t, adapter, 1)
+			neoroute.AssertEvent(t, events, 0, MessageEvent{
+				Sender: connectionId1,
+				Text:   "some text",
+			}, cmpopts.IgnoreFields(MessageEvent{}, "Timestamp"))
 		}
 
-		if events, err := adapter2.GetEvents(); err != nil {
-			t.Errorf("GetEvents failed: %v", err)
-		} else if len(events) != 1 {
-			t.Errorf("Expected 1 event, got %d", len(events))
-		} else if events[0].Name != "message" {
-			t.Errorf("Expected event name 'message', got '%s'", events[0].Name)
-		} else {
-			ev, err := neoroute.UnmarshalEventTesting[MessageEvent](events[0].Data)
-			if err != nil {
-				t.Errorf("UnmarshalEventTesting failed: %v", err)
-			}
-			if ev.Text != "some text" {
-				t.Errorf("Expected text 'some text', got '%s'", ev.Text)
-			}
-			if ev.Sender != connectionId1 {
-				t.Errorf("Expected sender '%s', got '%s'", connectionId1, ev.Sender)
-			}
-		}
 	})
 }

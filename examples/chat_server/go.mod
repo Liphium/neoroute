@@ -22,6 +22,7 @@ require (
 	github.com/Liphium/neoroute/transporter/http v0.0.0
 	github.com/Liphium/neoroute/transporter/websocket v0.0.0
 	github.com/coder/websocket v1.8.15
+	github.com/google/go-cmp v0.7.0
 	github.com/tinylib/msgp v1.6.4
 )
 
