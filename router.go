@@ -36,7 +36,7 @@ func (r *Router[D]) Config() Config[D] {
 }
 
 // GetRoutes is used for schema generation.
-func (r Router[D]) GetRoutes() map[string]RouteData[D] {
+func (r *Router[D]) GetRoutes() map[string]RouteData[D] {
 	routes := map[string]RouteData[D]{}
 	for route, exported := range r.actualRoutes {
 		routes[route] = exported.RouteData

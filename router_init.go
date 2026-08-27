@@ -55,7 +55,7 @@ func (r *Router[D]) buildMap() map[string]exportedRoute[D] {
 }
 
 // getMiddlewaresFor returns all middlewares for a given route, including the middlewares of its parent routes (from the local router).
-func (r Router[D]) getMiddlewaresFor(route string) []MiddlewareFunc[D] {
+func (r *Router[D]) getMiddlewaresFor(route string) []MiddlewareFunc[D] {
 	middlewares := []MiddlewareFunc[D]{}
 	for _, route := range buildSubroutes(route) {
 		if middlewaresForRoute, ok := r.middlewares[route]; ok {
