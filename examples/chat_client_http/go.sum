@@ -1,0 +1,12 @@
+github.com/Liphium/neoroute/client v0.6.0 h1:7rHjy7RyXXvtjPFtbwCWyvBALRd5QuYh7W3TSEKvNfg=
+github.com/Liphium/neoroute/client v0.6.0/go.mod h1:qJAVyy5zswfGa+LJFpg85bk4ys/rkReX+OnyDRvZ0Pg=
+github.com/Liphium/neoroute/client/transporter/http v0.5.0 h1:HUIyC/swSsy9TKJLYjDA28oC2pTP7PllYUCS0m7J8H0=
+github.com/Liphium/neoroute/client/transporter/http v0.5.0/go.mod h1:fgWBdzBCqLOEOvTt1HBa/z9UekfJ/WcVSGNGnKz5h+4=
+github.com/Liphium/neoroute/client/transporter/websocket v0.5.1 h1:OINOzuyWk8LLSgONA1s/swjIzYX0WOt37RCw4n0oxbs=
+github.com/Liphium/neoroute/client/transporter/websocket v0.5.1/go.mod h1:ijb2VOSAE4I/e8qCv5k4c0M3gDbDZFIZDOIi1J/VyTI=
+github.com/coder/websocket v1.8.15 h1:6B2JPeOGlpff2Uz6vOEH1Vzpi0iUz20A+lPVhPHtNUA=
+github.com/coder/websocket v1.8.15/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
+github.com/philhofer/fwd v1.2.0 h1:e6DnBTl7vGY+Gz322/ASL4Gyp1FspeMvx1RNDoToZuM=
+github.com/philhofer/fwd v1.2.0/go.mod h1:RqIHx9QI14HlwKwm98g9Re5prTQ6LdeRQn+gXJFxsJM=
+github.com/tinylib/msgp v1.6.4 h1:mOwYbyYDLPj35mkA2BjjYejgJk9BuHxDdvRnb6v2ZcQ=
+github.com/tinylib/msgp v1.6.4/go.mod h1:RSp0LW9oSxFut3KzESt5Voq4GVWyS+PSulT77roAqEA=
