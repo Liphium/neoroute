@@ -37,7 +37,7 @@ func TestSend(t *testing.T) {
 		connectionId1 := "connection1"
 		connectionId2 := "connection2"
 
-		// Register two connections
+		// Register two connections, this simulates the registration that happens in the EnterNetworkFunc of the ws transporter.
 		adapter1 := neoroute.NewTestingAdapter(eventRegistry)
 		adapter2 := neoroute.NewTestingAdapter(eventRegistry)
 		adapterRegistry.Register(connectionId1, adapter1)
