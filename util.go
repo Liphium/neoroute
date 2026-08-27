@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// PrintRecoveredPanic logs a recovered panic from a transporter handler
+// Use this in a defer statement to catch panics in transporter handlers
+//
+// THIS FUNCTION IS INTENDED TO BE USED IN TRANSPORTER IMPLEMENTATIONS
 func PrintRecoveredPanic(transporterType string, rec any) {
 	Logger.Error("panic occurred in "+transporterType+" handler", "err", rec)
 	Logger.Debug(string(debug.Stack()))
