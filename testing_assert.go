@@ -42,8 +42,8 @@ func AssertResponseOk(t *testing.T, response error) {
 	}
 }
 
-// AssertResponseUserError asserts handler response contains expected user error.
-func AssertResponseUserError(t *testing.T, response error, expected string) {
+// AssertUserError asserts handler response contains expected user error.
+func AssertUserError(t *testing.T, response error, expected string) {
 	t.Helper()
 	userErr, err := GetTestingResponseOk(response)
 	if err != nil {

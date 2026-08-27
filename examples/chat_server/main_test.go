@@ -29,7 +29,7 @@ func TestSend(t *testing.T) {
 			Text:   "",
 			Sender: "sender1",
 		})
-		neoroute.AssertResponseUserError(t, ret, "text is required")
+		neoroute.AssertUserError(t, ret, "text is required")
 	})
 
 	t.Run("broadcast message to two connections", func(t *testing.T) {
