@@ -1,8 +1,10 @@
 package neoroute
 
 import (
+	"errors"
 	"fmt"
 	"maps"
+	"slices"
 	"testing"
 )
 
@@ -141,6 +143,56 @@ func TestRouter_Init(t *testing.T) {
 
 			if !maps.Equal(tt.want, got) {
 				t.Errorf("RunErrorHandler() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRouter_Use(t *testing.T) {
+	addPos := func(c *Ctx[[]int], pos int) {
+		c.session.UpdateData(func(data *[]int) {
+			*data = append(*data, pos)
+		})
+	}
+	middlewareFunc := func(pos int) func(c *Ctx[[]int]) error {
+		return func(c *Ctx[[]int]) error {
+			if pos == -1 {
+				return errors.New("")
+			}
+			addPos(c, pos)
+			return nil
+		}
+	}
+	tests := []struct {
+		name        string
+		routingFunc func(r *Router[[]int])
+		want        []int
+		route       string
+	}{
+		{
+			name: "middleware applies to route",
+			routingFunc: func(r *Router[[]int]) {
+				r.Use("", middlewareFunc(1))
+				r.RoutePing("some-route", func(c *Ctx[[]int]) { addPos(c, 2) })
+			},
+			route: "some-route",
+			want:  []int{1, 2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewRouter(Config[[]int]{})
+			tt.routingFunc(r)
+
+			session := NewTestingSession([]int{}, "some-session")
+
+			if err := RoutePingTest(r, session, tt.route); err != nil {
+				t.Errorf("RoutePingTest() error = %v", err)
+			}
+
+			// Check session
+			if !slices.Equal(tt.want, session.Data()) {
+				t.Errorf("RunErrorHandler() = %v, want %v", session.Data(), tt.want)
 			}
 		})
 	}
