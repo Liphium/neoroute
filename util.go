@@ -21,12 +21,12 @@ func splitRoute(route string) []string {
 func buildSubroutes(route string) []string {
 	routeParts := splitRoute(cleanRoute(route))
 	subRoutes := []string{}
-	for i := 0; i < len(routeParts); i++ {
-		subroute := ""
+	for i := range routeParts {
+		var subroute strings.Builder
 		for j := 0; j <= i; j++ {
-			subroute += string(RouteSeparator) + routeParts[j]
+			subroute.WriteString(string(RouteSeparator) + routeParts[j])
 		}
-		subRoutes = append(subRoutes, cleanRoute(subroute))
+		subRoutes = append(subRoutes, cleanRoute(subroute.String()))
 	}
 	return append([]string{""}, subRoutes...)
 }

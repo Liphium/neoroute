@@ -1,7 +1,6 @@
 package connector
 
 import (
-	"maps"
 	"net/url"
 
 	tea "charm.land/bubbletea/v2"
@@ -26,7 +25,7 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 	}
 	doneChan, err := transporter.Connect(url)
 	if err != nil {
-		return withClose(model.Error(err.Error()))
+		return withClose(model.Error("%s", err.Error()))
 	}
 	go func() {
 		<-doneChan
@@ -34,7 +33,7 @@ func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {
 	}()
 
 	// Listen for all events and make it emit messages
-	for event := range maps.Keys(schema.Events) {
+	for event := range schema.Events {
 		c.Receive(event, func(c *client.Ctx, ev PackedAny) {
 			msgChan <- model.Event(event, ev.Value)
 		})

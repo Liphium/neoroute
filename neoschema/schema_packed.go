@@ -22,7 +22,6 @@ func BuildPackedFor(t reflect.Type) (PackedType, error) {
 
 // buildPackedFor is the internal recursive function.
 func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fieldIndex int) (PackedType, error) {
-	var err error
 	var generated PackedType
 	kind := t.Kind()
 	switch kind {
@@ -45,12 +44,13 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			BasicType: &BasicType{
 				ActualType: Kinds[kind],
 			},
-			Fields: map[string]PackedType{},
+			Fields: []StructField{},
 		}
 		st.BasicType.Objects = getRegistry(current)
 		st.BasicType.Objects[st.Name] = st
 
 		// Go through all struct fields and build their schemas
+		st.Fields = make([]StructField, t.NumField())
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 
@@ -62,9 +62,14 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 				msgTag = field.Name
 			}
 
-			st.Fields[msgTag], err = buildPackedFor(field.Type, st, t, i)
+			packed, err := buildPackedFor(field.Type, st, t, i)
 			if err != nil {
 				return &BasicType{}, err
+			}
+
+			st.Fields[i] = StructField{
+				Name: msgTag,
+				Type: packed,
 			}
 		}
 

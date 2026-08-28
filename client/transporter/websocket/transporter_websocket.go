@@ -94,8 +94,7 @@ func (w *WebSocketTransporter) ws(conn *ws.Conn) {
 	for {
 		messageType, msg, err := conn.Read(context.Background())
 		if err != nil {
-			var closeErr ws.CloseError
-			if errors.As(err, &closeErr) {
+			if closeErr, ok := errors.AsType[ws.CloseError](err); ok {
 				client.Logger.Info("websocket connection closed by remote",
 					"code", closeErr.Code,
 					"reason", closeErr.Reason,

@@ -35,7 +35,7 @@ func allOrderedSubsets[T any](items []T) [][]T {
 			result = append(result, combination)
 		}
 
-		for i := 0; i < len(items); i++ {
+		for i := range items {
 			if !visited[i] {
 				visited[i] = true
 				current = append(current, items[i])

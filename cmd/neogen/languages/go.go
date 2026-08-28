@@ -71,8 +71,8 @@ import "github.com/Liphium/neoroute/neoschema"
 {{- $struct := toStruct $obj -}}
 {{- if $struct }}
 type {{ camel $name true }} struct {
-{{- range $fName, $fType := $struct.Fields }}
-	{{ camel $fName true }} {{ getType $fType }} ` + "`msg:\"{{ $fName }}\"`" + `
+{{- range $field := $struct.Fields }}
+	{{ camel $field.Name true }} {{ getType $field.Type }} ` + "`msg:\"{{ $field.Name }}\"`" + `
 {{- end }}
 }
 {{- end }}
@@ -166,7 +166,7 @@ func NewGoConfig() (string, engine.LanguageConfig) {
 						st, ok := t.(*neoschema.StructType)
 						if ok {
 							for _, field := range st.Fields {
-								if mapped, ok := goTypeMap[field.Type()]; ok && strings.Contains(mapped, "neoschema") {
+								if mapped, ok := goTypeMap[field.Type.Type()]; ok && strings.Contains(mapped, "neoschema") {
 									return true
 								}
 							}

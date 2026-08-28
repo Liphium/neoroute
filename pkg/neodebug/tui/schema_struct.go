@@ -169,7 +169,8 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 	var b strings.Builder
 
 	// Write the name of the struct we're editing
-	b.WriteString(textStyle.Render(s.name+" {") + "\n")
+	b.WriteString(textStyle.Render(s.name + " {"))
+	b.WriteString("\n")
 
 	fieldPadding := 0
 	for _, child := range s.children {
@@ -194,7 +195,8 @@ func (s *StructNode) View() (*tea.Cursor, string) {
 		fb.WriteString(v)
 
 		// The field builder is rendered here to make sure the padding is applied to everything
-		b.WriteString(structChildStyle.Render(fb.String()) + "\n")
+		b.WriteString(structChildStyle.Render(fb.String()))
+		b.WriteString("\n")
 	}
 
 	// Write the closing bracket for the struct

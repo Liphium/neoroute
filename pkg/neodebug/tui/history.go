@@ -150,7 +150,8 @@ func (m History) renderContent() string {
 			b.WriteString(symbolStyle.Render("REQ"))
 			b.WriteRune(' ')
 			msg := "Sent request to "
-			b.WriteString(lessTextStyle.Render(msg) + textStyle.Bold(true).Render(c.Route))
+			b.WriteString(lessTextStyle.Render(msg))
+			b.WriteString(textStyle.Bold(true).Render(c.Route))
 			b.WriteRune(' ')
 			b.WriteString(m.renderValue(13 /* timestamp and stuff */ +len(msg)+len(c.Route), c.Request, symbolStyle))
 			b.WriteString("\n")
@@ -160,7 +161,8 @@ func (m History) renderContent() string {
 			b.WriteString(symbolStyle.Render("RES"))
 			b.WriteRune(' ')
 			msg = "Got response for "
-			b.WriteString(lessTextStyle.Render(msg) + textStyle.Bold(true).Render(c.Route))
+			b.WriteString(lessTextStyle.Render(msg))
+			b.WriteString(textStyle.Bold(true).Render(c.Route))
 			b.WriteRune(' ')
 			b.WriteString(m.renderValue(13+len(msg)+len(c.Route), c.Response, symbolStyle))
 
@@ -168,7 +170,8 @@ func (m History) renderContent() string {
 			b.WriteString(eventStyle.Render("EVT"))
 			b.WriteRune(' ')
 			msg := "Received event "
-			b.WriteString(lessTextStyle.Render(msg) + textStyle.Bold(true).Render(c.Name))
+			b.WriteString(lessTextStyle.Render(msg))
+			b.WriteString(textStyle.Bold(true).Render(c.Name))
 			b.WriteRune(' ')
 			b.WriteString(m.renderValue(13 /* timestamp and stuff */ +len(msg)+len(c.Name), c.Event, eventStyle))
 		}

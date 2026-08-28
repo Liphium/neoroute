@@ -11,7 +11,10 @@ import (
 	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
-func connectHTTP(schema neoschema.TransporterSchema) tea.Msg {
+func connectHTTP(method string, schema neoschema.TransporterSchema) tea.Msg {
+	if method == "" {
+		method = "POST"
+	}
 	msgChan := make(chan tea.Msg)
 
 	// Connect to the transporter using the URL in the config
@@ -22,7 +25,7 @@ func connectHTTP(schema neoschema.TransporterSchema) tea.Msg {
 
 	// Create the actual transporter
 	c := client.NewClient(client.Config{}) // We don't really need the error handler as we handle errors below
-	http.ApplyHTTP(c, "POST", url)
+	http.ApplyHTTP(c, method, url)
 
 	return model.Multiple(
 		ConnectedMsg{

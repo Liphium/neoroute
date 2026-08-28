@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	"fmt"
+	"maps"
 	"text/template"
 
 	"github.com/Liphium/neoroute/cmd/neogen/util"
@@ -51,9 +52,7 @@ func (e *GenerationEngine) Generate(schema neoschema.Schema) (map[string]string,
 	}
 
 	// Merge with language specific funcs
-	for k, v := range e.config.Funcs {
-		baseFuncs[k] = v
-	}
+	maps.Copy(baseFuncs, e.config.Funcs)
 
 	results := make(map[string]string)
 	for fileName, data := range fileMap {
