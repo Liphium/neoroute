@@ -141,7 +141,7 @@ func (s *Client) sendRequest(route string, reqData []byte, wantResponse bool) (c
 
 	reqBytes, err := req.MarshalMsg(nil)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to marshal request: %v", err)
+		panic(fmt.Sprintf("failed to marshal request data for route %v: %v", route, err))
 	}
 
 	// Set response channel
@@ -161,5 +161,7 @@ func (s *Client) getConfig() Config {
 }
 
 func (s *Client) setReceiver(eventName string, receiveFunc func(c *Ctx)) {
+	s.mutex.Lock()
 	s.receiver[eventName] = receiveFunc
+	s.mutex.Unlock()
 }
