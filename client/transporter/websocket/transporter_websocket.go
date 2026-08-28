@@ -41,6 +41,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	conn, resp, err := ws.Dial(ctx, url.String(), nil)
+	defer resp.Body.Close()
 	if err != nil {
 
 		if resp != nil {
