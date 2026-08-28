@@ -10,22 +10,22 @@ func NewTestingSession[D any](data D, sessionId string) *Session[D] {
 	}
 }
 
-// ResCtx creates a new ResCtx with the provided route and session.
-func (s *Session[D]) ResCtx[RS msgp.Marshaler](route string) *ResCtx[D, RS] {
+// NewTestingResCtx creates a new ResCtx with the provided route and session.
+func NewTestingResCtx[D any, RS msgp.Marshaler](s *Session[D], route string) *ResCtx[D, RS] {
 	return &ResCtx[D, RS]{
-		Ctx: s.Ctx(route),
+		Ctx: NewTestingCtx(s, route),
 	}
 }
 
-// OkCtx creates a new OkCtx for testing with the provided route and session.
-func (s *Session[D]) OkCtx(route string) *OkCtx[D] {
+// NewTestingOkCtx creates a new OkCtx for testing with the provided route and session.
+func NewTestingOkCtx[D any](s *Session[D], route string) *OkCtx[D] {
 	return &OkCtx[D]{
-		Ctx: s.Ctx(route),
+		Ctx: NewTestingCtx(s, route),
 	}
 }
 
-// Ctx creates a new context for testing with the provided route and session.
-func (s *Session[D]) Ctx(route string) *Ctx[D] {
+// NewTestingCtx creates a new context for testing with the provided route and session.
+func NewTestingCtx[D any](s *Session[D], route string) *Ctx[D] {
 	return &Ctx[D]{
 		id:      1,
 		route:   route,

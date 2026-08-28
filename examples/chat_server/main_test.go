@@ -11,7 +11,7 @@ func TestSend(t *testing.T) {
 	t.Run("send message success", func(t *testing.T) {
 		session := neoroute.NewTestingSession(neoroute.NoData{}, "connection1")
 
-		ret := Send(session.OkCtx("send"), SendRequest{
+		ret := Send(neoroute.NewTestingOkCtx(session, "send"), SendRequest{
 			Text:   "some text",
 			Sender: "sender1",
 		})
@@ -20,7 +20,7 @@ func TestSend(t *testing.T) {
 
 	t.Run("send empty message", func(t *testing.T) {
 		session := neoroute.NewTestingSession(neoroute.NoData{}, "connection1")
-		ret := Send(session.OkCtx("send"), SendRequest{
+		ret := Send(neoroute.NewTestingOkCtx(session, "send"), SendRequest{
 			Text:   "",
 			Sender: "sender1",
 		})
@@ -38,7 +38,7 @@ func TestSend(t *testing.T) {
 		adapterRegistry.Register(session2.Id(), adapter2)
 
 		// Send message from connection1
-		ctx := session1.OkCtx("send")
+		ctx := neoroute.NewTestingOkCtx(session1, "send")
 		ret := Send(ctx, SendRequest{
 			Text:   "some text",
 			Sender: session1.Id(),
