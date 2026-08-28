@@ -74,6 +74,8 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 		eventRegistries: []neoroute.IEventRegistry{},
 	}
 
+	router.Init()
+
 	hook := func(w http.ResponseWriter, r *http.Request) {
 
 		defer func() {
@@ -248,24 +250,21 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 		// Handle request and send response back over the same connection
 		resp, runAfter := t.router.Handle(reader, userSession)
 		if resp != nil {
-			go func() {
-				defer func() {
-					for _, fn := range runAfter {
-						fn()
-					}
-				}()
-
-				session.sendMutex.Lock()
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-				defer cancel()
-				err = conn.Write(ctx, websocket.MessageBinary, resp)
-				session.sendMutex.Unlock()
-				if err != nil {
-					neoroute.Logger.Info("failed to send websocket response", "err", err)
-					return
-				}
-			}()
+			session.sendMutex.Lock()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+			defer cancel()
+			err = conn.Write(ctx, websocket.MessageBinary, resp)
+			session.sendMutex.Unlock()
+			if err != nil {
+				neoroute.Logger.Info("failed to send websocket response", "err", err)
+				return
+			}
 		}
+		defer func() {
+			for _, fn := range runAfter {
+				fn()
+			}
+		}()
 		io.Copy(io.Discard, reader)
 	}
 }
