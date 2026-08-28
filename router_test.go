@@ -7,7 +7,7 @@ import (
 )
 
 func TestRouter_Init(t *testing.T) {
-	middlewareFunc := func(c *Ctx[NoData]) bool { return false }
+	middlewareFunc := func(c *Ctx[NoData]) error { return nil }
 	tests := []struct {
 		name        string
 		routingFunc func(r *Router[NoData])

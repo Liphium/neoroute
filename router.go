@@ -8,7 +8,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-type MiddlewareFunc[D any] = func(c *Ctx[D]) bool
+type MiddlewareFunc[D any] = func(c *Ctx[D]) error
 
 // Router is the main router struct, it holds the routes and middleware functions.
 type Router[D any] struct {
@@ -77,11 +77,15 @@ func (r *Router[D]) AddRouters(router *Router[D], routers ...*Router[D]) *Router
 
 // Use adds a middleware function to the router.
 //
+// If nil is returned, the middleware is considered to have passed and the request is allowed to proceed.
+// If an neoroute.NewError or a context response is returned it will be returned to the user.
+// An error of a different type will be forwarded to the ErrorHandler it's return will be sent to the user.
+//
 // Middlewares will be executed in the order of root route to full route.
 // And for every specific subroute, the middlewares will be executed in the order they are added.
 //
 // For for route1/route2/route3, the middlewares will be executed in the order of route1, route2, and route3.
-func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) bool) *Router[D] {
+func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) error) *Router[D] {
 	subroute = cleanRoute(subroute)
 	r.middlewares[subroute] = append(r.middlewares[subroute], middleware)
 	return r
@@ -118,8 +122,22 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 
 	// Run middlewares
 	for _, middleware := range routeData.middlewares {
-		if !middleware(c) {
-			return messageResponse(c.respondError(r.config.RunErrorHandler(ErrMiddlewareDenied, c))), nil
+		if err := middleware(c); err != nil {
+
+			// Check if error is user error
+			if respData, ok := errors.AsType[*responseData](err); ok {
+
+				// Return response from handler
+				resp := response{
+					Id:      c.id,
+					HasData: respData.HasData,
+					IsError: respData.IsError,
+					Data:    respData.Data,
+				}
+				return messageResponse(resp), c.runAfter
+			}
+
+			return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), c.runAfter
 		}
 	}
 
