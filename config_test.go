@@ -9,7 +9,7 @@ type testSessionData struct{}
 
 func TestConfig_RunErrorHandler(t *testing.T) {
 	session := NewSession("test-id", testSessionData{}, SessionTransporterCallbacks[testSessionData]{})
-	ctx := NewTestingCtx("test.route", session)
+	ctx := session.Ctx("test.route")
 
 	tests := []struct {
 		name string
