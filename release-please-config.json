@@ -36,6 +36,11 @@
 			"release-type": "go",
 			"include-v-in-tag": true,
 			"component": "pkg/neodebug"
+		},
+		"examples/chat_server": {
+			"release-type": "go",
+			"include-v-in-tag": true,
+			"component": "examples/chat_server"
 		}
 	}
 }
