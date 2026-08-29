@@ -260,11 +260,9 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 				return
 			}
 		}
-		defer func() {
-			for _, fn := range runAfter {
-				fn()
-			}
-		}()
+		for _, fn := range runAfter {
+			fn()
+		}
 		io.Copy(io.Discard, reader)
 	}
 }
