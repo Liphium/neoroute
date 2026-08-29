@@ -59,7 +59,7 @@ func (r *Router[D]) getMiddlewaresFor(route string) []MiddlewareFunc[D] {
 	middlewares := []MiddlewareFunc[D]{}
 	for _, route := range buildSubroutes(route) {
 		if middlewaresForRoute, ok := r.middlewares[route]; ok {
-			middlewares = append(middlewaresForRoute, middlewares...)
+			middlewares = append(middlewares, middlewaresForRoute...)
 		}
 	}
 	return middlewares

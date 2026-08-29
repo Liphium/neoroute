@@ -24,7 +24,8 @@ func buildSubroutes(route string) []string {
 	for i := range routeParts {
 		var subroute strings.Builder
 		for j := 0; j <= i; j++ {
-			subroute.WriteString(string(RouteSeparator) + routeParts[j])
+			subroute.WriteString(string(RouteSeparator))
+			subroute.WriteString(routeParts[j])
 		}
 		subRoutes = append(subRoutes, cleanRoute(subroute.String()))
 	}
