@@ -124,6 +124,11 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	for _, middleware := range routeData.middlewares {
 		if err := middleware(c); err != nil {
 
+			// If route is of type NoResponse, return nothing.
+			if !routeData.hasError {
+				return nil, c.runAfter
+			}
+
 			// Check if error is user error
 			if respData, ok := errors.AsType[*responseData](err); ok {
 

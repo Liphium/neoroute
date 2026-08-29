@@ -16,6 +16,9 @@ type RouteData[D any] struct {
 
 	// Should return the response type for schema generation, return false for custom if no response.
 	ResponseType func() (error bool, custom bool, response reflect.Type)
+
+	// hasError indicates if the handler returns an error.
+	hasError bool
 }
 
 // Route saves a handler for a given route.
@@ -53,6 +56,7 @@ func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](r
 		ResponseType: func() (bool, bool, reflect.Type) {
 			return true, true, reflect.TypeFor[RS]()
 		},
+		hasError: true,
 	})
 }
 
@@ -78,6 +82,7 @@ func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func
 		ResponseType: func() (bool, bool, reflect.Type) {
 			return true, true, reflect.TypeFor[RS]()
 		},
+		hasError: true,
 	})
 }
 
@@ -110,6 +115,7 @@ func (r *Router[D]) RouteOk[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, hand
 		ResponseType: func() (bool, bool, reflect.Type) {
 			return true, false, nil
 		},
+		hasError: true,
 	})
 }
 
@@ -132,6 +138,7 @@ func (r *Router[D]) RouteOkNoRequest(route string, handler func(c *OkCtx[D]) err
 		ResponseType: func() (bool, bool, reflect.Type) {
 			return true, false, nil
 		},
+		hasError: true,
 	})
 }
 
@@ -161,6 +168,7 @@ func (r *Router[D]) RouteNoResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](route stri
 		ResponseType: func() (bool, bool, reflect.Type) {
 			return false, false, nil
 		},
+		hasError: false,
 	})
 }
 
@@ -181,6 +189,7 @@ func (r *Router[D]) RoutePing(route string, handler func(c *Ctx[D])) *Router[D] 
 		ResponseType: func() (bool, bool, reflect.Type) {
 			return false, false, nil
 		},
+		hasError: false,
 	})
 }
 
