@@ -21,7 +21,7 @@ func RouteTest[D any, RQ msgp.Marshaler, RS any, PS msgp.UnmarshalPtr[RS],
 		return respStruct, "", err
 	}
 
-	executeRunAfters(runAfterFuncs)
+	defer executeRunAfters(runAfterFuncs)
 
 	resp, err := handleResponseData(respBytes)
 	if err != nil {
@@ -51,7 +51,7 @@ func RouteNoRequestTest[D any, RS any, PS msgp.UnmarshalPtr[RS],
 		return respStruct, "", err
 	}
 
-	executeRunAfters(runAfterFuncs)
+	defer executeRunAfters(runAfterFuncs)
 
 	resp, err := handleResponseData(respBytes)
 	if err != nil {
@@ -79,7 +79,7 @@ func RouteOkTest[D any, RQ msgp.Marshaler](r *Router[D], session *Session[D], ro
 		return "", err
 	}
 
-	executeRunAfters(runAfterFuncs)
+	defer executeRunAfters(runAfterFuncs)
 
 	resp, err := handleResponseData(respBytes)
 	if err != nil {
@@ -108,7 +108,7 @@ func RouteOkNoRequestTest[D any](r *Router[D], session *Session[D], route string
 		return "", err
 	}
 
-	executeRunAfters(runAfterFuncs)
+	defer executeRunAfters(runAfterFuncs)
 
 	resp, err := handleResponseData(respBytes)
 	if err != nil {
@@ -135,7 +135,7 @@ func RouteNoResponseTest[D any, RQ msgp.Marshaler](r *Router[D], session *Sessio
 		return err
 	}
 
-	executeRunAfters(runAfterFuncs)
+	defer executeRunAfters(runAfterFuncs)
 
 	if respBytes != nil {
 		return fmt.Errorf("received response from route, make sure it's actually of type RouteNoResponse; responseBytes: %s", respBytes)
@@ -154,7 +154,7 @@ func RoutePingTest[D any](r *Router[D], session *Session[D], route string) error
 		return err
 	}
 
-	executeRunAfters(runAfterFuncs)
+	defer executeRunAfters(runAfterFuncs)
 
 	if respBytes != nil {
 		return fmt.Errorf("received response from route, make sure it's actually of type RoutePing; responseBytes: %s", respBytes)
