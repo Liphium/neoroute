@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"chatclientws/generated"
 	"fmt"
 	"log"
 	"log/slog"
@@ -11,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/examples/chat_client_ws/generated"
 )
 
 func main() {

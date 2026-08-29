@@ -1,11 +1,10 @@
-module chatclienthttp
+module github.com/Liphium/neoroute/examples/chat_client_http
 
 go 1.27.0
 
 replace github.com/Liphium/neoroute/client => ../../client
 
 replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
-
 
 require (
 	github.com/Liphium/neoroute/client v0.0.0

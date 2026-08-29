@@ -1,4 +1,4 @@
-module chatserver
+module github.com/Liphium/neoroute/examples/chat_server
 
 go 1.27.0
 

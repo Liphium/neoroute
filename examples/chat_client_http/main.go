@@ -1,7 +1,6 @@
 package main
 
 import (
-	"chatclienthttp/generated"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/examples/chat_client_http/generated"
 )
 
 func main() {
