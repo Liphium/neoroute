@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.0](https://github.com/Liphium/neoroute/compare/transporter/websocket/v0.8.0...transporter/websocket/v1.0.0) (2026-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Upgrade everything to Go 1.27 generic methods
+
+### Features
+
+* Use writers instead of reading the complete byte stream ([e578fcf](https://github.com/Liphium/neoroute/commit/e578fcfad3b99c748aeff3c3e39f70dbd1ec5fc8))
+
+
+### Code Refactoring
+
+* Upgrade everything to Go 1.27 generic methods ([67f0a91](https://github.com/Liphium/neoroute/commit/67f0a91e478ef21047696c4c210d9ea4c2ae4d9a))
+
 ## [0.8.0](https://github.com/Liphium/neoroute/compare/transporter/websocket/v0.7.0...transporter/websocket/v0.8.0) (2026-08-06)
 
 

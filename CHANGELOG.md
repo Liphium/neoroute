@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.0.0](https://github.com/Liphium/neoroute/compare/v0.8.0...v1.0.0) (2026-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Upgrade everything to Go 1.27 generic methods
+
+### Features
+
+* Add debugger for neoroute transporters ([#28](https://github.com/Liphium/neoroute/issues/28)) ([47b32a2](https://github.com/Liphium/neoroute/commit/47b32a2540cfbf0747d568bfa4d840faed390428))
+* More safety checks for handlers ([9d47b0a](https://github.com/Liphium/neoroute/commit/9d47b0adfd06db5f9314736c79b7c55b08c57c3a))
+* **neodebug:** Add debugger for neoroute servers ([47b32a2](https://github.com/Liphium/neoroute/commit/47b32a2540cfbf0747d568bfa4d840faed390428))
+* **neoroute:** remove unneeded generics ([d26e477](https://github.com/Liphium/neoroute/commit/d26e4774e3b1623d66b676e02361d71b4a314efe))
+* **neoroute:** remove unneeded interface in generics ([400650b](https://github.com/Liphium/neoroute/commit/400650b8d1a5575d3e1f74a4ce4e481d276b6c1f))
+* Use writers instead of reading the complete byte stream ([e578fcf](https://github.com/Liphium/neoroute/commit/e578fcfad3b99c748aeff3c3e39f70dbd1ec5fc8))
+* **workflow:** update push trigger to include all branches ([4cffb36](https://github.com/Liphium/neoroute/commit/4cffb36c596adb175e303606a82cef09c1825059))
+
+
+### Bug Fixes
+
+* Make sure middlewares work properly across groups ([47b32a2](https://github.com/Liphium/neoroute/commit/47b32a2540cfbf0747d568bfa4d840faed390428))
+
+
+### Code Refactoring
+
+* Upgrade everything to Go 1.27 generic methods ([67f0a91](https://github.com/Liphium/neoroute/commit/67f0a91e478ef21047696c4c210d9ea4c2ae4d9a))
+
 ## [0.8.0](https://github.com/Liphium/neoroute/compare/v0.7.0...v0.8.0) (2026-08-06)
 
 
