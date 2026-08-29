@@ -1,4 +1,4 @@
-package websocket
+package websocket_transporter
 
 import (
 	"context"
@@ -22,6 +22,7 @@ type WebSocketAdapter struct {
 	removeOnce      sync.Once
 }
 
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (a *WebSocketAdapter) Send(b []byte) error {
 	a.sendMutex.Lock()
 	defer a.sendMutex.Unlock()
@@ -30,6 +31,7 @@ func (a *WebSocketAdapter) Send(b []byte) error {
 	return a.conn.Write(ctx, websocket.MessageBinary, b)
 }
 
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (a *WebSocketAdapter) IsEventRegistered(name string) bool {
 	for _, eventRegistry := range a.eventRegistries {
 		if slices.Contains(eventRegistry.GetEvents(), name) {
@@ -39,10 +41,12 @@ func (a *WebSocketAdapter) IsEventRegistered(name string) bool {
 	return false
 }
 
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (a *WebSocketAdapter) GetTransportType() string {
 	return a.transporterType
 }
 
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (a *WebSocketAdapter) SetRemoveFunc(removeFunc func()) {
 	if removeFunc == nil {
 		return
@@ -58,6 +62,7 @@ func (a *WebSocketAdapter) SetRemoveFunc(removeFunc func()) {
 	}
 }
 
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
 func (a *WebSocketAdapter) Disconnect() {
 	a.mutex.Lock()
 	a.conn.CloseNow()

@@ -6,19 +6,7 @@ import (
 	"time"
 )
 
-type Sender interface {
-	getRequestId() int
-	SetSendFunc(sendFunc func(data []byte) error)
-	Handle(reqData []byte)
-	handleResponse(respBytes []byte)
-	handleEvent(eventBytes []byte)
-	removeResponseWaiter(reqId int)
-	sendRequest(route string, reqData []byte, wantResponse bool) (chan response, int, error)
-	getConfig() Config
-	setReceiver(eventName string, receiveFunc func(c *Ctx))
-}
-
-type sender struct {
+type Client struct {
 	mutex     sync.Mutex
 	config    Config
 	sendFunc  func(data []byte) error
@@ -27,13 +15,14 @@ type sender struct {
 	receiver  map[string]func(*Ctx) // Only used with receiver
 }
 
-// NewSender returns an initialized sender
-// Make sure to use a different sender for every transporter
-func NewSender(config Config) Sender {
+// NewClient returns an initialized client.
+//
+// Make sure to use a different client for every transporter.
+func NewClient(config Config) *Client {
 	if config.RequestTimeout == 0 {
 		config.RequestTimeout = 5 * time.Second
 	}
-	return &sender{
+	return &Client{
 		config:    config,
 		requestId: 0,
 		waiters:   make(map[int]chan response),
@@ -41,14 +30,17 @@ func NewSender(config Config) Sender {
 	}
 }
 
-func (s *sender) getRequestId() int {
+func (s *Client) getRequestId() int {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.requestId++
 	return s.requestId
 }
 
-func (s *sender) SetSendFunc(sendFunc func(data []byte) error) {
+// SetSendFunc sets the send function for the client.
+//
+// ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
+func (s *Client) SetSendFunc(sendFunc func(data []byte) error) {
 	s.mutex.Lock()
 	s.sendFunc = sendFunc
 	s.mutex.Unlock()
@@ -56,8 +48,9 @@ func (s *sender) SetSendFunc(sendFunc func(data []byte) error) {
 
 // Handle should be called by a transporter method when it receives a message.
 // Make sure to call handle in a new go routine to avoid blocking.
+//
 // ONLY USE THIS WHEN IMPLEMENTING A TRANSPORTER.
-func (s *sender) Handle(reqData []byte) {
+func (s *Client) Handle(reqData []byte) {
 
 	// Unmarshal request data to message
 	var message message
@@ -79,7 +72,7 @@ func (s *sender) Handle(reqData []byte) {
 	}
 }
 
-func (s *sender) handleResponse(respBytes []byte) {
+func (s *Client) handleResponse(respBytes []byte) {
 	var resp response
 	_, err := resp.UnmarshalMsg(respBytes)
 	if err != nil {
@@ -103,7 +96,7 @@ func (s *sender) handleResponse(respBytes []byte) {
 	waiter <- resp
 }
 
-func (s *sender) handleEvent(eventBytes []byte) {
+func (s *Client) handleEvent(eventBytes []byte) {
 	var ev event
 	_, err := ev.UnmarshalMsg(eventBytes)
 	if err != nil {
@@ -128,13 +121,13 @@ func (s *sender) handleEvent(eventBytes []byte) {
 	receiver(c)
 }
 
-func (s *sender) removeResponseWaiter(reqId int) {
+func (s *Client) removeResponseWaiter(reqId int) {
 	s.mutex.Lock()
 	delete(s.waiters, reqId)
 	s.mutex.Unlock()
 }
 
-func (s *sender) sendRequest(route string, reqData []byte, wantResponse bool) (chan response, int, error) {
+func (s *Client) sendRequest(route string, reqData []byte, wantResponse bool) (chan response, int, error) {
 	reqId := s.getRequestId()
 	s.mutex.Lock()
 	sendFunc := s.sendFunc
@@ -148,7 +141,7 @@ func (s *sender) sendRequest(route string, reqData []byte, wantResponse bool) (c
 
 	reqBytes, err := req.MarshalMsg(nil)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to marshal request: %v", err)
+		panic(fmt.Sprintf("failed to marshal request data for route %v: %v", route, err))
 	}
 
 	// Set response channel
@@ -163,10 +156,12 @@ func (s *sender) sendRequest(route string, reqData []byte, wantResponse bool) (c
 	return respChan, reqId, sendFunc(reqBytes)
 }
 
-func (s *sender) getConfig() Config {
+func (s *Client) getConfig() Config {
 	return s.config
 }
 
-func (s *sender) setReceiver(eventName string, receiveFunc func(c *Ctx)) {
+func (s *Client) setReceiver(eventName string, receiveFunc func(c *Ctx)) {
+	s.mutex.Lock()
 	s.receiver[eventName] = receiveFunc
+	s.mutex.Unlock()
 }

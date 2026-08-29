@@ -1,5 +1,6 @@
 package client
 
+// UserError is an error returned by the server intended for the user.
 type UserError struct {
 	message string
 }

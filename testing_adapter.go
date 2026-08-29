@@ -8,6 +8,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
+// TestingAdapter is an adapter that collects sent events for testing purposes.
 type TestingAdapter struct {
 	eventRegistries []*EventRegistry
 	mutex           sync.Mutex
@@ -25,7 +26,7 @@ type TestingAdapter struct {
 // NewTestingAdapter creates a new TestingAdapter with the given event registries.
 // This adapter can be registered in tests instead of a real adapter to collect
 // sent events and check if the correct events were sent.
-func NewTestingAdapter(eventRegistries []*EventRegistry) Adapter {
+func NewTestingAdapter(eventRegistries ...*EventRegistry) *TestingAdapter {
 	adapter := &TestingAdapter{
 		transporterType: "TestingAdapter",
 		eventRegistries: eventRegistries,
@@ -74,7 +75,7 @@ func (a *TestingAdapter) unmarshalEvents() ([]event, error) {
 			return nil, fmt.Errorf("failed to unmarshal messages: %v", err)
 		}
 
-		if msg.Type != MessageTypeEvent {
+		if msg.Type != messageTypeEvent {
 			return nil, fmt.Errorf("message was not of type event: %v", msg.Type)
 		}
 

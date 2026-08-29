@@ -9,6 +9,11 @@ type DebugConfig struct {
 	// The URL of the transporter endpoint (HTTP).
 	TransporterURL string
 
+	// Which HTTP method to use to connect to the transporter (e.g. POST, GET). Some transporters ignore this, but the HTTP transporter for example needs it.
+	//
+	// Default for HTTP: POST
+	TransporterMethod string
+
 	// The command you have to use to get the schema of the server.
 	GenerateCommand string
 }

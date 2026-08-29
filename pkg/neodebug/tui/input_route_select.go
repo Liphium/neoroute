@@ -169,18 +169,6 @@ func (m *inputRouteSelect) clearSearchInput() {
 	m.input.Blur()
 	m.input.SetValue("")
 
-	// TODO: Determine if this is a good idea or not
-	/*
-		// Restore the selection to the correct route
-		if len(m.results) != 0 {
-			currentlySelected := m.results[m.selectedRoute]
-			idx := slices.Index(m.routes, currentlySelected)
-			if idx != -1 {
-				m.selectedRoute = idx
-			}
-		}
-	*/
-
 	m.results = m.routes
 	m.selectedRoute = 0
 }

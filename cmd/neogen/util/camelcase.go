@@ -18,7 +18,7 @@ func ToCamelCase(s string, firstUp bool) string {
 	var words []string
 	var currentWord []rune
 
-	for i := 0; i < len(runes); i++ {
+	for i := range runes {
 		r := runes[i]
 		isLetter := unicode.IsLetter(r)
 		isDigit := unicode.IsDigit(r)

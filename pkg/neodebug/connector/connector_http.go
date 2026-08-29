@@ -11,7 +11,10 @@ import (
 	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
-func connectHTTP(schema neoschema.TransporterSchema) tea.Msg {
+func connectHTTP(method string, schema neoschema.TransporterSchema) tea.Msg {
+	if method == "" {
+		method = "POST"
+	}
 	msgChan := make(chan tea.Msg)
 
 	// Connect to the transporter using the URL in the config
@@ -21,16 +24,15 @@ func connectHTTP(schema neoschema.TransporterSchema) tea.Msg {
 	}
 
 	// Create the actual transporter
-	r := client.NewReceiver(client.Config{}) // We don't really need the error handler as we handle errors below
-	transporter := http.NewHTTPTransporter(r, "POST", url)
+	c := client.NewClient(client.Config{}) // We don't really need the error handler as we handle errors below
+	http.ApplyHTTP(c, method, url)
 
 	return model.Multiple(
 		ConnectedMsg{
 			Connection: HTTPConnection{
-				transporter: transporter,
-				recv:        r,
-				schema:      schema,
-				msgChan:     msgChan,
+				client:  c,
+				schema:  schema,
+				msgChan: msgChan,
 			},
 		},
 		model.Info("Initialized transporter."),
@@ -40,10 +42,9 @@ func connectHTTP(schema neoschema.TransporterSchema) tea.Msg {
 var _ Connection = HTTPConnection{}
 
 type HTTPConnection struct {
-	schema      neoschema.TransporterSchema
-	transporter *http.HTTPTransporter
-	recv        *client.Receiver
-	msgChan     chan tea.Msg
+	schema  neoschema.TransporterSchema
+	client  *client.Client
+	msgChan chan tea.Msg
 }
 
 // Send implements [Connection].
@@ -59,17 +60,17 @@ func (h HTTPConnection) Send(endpoint string, request any) tea.Cmd {
 		var err error
 		switch route.GetSendType() {
 		case neoschema.SendOK:
-			err = client.SendOk(h.recv, endpoint, PackedAny{request})
+			err = h.client.SendOk(endpoint, PackedAny{request})
 		case neoschema.SendOKNoRequest:
-			err = client.SendOkNoRequest(h.recv, endpoint)
+			err = h.client.SendOkNoRequest(endpoint)
 		case neoschema.SendRequestResponse:
-			res, err = client.Send[PackedAny](h.recv, endpoint, PackedAny{request})
+			res, err = h.client.Send[PackedAny](endpoint, PackedAny{request})
 		case neoschema.SendNoResponse:
-			err = client.SendNoResponse(h.recv, endpoint, PackedAny{request})
+			err = h.client.SendNoResponse(endpoint, PackedAny{request})
 		case neoschema.SendPing:
-			err = client.SendPing(h.recv, endpoint)
+			err = h.client.SendPing(endpoint)
 		case neoschema.SendNoRequest:
-			res, err = client.SendNoRequest[PackedAny](h.recv, endpoint)
+			res, err = h.client.SendNoRequest[PackedAny](endpoint)
 		}
 
 		// Return an error / the response when we get back stuff from the server

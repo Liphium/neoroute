@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"maps"
 	"slices"
 	"strings"
@@ -180,7 +179,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 		// When sent, switch to the route selector again
 		_, ok := m.schema.Routes[msg.Route]
 		if !ok {
-			return m, model.Plain(model.Error(fmt.Sprintf("Couldn't find route selected.", msg.Route)))
+			return m, model.Plain(model.Error("Couldn't find route selected: %s", msg.Route))
 		}
 
 		return m, m.connection.Send(msg.Route, msg.Value)

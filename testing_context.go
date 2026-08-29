@@ -7,37 +7,6 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-// NewTestingResCtx creates a new ResCtx for testing with the given neo, route and session.
-func NewTestingResCtx[D any, RS msgp.Marshaler](neo *NeoRouter[D], route string, session *Session[D]) *ResCtx[D, RS] {
-	return &ResCtx[D, RS]{
-		Ctx: NewTestingCtx(neo, route, session),
-	}
-}
-
-// NewTestingOkCtx creates a new OkCtx for testing with the given neo, route and session.
-func NewTestingOkCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *OkCtx[D] {
-	return &OkCtx[D]{
-		Ctx: NewTestingCtx(neo, route, session),
-	}
-}
-
-// NewTestingCtx creates a new context for testing with the given neo, route and session.
-func NewTestingCtx[D any](neo *NeoRouter[D], route string, session *Session[D]) *Ctx[D] {
-	return &Ctx[D]{
-		neo:     neo,
-		id:      1,
-		route:   route,
-		session: session,
-	}
-}
-
-// EvaluateCtxTesting runs all the functions that were added to the context with RunAfter.
-func EvaluateCtxTesting[D any](c *Ctx[D]) {
-	for _, fn := range c.runAfter {
-		fn()
-	}
-}
-
 // GetTestingResponse return the response data or an error message for the user or
 // an error from the handler or an error if the response is not correct.
 func GetTestingResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](err error) (RQ, string, error) {

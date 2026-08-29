@@ -114,7 +114,10 @@ func (st *StructType) UnmarshalJSON(data []byte) error {
 		ActualType SchemaType                 `json:"type"`
 		Objects    map[string]json.RawMessage `json:"objects,omitempty"`
 		Name       string                     `json:"name"`
-		Fields     map[string]json.RawMessage `json:"fields"`
+		Fields     []struct {
+			Name string
+			Type json.RawMessage
+		} `json:"fields"`
 	}
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
@@ -132,11 +135,21 @@ func (st *StructType) UnmarshalJSON(data []byte) error {
 	st.Name = aux.Name
 
 	if aux.Fields != nil {
-		decoded, err := decodePackedMap(aux.Fields)
-		if err != nil {
-			return err
+		res := make([]StructField, len(aux.Fields))
+
+		for i, field := range aux.Fields {
+			decoded, err := UnmarshalPackedType(field.Type)
+			if err != nil {
+				return err
+			}
+
+			res[i] = StructField{
+				Name: field.Name,
+				Type: decoded,
+			}
 		}
-		st.Fields = decoded
+
+		st.Fields = res
 	}
 
 	return nil

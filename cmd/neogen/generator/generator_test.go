@@ -38,8 +38,8 @@ func TestGenerate(t *testing.T) {
 	replaces := []string{
 		fmt.Sprintf("github.com/Liphium/neoroute=%s", projectDir),
 		fmt.Sprintf("github.com/Liphium/neoroute/client=%s/client", projectDir),
-		fmt.Sprintf("github.com/Liphium/neoroute/transporter/http=%s/transporter/http", projectDir),
-		fmt.Sprintf("github.com/Liphium/neoroute/transporter/websocket=%s/transporter/websocket", projectDir),
+		fmt.Sprintf("github.com/Liphium/neoroute/client/transporter/http=%s/client/transporter/http", projectDir),
+		fmt.Sprintf("github.com/Liphium/neoroute/client/transporter/websocket=%s/client/transporter/websocket", projectDir),
 	}
 
 	for _, r := range replaces {

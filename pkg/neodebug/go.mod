@@ -1,6 +1,6 @@
 module github.com/Liphium/neoroute/pkg/neodebug
 
-go 1.26
+go 1.27
 
 replace github.com/Liphium/neoroute => ../../
 
@@ -14,10 +14,10 @@ require (
 	charm.land/bubbles/v2 v2.1.1
 	charm.land/bubbletea/v2 v2.0.8
 	charm.land/lipgloss/v2 v2.0.6
-	github.com/Liphium/neoroute v0.8.0
-	github.com/Liphium/neoroute/client v0.6.0
-	github.com/Liphium/neoroute/client/transporter/http v0.7.0
-	github.com/Liphium/neoroute/client/transporter/websocket v0.8.0
+	github.com/Liphium/neoroute v0.0.0
+	github.com/Liphium/neoroute/client v0.0.0
+	github.com/Liphium/neoroute/client/transporter/http v0.0.0
+	github.com/Liphium/neoroute/client/transporter/websocket v0.0.0
 	github.com/tinylib/msgp v1.6.4
 )
 
@@ -32,6 +32,7 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/coder/websocket v1.8.15 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.24 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

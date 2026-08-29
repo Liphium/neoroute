@@ -130,13 +130,18 @@ func (at *ArrayType) CleanRegistries(root bool) {
 type StructType struct {
 	*BasicType
 
-	Name   string                `json:"name"`
-	Fields map[string]PackedType `json:"fields"`
+	Name   string        `json:"name"`
+	Fields []StructField `json:"fields"`
+}
+
+type StructField struct {
+	Name string
+	Type PackedType
 }
 
 func (st *StructType) CleanRegistries(root bool) {
 	for _, v := range st.Fields {
-		v.CleanRegistries(false)
+		v.Type.CleanRegistries(false)
 	}
 	st.BasicType.CleanRegistries(root)
 }

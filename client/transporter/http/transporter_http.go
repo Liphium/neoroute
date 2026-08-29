@@ -13,20 +13,13 @@ import (
 	"github.com/Liphium/neoroute/client"
 )
 
-type HTTPTransporter struct {
-	sender    client.Sender
-	sendMutex sync.Mutex
-}
+// ApplyHTTP makes a sender send Neoroute requests over HTTP, using the given method and URL.
+func ApplyHTTP(c *client.Client, method string, u *url.URL) {
+	sendMutex := sync.Mutex{}
 
-func NewHTTPTransporter(s client.Sender, method string, u *url.URL) *HTTPTransporter {
-
-	t := &HTTPTransporter{
-		sender: s,
-	}
-
-	t.sender.SetSendFunc(func(data []byte) error {
-		t.sendMutex.Lock()
-		defer t.sendMutex.Unlock()
+	c.SetSendFunc(func(data []byte) error {
+		sendMutex.Lock()
+		defer sendMutex.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 		defer cancel()
 
@@ -53,10 +46,8 @@ func NewHTTPTransporter(s client.Sender, method string, u *url.URL) *HTTPTranspo
 		}
 
 		// Let sender handle the response routing
-		go t.sender.Handle(bodyBytes)
+		go c.Handle(bodyBytes)
 
 		return nil
 	})
-
-	return t
 }

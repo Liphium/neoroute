@@ -3,6 +3,7 @@ package connector
 import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/pkg/neodebug/config"
 	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 
@@ -20,7 +21,7 @@ func Connect(transporter neoschema.TransporterSchema) tea.Cmd {
 	return func() tea.Msg {
 		switch transporter.Type {
 		case neoschema.TransporterHTTP:
-			return connectHTTP(transporter)
+			return connectHTTP(config.Config.TransporterMethod, transporter)
 		case neoschema.TransporterWebSocket:
 			return connectWebsocket(transporter)
 		}

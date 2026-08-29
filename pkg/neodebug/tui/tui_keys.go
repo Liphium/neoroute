@@ -87,8 +87,9 @@ func (m tui) renderKeyHelp(help FullKeyHelp) string {
 	}
 
 	var b strings.Builder
-	b.WriteString(titleStyle.Render(help.Title) + "\n")
-	b.WriteString(m.help.FullHelpView(help.Keys)) // TODO: Custom rendering
+	b.WriteString(titleStyle.Render(help.Title))
+	b.WriteString("\n")
+	b.WriteString(m.help.FullHelpView(help.Keys))
 	return b.String() + "\n\n"
 }
 

@@ -19,18 +19,21 @@ import (
 type WebSocketTransporter struct {
 	conn      *ws.Conn
 	done      chan struct{}
-	receiver  *client.Receiver
+	client    *client.Client
 	sendMutex sync.Mutex
 }
 
-func NewWebSocketTransporter(r *client.Receiver) *WebSocketTransporter {
-
+// NewWebSocketTransporter creates a new transporter for connecting to the server over WebSocket.
+func NewWebSocketTransporter(c *client.Client) *WebSocketTransporter {
 	return &WebSocketTransporter{
-		receiver:  r,
+		client:    c,
 		sendMutex: sync.Mutex{},
 	}
 }
 
+// Connect establishes a connection to the server.
+//
+// The returned channel will get a struct sent through it when the connection is closed.
 func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	w.done = make(chan struct{})
 
@@ -38,6 +41,11 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	conn, resp, err := ws.Dial(ctx, url.String(), nil)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
 	if err != nil {
 
 		if resp != nil {
@@ -55,7 +63,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 		return nil, fmt.Errorf("failed to connect to websocket server: %v", err)
 	}
 	w.conn = conn
-	w.receiver.SetSendFunc(func(data []byte) error {
+	w.client.SetSendFunc(func(data []byte) error {
 		w.sendMutex.Lock()
 		defer w.sendMutex.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
@@ -66,6 +74,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	return w.done, nil
 }
 
+// Close closes the WebSocket connection.
 func (w *WebSocketTransporter) Close() error {
 	return w.conn.Close(ws.StatusNormalClosure, "")
 }
@@ -90,8 +99,7 @@ func (w *WebSocketTransporter) ws(conn *ws.Conn) {
 	for {
 		messageType, msg, err := conn.Read(context.Background())
 		if err != nil {
-			var closeErr ws.CloseError
-			if errors.As(err, &closeErr) {
+			if closeErr, ok := errors.AsType[ws.CloseError](err); ok {
 				client.Logger.Info("websocket connection closed by remote",
 					"code", closeErr.Code,
 					"reason", closeErr.Reason,
@@ -109,6 +117,6 @@ func (w *WebSocketTransporter) ws(conn *ws.Conn) {
 		}
 
 		// Let receiver handle message
-		go w.receiver.Handle(msg)
+		go w.client.Handle(msg)
 	}
 }

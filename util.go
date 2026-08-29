@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// PrintRecoveredPanic logs a recovered panic from a transporter handler
+// Use this in a defer statement to catch panics in transporter handlers
+//
+// THIS FUNCTION IS INTENDED TO BE USED IN TRANSPORTER IMPLEMENTATIONS
 func PrintRecoveredPanic(transporterType string, rec any) {
 	Logger.Error("panic occurred in "+transporterType+" handler", "err", rec)
 	Logger.Debug(string(debug.Stack()))
@@ -17,20 +21,18 @@ func splitRoute(route string) []string {
 func buildSubroutes(route string) []string {
 	routeParts := splitRoute(cleanRoute(route))
 	subRoutes := []string{}
-	for i := 0; i < len(routeParts); i++ {
-		subroute := ""
+	for i := range routeParts {
+		var subroute strings.Builder
 		for j := 0; j <= i; j++ {
-			subroute += string(RouteSeparator) + routeParts[j]
+			subroute.WriteString(string(RouteSeparator))
+			subroute.WriteString(routeParts[j])
 		}
-		subRoutes = append(subRoutes, cleanRoute(subroute))
+		subRoutes = append(subRoutes, cleanRoute(subroute.String()))
 	}
 	return append([]string{""}, subRoutes...)
 }
 
 func cleanRoute(route string) string {
-
-	// Remove leading and trailing separators
-	route = strings.Trim(route, string(RouteSeparator))
 
 	route = strings.ToLower(route)
 
@@ -61,5 +63,8 @@ func cleanRoute(route string) string {
 		result.WriteRune(runes[i])
 	}
 
-	return result.String()
+	// Remove leading and trailing separators
+	route = strings.Trim(result.String(), string(RouteSeparator))
+
+	return route
 }

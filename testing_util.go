@@ -20,3 +20,34 @@ func sameElements[T comparable](slice1, slice2 []T) bool {
 
 	return true
 }
+
+// allOrderedSubsets returns all ordered subsets of the given slice.
+func allOrderedSubsets[T any](items []T) [][]T {
+	var result [][]T
+	var current []T
+	visited := make([]bool, len(items))
+
+	var backtrack func()
+	backtrack = func() {
+		if len(current) > 0 {
+			combination := make([]T, len(current))
+			copy(combination, current)
+			result = append(result, combination)
+		}
+
+		for i := range items {
+			if !visited[i] {
+				visited[i] = true
+				current = append(current, items[i])
+
+				backtrack()
+
+				current = current[:len(current)-1]
+				visited[i] = false
+			}
+		}
+	}
+
+	backtrack()
+	return result
+}

@@ -71,8 +71,8 @@ import "github.com/Liphium/neoroute/neoschema"
 {{- $struct := toStruct $obj -}}
 {{- if $struct }}
 type {{ camel $name true }} struct {
-{{- range $fName, $fType := $struct.Fields }}
-	{{ camel $fName true }} {{ getType $fType }} ` + "`msg:\"{{ $fName }}\"`" + `
+{{- range $field := $struct.Fields }}
+	{{ camel $field.Name true }} {{ getType $field.Type }} ` + "`msg:\"{{ $field.Name }}\"`" + `
 {{- end }}
 }
 {{- end }}
@@ -90,31 +90,33 @@ import (
 )
 
 type {{ .Object.Name }} struct {
+	{{- if ne .Object.Type "http" }}
 	*{{ .Object.Type }}.{{ .Object.TypeName }}Transporter
-	receiver *client.Receiver
+	{{- end }}
+	client *client.Client
 }
 
 {{ if eq .Object.Type "http" -}}
 func New{{ .Object.Name }}(config client.Config, method string, u *url.URL) *{{ .Object.Name }} {
-	r := client.NewReceiver(config)
+	c := client.NewClient(config)
+	http.ApplyHTTP(c, method, u)
 	return &{{ .Object.Name }}{
-		HTTPTransporter: http.NewHTTPTransporter(r, method, u),
-		receiver: r,
+		client: c,
 	}
 }
 {{- else -}}
 func New{{ .Object.Name }}(config client.Config) *{{ .Object.Name }} {
-	r := client.NewReceiver(config)
+	c := client.NewClient(config)
 	return &{{ .Object.Name }}{
-		WebSocketTransporter: websocket.NewWebSocketTransporter(r),
-		receiver: r,
+		WebSocketTransporter: websocket.NewWebSocketTransporter(c),
+		client: c,
 	}
 }
 {{- end }}
 
 {{ range $name, $event := .Object.Events }}
 func (c *{{ $.Object.Name }}) Receive{{ camel $name true }}(handler func(event {{ getType $event }})) {
-	client.Receive[{{ getType $event }}, *{{ getType $event }}](c.receiver, "{{ $name }}", func(c *client.Ctx, event {{ getType $event }}) {
+	c.client.Receive[{{ getType $event }}, *{{ getType $event }}]("{{ $name }}", func(c *client.Ctx, event {{ getType $event }}) {
 		handler(event)
 	})
 }
@@ -124,17 +126,17 @@ func (c *{{ $.Object.Name }}) Receive{{ camel $name true }}(handler func(event {
 func (c *{{ $.Object.Name }}) Send{{ camel $name true }}({{- if $route.HasRequest }}payload {{ getType $route.Request }}{{ end -}}) ({{- if $route.HasResponse }}{{ getType $route.Response }}, {{ end -}}error) {
 	{{- $sendType := $route.GetSendType -}}
 	{{- if eq $sendType $.Object.Const.SendRequestResponse }}
-	return client.Send[{{ getType $route.Response }}](c.receiver, "{{ $name }}", payload)
+	return c.client.Send[{{ getType $route.Response }}]("{{ $name }}", payload)
 	{{- else if eq $sendType $.Object.Const.SendOK }}
-	return client.SendOk(c.receiver, "{{ $name }}", payload)
+	return c.client.SendOk("{{ $name }}", payload)
 	{{- else if eq $sendType $.Object.Const.SendOKNoRequest }}
-	return client.SendOkNoRequest(c.receiver, "{{ $name }}")
+	return c.client.SendOkNoRequest("{{ $name }}")
 	{{- else if eq $sendType $.Object.Const.SendNoRequest }}
-	return client.SendNoRequest[{{ getType $route.Response }}](c.receiver, "{{ $name }}")
+	return c.client.SendNoRequest[{{ getType $route.Response }}]("{{ $name }}")
 	{{- else if eq $sendType $.Object.Const.SendNoResponse }}
-	return client.SendNoResponse(c.receiver, "{{ $name }}", payload)
+	return c.client.SendNoResponse("{{ $name }}", payload)
 	{{- else if eq $sendType $.Object.Const.SendPing }}
-	return client.SendPing(c.receiver, "{{ $name }}")
+	return c.client.SendPing("{{ $name }}")
 	{{- end }}
 }
 {{ end }}`
@@ -164,7 +166,7 @@ func NewGoConfig() (string, engine.LanguageConfig) {
 						st, ok := t.(*neoschema.StructType)
 						if ok {
 							for _, field := range st.Fields {
-								if mapped, ok := goTypeMap[field.Type()]; ok && strings.Contains(mapped, "neoschema") {
+								if mapped, ok := goTypeMap[field.Type.Type()]; ok && strings.Contains(mapped, "neoschema") {
 									return true
 								}
 							}

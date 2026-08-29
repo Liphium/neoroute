@@ -13,10 +13,10 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 
 		// Create the children
 		children := make([]StructField, 0, len(schema.Fields))
-		for name, field := range schema.Fields {
+		for _, field := range schema.Fields {
 			children = append(children, StructField{
-				Name: name,
-				Node: createNode(field, registry),
+				Name: field.Name,
+				Node: createNode(field.Type, registry),
 			})
 		}
 

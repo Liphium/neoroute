@@ -63,7 +63,6 @@ func (m *MapNode) Init() {
 // redoBindings configures vertical movement across map entries.
 func (m *MapNode) redoBindings() {
 	for i := range m.items {
-		i := i
 		m.items[i].Key.SetSuffix(secondaryTextStyle.Render(":"))
 		m.items[i].Value.SetSuffix(secondaryTextStyle.Render(","))
 

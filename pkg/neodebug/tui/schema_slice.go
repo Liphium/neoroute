@@ -312,7 +312,8 @@ func (s *SliceNode) View() (*tea.Cursor, string) {
 
 	// Write the first selection line (in case there)
 	if s.manageSelection {
-		b.WriteString(" " + highlightStyle.Render("/* a to add, c to clear */"))
+		b.WriteString(" ")
+		b.WriteString(highlightStyle.Render("/* a to add, c to clear */"))
 	}
 
 	// Check for collapsed list
@@ -337,10 +338,12 @@ func (s *SliceNode) View() (*tea.Cursor, string) {
 			}
 			prefixStyle = textStyle
 		}
-		fb.WriteString(prefixStyle.Render(prefix) + v)
+		fb.WriteString(prefixStyle.Render(prefix))
+		fb.WriteString(v)
 
 		// The field builder is rendered here to make sure the padding is applied to everything
-		b.WriteString(structChildStyle.Render(fb.String()) + "\n")
+		b.WriteString(structChildStyle.Render(fb.String()))
+		b.WriteString("\n")
 	}
 
 	// Write the closing bracket for the struct

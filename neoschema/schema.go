@@ -170,7 +170,7 @@ func (g *Generator) Generate() (Schema, error) {
 // Will parse command line arguments to see if --neo-generate is set.
 //
 // If it is, it will print the schema and exit. If not, execution will resume like normal. This function is meant as a shorthand to easily make your program use neoroute's generation without having to introduce weird stuff yourself and having a standard across all neoroute projects.
-func (g *Generator) PrintOrPanic() {
+func (g *Generator) PrintIfDesired() {
 
 	// Check for the flag in the execution arguments
 	found := false

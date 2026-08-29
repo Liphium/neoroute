@@ -6,8 +6,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-// Context allows helper functions to accept Ctx, ResCtx, or
-// OkCtx interchangeably to extract their underlying data.
+// Context allows helper functions to accept Ctx, ResCtx, or OkCtx interchangeably to extract their underlying data.
 type Context[D any] interface {
 	BaseCtx() *Ctx[D] // BaseCtx returns the underlying Ctx, allowing access to the session, request data, etc.
 }
@@ -17,7 +16,6 @@ type Context[D any] interface {
 // --------------------------------------------------------------------------------
 
 type Ctx[D any] struct {
-	neo      *NeoRouter[D]
 	id       int         // request id, used for responses
 	reqData  []byte      // data field from Request struct
 	route    string      // the route that matched the request
@@ -25,23 +23,23 @@ type Ctx[D any] struct {
 	runAfter []func()    // functions to run after the handler finishes, used for cleanup
 }
 
+// BaseCtx returns the underlying base Ctx.
 func (c *Ctx[D]) BaseCtx() *Ctx[D] {
 	return c
 }
 
-func (c *Ctx[D]) Id() int {
-	return c.id
-}
-
+// Route returns the route that matched the request.
 func (c *Ctx[D]) Route() string {
 	return c.route
 }
 
+// Session returns the client's session.
 func (c *Ctx[D]) Session() *Session[D] {
 	return c.session
 }
 
 // RunAfter allows handlers to register functions that will be executed after the response is sent.
+// This function can be called multiple times, the functions will be executed in the order they are registered.
 func (c *Ctx[D]) RunAfter(fn func(), fns ...func()) *Ctx[D] {
 	c.runAfter = append(c.runAfter, fn)
 	if len(fns) > 0 {
@@ -64,10 +62,12 @@ func (c *Ctx[D]) respondError(msg string) response {
 // Response Context
 // --------------------------------------------------------------------------------
 
+// ResCtx is the context for a request with a response type.
 type ResCtx[D any, RS msgp.Marshaler] struct {
 	*Ctx[D]
 }
 
+// BaseCtx returns the underlying base Ctx.
 func (c *ResCtx[D, RS]) BaseCtx() *Ctx[D] {
 	return c.Ctx
 }
@@ -90,10 +90,12 @@ func (c *ResCtx[D, RS]) Respond(resp RS) error {
 // OK Context (Used by RouteOk / RouteOkNoRequest)
 // -----------------------------------------------------------------------------
 
+// OkCtx is the context for request without response type.
 type OkCtx[D any] struct {
 	*Ctx[D]
 }
 
+// BaseCtx returns the underlying base Ctx.
 func (c *OkCtx[D]) BaseCtx() *Ctx[D] {
 	return c.Ctx
 }
