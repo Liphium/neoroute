@@ -178,6 +178,41 @@ func TestRouter_Use(t *testing.T) {
 			route: "some-route",
 			want:  []int{1, 2},
 		},
+		{
+			name: "middleware does not apply to route",
+			routingFunc: func(r *Router[[]int]) {
+				r.Use("some-other-route", middlewareFunc(1))
+				r.RoutePing("some-route", func(c *Ctx[[]int]) { addPos(c, 2) })
+			},
+			route: "some-route",
+			want:  []int{2},
+		},
+		{
+			name: "multiple middlewares on one route",
+			routingFunc: func(r *Router[[]int]) {
+				r.Use("some-route", middlewareFunc(1))
+				r.Use("some-route", middlewareFunc(2))
+				r.Use("some-route", middlewareFunc(3))
+				r.RoutePing("some-route", func(c *Ctx[[]int]) { addPos(c, 4) })
+			},
+			route: "some-route",
+			want:  []int{1, 2, 3, 4},
+		},
+		{
+			name: "middlewares on different levels",
+			routingFunc: func(r *Router[[]int]) {
+				r.Use("", middlewareFunc(1))
+				r.Use("some-route", middlewareFunc(10))
+				group := r.Group("some-group")
+				group.Use("", middlewareFunc(2))
+				group.Use("some-route", middlewareFunc(3))
+				route := group.RoutePing("some-route", func(c *Ctx[[]int]) { addPos(c, 5) })
+				route.Use("child-route", middlewareFunc(11))
+				route.Use("", middlewareFunc(4))
+			},
+			route: "some-group/some-route",
+			want:  []int{1, 2, 3, 4, 5},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

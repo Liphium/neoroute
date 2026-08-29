@@ -138,7 +138,7 @@ func RouteNoResponseTest[D any, RQ msgp.Marshaler](r *Router[D], session *Sessio
 	executeRunAfters(runAfterFuncs)
 
 	if respBytes != nil {
-		return fmt.Errorf("no received response from route, make sure it's actually of type RouteNoResponse")
+		return fmt.Errorf("received response from route, make sure it's actually of type RouteNoResponse; responseBytes: %s", respBytes)
 	}
 	return nil
 }
@@ -157,7 +157,7 @@ func RoutePingTest[D any](r *Router[D], session *Session[D], route string) error
 	executeRunAfters(runAfterFuncs)
 
 	if respBytes != nil {
-		return fmt.Errorf("no received response from route, make sure it's actually of type RoutePing")
+		return fmt.Errorf("received response from route, make sure it's actually of type RoutePing; responseBytes: %s", respBytes)
 	}
 	return nil
 }
