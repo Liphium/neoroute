@@ -14,10 +14,10 @@ require (
 	charm.land/bubbles/v2 v2.2.1
 	charm.land/bubbletea/v2 v2.0.9
 	charm.land/lipgloss/v2 v2.0.6
-	github.com/Liphium/neoroute v0.8.0
-	github.com/Liphium/neoroute/client v0.6.0
-	github.com/Liphium/neoroute/client/transporter/http v0.5.0
-	github.com/Liphium/neoroute/client/transporter/websocket v0.5.1
+	github.com/Liphium/neoroute v1.0.0
+	github.com/Liphium/neoroute/client v1.0.0
+	github.com/Liphium/neoroute/client/transporter/http v1.0.0
+	github.com/Liphium/neoroute/client/transporter/websocket v1.0.0
 	github.com/tinylib/msgp v1.6.4
 )
 
