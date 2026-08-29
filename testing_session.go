@@ -11,21 +11,21 @@ func NewTestingSession[D any](data D, sessionId string) *Session[D] {
 }
 
 // NewTestingResCtx creates a new ResCtx with the provided route and session.
-func NewTestingResCtx[D any, RS msgp.Marshaler](s *Session[D], route string) *ResCtx[D, RS] {
+func (s *Session[D]) NewTestingResCtx[RS msgp.Marshaler](route string) *ResCtx[D, RS] {
 	return &ResCtx[D, RS]{
-		Ctx: NewTestingCtx(s, route),
+		Ctx: s.NewTestingCtx(route),
 	}
 }
 
 // NewTestingOkCtx creates a new OkCtx for testing with the provided route and session.
-func NewTestingOkCtx[D any](s *Session[D], route string) *OkCtx[D] {
+func (s *Session[D]) NewTestingOkCtx(route string) *OkCtx[D] {
 	return &OkCtx[D]{
-		Ctx: NewTestingCtx(s, route),
+		Ctx: s.NewTestingCtx(route),
 	}
 }
 
 // NewTestingCtx creates a new context for testing with the provided route and session.
-func NewTestingCtx[D any](s *Session[D], route string) *Ctx[D] {
+func (s *Session[D]) NewTestingCtx(route string) *Ctx[D] {
 	return &Ctx[D]{
 		id:      1,
 		route:   route,
@@ -34,7 +34,7 @@ func NewTestingCtx[D any](s *Session[D], route string) *Ctx[D] {
 }
 
 // EvaluateCtxTesting runs all the functions that were added to the context with RunAfter.
-func EvaluateCtxTesting[D any](c *Ctx[D]) {
+func (c *Ctx[D]) EvaluateCtxTesting() {
 	for _, fn := range c.runAfter {
 		fn()
 	}
