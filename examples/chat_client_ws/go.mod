@@ -7,8 +7,8 @@ replace github.com/Liphium/neoroute/client => ../../client
 replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
 
 require (
-	github.com/Liphium/neoroute/client v0.0.0
-	github.com/Liphium/neoroute/client/transporter/websocket v0.0.0
+	github.com/Liphium/neoroute/client v0.6.0
+	github.com/Liphium/neoroute/client/transporter/websocket v0.5.1
 	github.com/tinylib/msgp v1.6.4
 )
 

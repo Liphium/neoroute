@@ -1,0 +1,16 @@
+{
+	"tag-separator": "/",
+	"packages": {
+		".": {
+			"release-type": "go",
+			"include-v-in-tag": true,
+			"exclude-paths": ["client", "transporter", "examples", "pkg"]
+		},
+		"client": {
+			"release-type": "go",
+			"include-v-in-tag": true,
+			"component": "client",
+			"exclude-paths": ["client/transporter"]
+		}
+	}
+}
