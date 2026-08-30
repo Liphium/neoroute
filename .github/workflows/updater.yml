@@ -11,10 +11,10 @@ permissions:
 
 jobs:
   updater:
-    if: ${{ !startsWith(github.event.head_commit.message, 'Merge pull request') }}
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          skip-github-release: true

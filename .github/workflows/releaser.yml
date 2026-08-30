@@ -11,26 +11,37 @@ permissions:
 
 jobs:
   releaser:
-    if: startsWith(github.event.head_commit.message, 'Merge pull request')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
+      # Same mechanism release-please uses: find merged PRs labeled "autorelease: pending"
+      - name: Check for merged release PR
+        id: pr-check
+        run: |
+          COUNT=$(gh pr list --state merged --label "autorelease: pending" --limit 1 --json number -q 'length')
+          echo "run=$([[ $COUNT -gt 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       # Release stuff from the first step in the dependency tree
       - uses: googleapis/release-please-action@v4
+        if: steps.pr-check.outputs.run == 'true'
         id: release-1
         with:
           config-file: release-please-first.json
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-go@v7
+        if: steps.pr-check.outputs.run == 'true'
         with:
           go-version-file: go.mod
 
       # Commit with the newest version first + run all steps
       - name: Run release pipeline
+        if: steps.pr-check.outputs.run == 'true'
         run: bash scripts/release-pipe.sh "${{ github.head_ref || github.ref_name }}"
         env:
           GH_TOKEN: ${{ github.token }}

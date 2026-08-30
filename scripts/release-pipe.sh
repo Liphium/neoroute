@@ -10,4 +10,3 @@ export GH_TOKEN="${GH_TOKEN:?GH_TOKEN not set}"
 
 node scripts/get-tree.js 1 "$REF" # transporters
 node scripts/get-tree.js 2 "$REF" # neodebug
-node scripts/get-tree.js 3 "$REF" # chat_server example

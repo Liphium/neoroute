@@ -18,7 +18,6 @@ const DEPENDENCY_TREE = [
 		"transporter/websocket",
 	],
 	["pkg/neodebug"],
-	["examples/chat_server"],
 ];
 
 const MODULE_PREFIX = "github.com/Liphium/neoroute";
