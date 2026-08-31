@@ -3,7 +3,6 @@ package neoschema
 import (
 	"fmt"
 	"reflect"
-
 )
 
 func notSupportedError(kind reflect.Kind) error {
