@@ -1,5 +1,8 @@
 # Neoroute
 
+> [!WARNING]
+> Even though we released Neoroute as 1.0.0 recently, there might still be bugs as we have not done large scale testing yet. We expect Neoroute to become more stable over the coming weeks and months. When we're confident enough in the framework, we'll remove this warning.
+
 ![Coverage](https://img.shields.io/badge/Coverage-49.1%25-yellow)
 
 Neoroute is a **batteries-included remote procedure call (RPC) framework** for Golang, running exclusively on top of Web primitives (currently HTTP and WebSocket). With our rich tooling, you get **code generation**, an **interactive debugger** for sending requests and a lot more with minimal setup. We have everything you love about RPC and web frameworks, all in one **fully integrated package and ecosystem**.
