@@ -13,7 +13,8 @@ func NewTestingSession[D any](data D, sessionId string) *Session[D] {
 // NewTestingResCtx creates a new ResCtx with the provided route and session.
 func (s *Session[D]) NewTestingResCtx[RS msgp.Marshaler](route string) *ResCtx[D, RS] {
 	return &ResCtx[D, RS]{
-		Ctx: s.NewTestingCtx(route),
+		Ctx:              s.NewTestingCtx(route),
+		nilResponseCheck: nilResponseCheck[RS](),
 	}
 }
 

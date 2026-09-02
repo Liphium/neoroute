@@ -50,7 +50,7 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 		st.BasicType.Objects[st.Name] = st
 
 		// Go through all struct fields and build their schemas
-		st.Fields = make([]StructField, t.NumField())
+		st.Fields = []StructField{}
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 
@@ -67,10 +67,10 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 				return &BasicType{}, err
 			}
 
-			st.Fields[i] = StructField{
+			st.Fields = append(st.Fields, StructField{
 				Name: msgTag,
 				Type: packed,
-			}
+			})
 		}
 
 		generated = ReferenceType{

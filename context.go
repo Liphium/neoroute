@@ -65,6 +65,10 @@ func (c *Ctx[D]) respondError(msg string) response {
 // ResCtx is the context for a request with a response type.
 type ResCtx[D any, RS msgp.Marshaler] struct {
 	*Ctx[D]
+
+	// nilResponseCheck checks if the response is a nil value (pointer or interface).
+	// Set by the route registration if the response type can be nil.
+	nilResponseCheck func(RS) bool
 }
 
 // BaseCtx returns the underlying base Ctx.
@@ -74,6 +78,11 @@ func (c *ResCtx[D, RS]) BaseCtx() *Ctx[D] {
 
 // Respond sends a successful response with the provided data.
 func (c *ResCtx[D, RS]) Respond(resp RS) error {
+	// Make sure the response is never nil, as nil is not encodable.
+	if c.nilResponseCheck != nil && c.nilResponseCheck(resp) {
+		return fmt.Errorf("response must never be nil, as nil is not encodable")
+	}
+
 	respData, err := resp.MarshalMsg(nil)
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %v", err)
