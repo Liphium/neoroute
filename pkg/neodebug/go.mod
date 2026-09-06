@@ -17,7 +17,7 @@ require (
 	github.com/Liphium/neoroute v1.0.1
 	github.com/Liphium/neoroute/client v1.0.0
 	github.com/Liphium/neoroute/client/transporter/http v1.0.0
-	github.com/Liphium/neoroute/client/transporter/websocket v1.0.1
+	github.com/Liphium/neoroute/client/transporter/websocket v1.0.2
 	github.com/tinylib/msgp v1.6.4
 )
 
