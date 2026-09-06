@@ -42,7 +42,7 @@ func (w *WebSocketTransporter) Connect(url *url.URL) (chan struct{}, error) {
 	defer cancel()
 	conn, resp, err := ws.Dial(ctx, url.String(), nil)
 	defer func() {
-		if resp.Body != nil {
+		if resp != nil && resp.Body != nil {
 			resp.Body.Close()
 		}
 	}()

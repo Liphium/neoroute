@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -120,7 +121,8 @@ func (g *Generator) Generate() (Schema, error) {
 			schemas := reg.GetSchemas()
 
 			for i, event := range events {
-				packedEvents[event], err = BuildPackedFor(schemas[i]())
+				// Make sure to clean as well cause first thing can't be a pointer
+				packedEvents[event], err = BuildPackedFor(cleanType(schemas[i]()))
 				if err != nil {
 					return Schema{}, err
 				}
@@ -132,13 +134,15 @@ func (g *Generator) Generate() (Schema, error) {
 		for route, routeData := range transporter.GetSchema() {
 			var request, response PackedType
 			if routeData.HasRequest {
-				request, err = BuildPackedFor(routeData.Request)
+				// Make sure to clean as well cause first thing can't be a pointer
+				request, err = BuildPackedFor(cleanType(routeData.Request))
 				if err != nil {
 					return Schema{}, err
 				}
 			}
 			if routeData.HasResponse {
-				response, err = BuildPackedFor(routeData.Response)
+				// Make sure to clean as well cause first thing can't be a pointer
+				response, err = BuildPackedFor(cleanType(routeData.Response))
 				if err != nil {
 					return Schema{}, err
 				}
@@ -165,6 +169,16 @@ func (g *Generator) Generate() (Schema, error) {
 		Generator:    GeneratorName,
 		Transporters: packedTransporters,
 	}, nil
+}
+
+// cleanType is a helper function that removes the first pointer (not supported for encoding in requests, responses, events)
+func cleanType(t reflect.Type) reflect.Type {
+	// Clean if a pointer by default (can't be encoded, but are supported by neoroute)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	return t
 }
 
 // Will parse command line arguments to see if --neo-generate is set.

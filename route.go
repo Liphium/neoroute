@@ -29,7 +29,7 @@ type RouteData[D any] struct {
 //
 // Make sure the handler never returns nil, otherwise the router will panic.
 func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *ResCtx[D, RS], req RQ) error) *Router[D] {
-	panicIfPointer[RS](route)
+	nilCheck := nilResponseCheck[RS]()
 
 	return addRoute(r, route, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
@@ -44,7 +44,8 @@ func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](r
 			}
 
 			ctx := &ResCtx[D, RS]{
-				Ctx: c,
+				Ctx:              c,
+				nilResponseCheck: nilCheck,
 			}
 
 			// Let the handler handle it
@@ -64,13 +65,14 @@ func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](r
 //
 // This can be useful if you only want to receive the request and don't want any data.
 func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func(c *ResCtx[D, RS]) error) *Router[D] {
-	panicIfPointer[RS](route)
+	nilCheck := nilResponseCheck[RS]()
 
 	return addRoute(r, route, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
 			ctx := &ResCtx[D, RS]{
-				Ctx: c,
+				Ctx:              c,
+				nilResponseCheck: nilCheck,
 			}
 
 			// Let the handler handle it
@@ -193,10 +195,19 @@ func (r *Router[D]) RoutePing(route string, handler func(c *Ctx[D])) *Router[D] 
 	})
 }
 
-func panicIfPointer[T any](route string) {
-	t := reflect.TypeFor[T]()
-	if t.Kind() == reflect.Pointer {
-		panic(fmt.Sprintf("%s: pointers are not allowed in routes due to nil not being encodable, use a struct instead of a pointer", route))
+// nilResponseCheck returns a function that checks if a response value is nil (either a typed nil pointer or a nil interface value), as nil is not encodable.
+//
+// Returns nil if the response type cannot be nil, so no runtime check is needed.
+//
+// A single reflect call is done at route registration time to determine if a check is necessary.
+func nilResponseCheck[RS msgp.Marshaler]() func(RS) bool {
+	if reflect.TypeFor[RS]().Kind() != reflect.Pointer {
+		return nil
+	}
+
+	return func(v RS) bool {
+		var zero RS
+		return any(v) == any(zero)
 	}
 }
 
