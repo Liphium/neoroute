@@ -16,6 +16,11 @@ jobs:
     outputs:
       run: ${{ steps.pr-check.outputs.run }}
     steps:
+      # Needed fsr (for gh command to work)
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
       # Same mechanism release-please uses: find merged PRs labeled "autorelease: pending"
       - name: Check for merged release PR
         id: pr-check
