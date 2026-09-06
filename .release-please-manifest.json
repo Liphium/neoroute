@@ -1,8 +1,8 @@
 {
-    ".": "1.0.0",
+    ".": "1.0.1",
     "client": "1.0.0",
     "client/transporter/http": "1.0.0",
-    "client/transporter/websocket": "1.0.0",
+    "client/transporter/websocket": "1.0.1",
     "transporter/http": "1.0.0",
     "transporter/websocket": "1.0.0",
     "pkg/neodebug": "1.0.0",
