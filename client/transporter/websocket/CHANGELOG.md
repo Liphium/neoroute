@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.0.0](https://github.com/Liphium/neoroute/compare/client/transporter/websocket/v1.0.1...client/transporter/websocket/v2.0.0) (2026-09-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* Upgrade everything to Go 1.27 generic methods
+* move transporter to extra modules, to avoid unused imports
+
+### Features
+
+* **client/websocket:** use replacer to always use the newest version of neoroute with new releases ([951f728](https://github.com/Liphium/neoroute/commit/951f728dec27256cb89b005275c601ebcac6ae63))
+
+
+### Bug Fixes
+
+* **client/websocket:** make module importable ([d2e3ea7](https://github.com/Liphium/neoroute/commit/d2e3ea7ec38fbdde1888e0a567cc4793192ae407))
+* **client/websocket:** print dial error when read fails ([3c28c07](https://github.com/Liphium/neoroute/commit/3c28c07d1b028864c602c246036b18a1cea010af))
+* Make routes support pointers due to new generics ([#32](https://github.com/Liphium/neoroute/issues/32)) ([97e4cc2](https://github.com/Liphium/neoroute/commit/97e4cc2f4d4952226303df1e03a677a17eb94e65))
+* **schema:** Ignore pointers on first type ([97e4cc2](https://github.com/Liphium/neoroute/commit/97e4cc2f4d4952226303df1e03a677a17eb94e65))
+* trigger release manually to test it ([3f0c5ce](https://github.com/Liphium/neoroute/commit/3f0c5ce22a42fc95a757d204c8cb66d287a394ad))
+* Various issues introduced through 1.0.0 ([97e4cc2](https://github.com/Liphium/neoroute/commit/97e4cc2f4d4952226303df1e03a677a17eb94e65))
+
+
+### Code Refactoring
+
+* move transporter to extra modules, to avoid unused imports ([652ccd7](https://github.com/Liphium/neoroute/commit/652ccd7c425245255240e5a2918352bfc8f75d2f))
+* Upgrade everything to Go 1.27 generic methods ([67f0a91](https://github.com/Liphium/neoroute/commit/67f0a91e478ef21047696c4c210d9ea4c2ae4d9a))
+
 ## [1.0.1](https://github.com/Liphium/neoroute/compare/client/transporter/websocket/v1.0.0...client/transporter/websocket/v1.0.1) (2026-09-06)
 
 
