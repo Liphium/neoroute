@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/Liphium/neoroute/compare/v1.0.1...v1.0.2) (2026-09-06)
+
+
+### Bug Fixes
+
+* updater only adds existing go.sum files; use !cancelled() ([5e627e1](https://github.com/Liphium/neoroute/commit/5e627e188ec79b08a965b351db5a8a8b703d9e2f))
+
 ## [1.0.1](https://github.com/Liphium/neoroute/compare/v1.0.0...v1.0.1) (2026-09-06)
 
 
