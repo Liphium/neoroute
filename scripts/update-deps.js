@@ -114,7 +114,9 @@ function main() {
 	}
 
 	log("Changes detected, committing...");
-	const files = DEPENDENCY_TREE.flat().flatMap((m) => [`${m}/go.mod`, `${m}/go.sum`]);
+	const files = DEPENDENCY_TREE.flat()
+		.flatMap((m) => [`${m}/go.mod`, `${m}/go.sum`])
+		.filter((f) => fs.existsSync(f));
 	run(`git add ${files.join(" ")}`);
 	run('git commit -m "chore: upgrade dependencies"');
 	run(`git pull --rebase origin ${branch}`);
