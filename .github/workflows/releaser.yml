@@ -10,13 +10,12 @@ permissions:
   pull-requests: write
 
 jobs:
-  releaser:
+  # Check whether the push was a merged release PR
+  checker:
     runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.pr-check.outputs.run }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
       # Same mechanism release-please uses: find merged PRs labeled "autorelease: pending"
       - name: Check for merged release PR
         id: pr-check
@@ -26,22 +25,39 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      # Release stuff from the first step in the dependency tree
+  # Merged PR -> Release stuff in dependency tree formation
+  releaser:
+    needs: checker
+    if: needs.checker.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
       - uses: googleapis/release-please-action@v4
-        if: steps.pr-check.outputs.run == 'true'
         id: release-1
         with:
           config-file: release-please-first.json
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-go@v7
-        if: steps.pr-check.outputs.run == 'true'
         with:
           go-version-file: go.mod
 
       # Commit with the newest version first + run all steps
       - name: Run release pipeline
-        if: steps.pr-check.outputs.run == 'true'
         run: bash scripts/release-pipe.sh "${{ github.head_ref || github.ref_name }}"
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # No merged release PR -> just run the updater
+  updater:
+    needs: checker
+    if: needs.checker.outputs.run != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skip-github-release: true
