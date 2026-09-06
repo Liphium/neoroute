@@ -1,5 +1,6 @@
 {
 	"tag-separator": "/",
+	"separate-pull-requests": true,
 	"packages": {
 		".": {
 			"release-type": "go",
