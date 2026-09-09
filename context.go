@@ -1,7 +1,9 @@
 package neoroute
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/tinylib/msgp/msgp"
 )
@@ -16,16 +18,38 @@ type Context[D any] interface {
 // --------------------------------------------------------------------------------
 
 type Ctx[D any] struct {
-	id       int         // request id, used for responses
-	reqData  []byte      // data field from Request struct
-	route    string      // the route that matched the request
-	session  *Session[D] // clients session, contains the session data and id
-	runAfter []func()    // functions to run after the handler finishes, used for cleanup
+	mu       sync.Mutex      // mu protects access to the ctx field
+	id       int             // request id, used for responses
+	reqData  []byte          // data field from Request struct
+	route    string          // the route that matched the request
+	session  *Session[D]     // clients session, contains the session data and id
+	runAfter []func()        // functions to run after the handler finishes, used for cleanup
+	ctx      context.Context // context is context.Background() by default
 }
 
 // BaseCtx returns the underlying base Ctx.
 func (c *Ctx[D]) BaseCtx() *Ctx[D] {
 	return c
+}
+
+// Context returns [context.Context] for use in middlewares and routes.
+//
+// By default is returns a background context, but is can be set for this specific request using SetContext.
+//
+// Context is concurrent-safe.
+func (c *Ctx[D]) Context() context.Context {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.ctx
+}
+
+// SetContext sets the [context.Context] for this request.
+//
+// SetContext is concurrent-safe.
+func (c *Ctx[D]) SetContext(ctx context.Context) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.ctx = ctx
 }
 
 // Route returns the route that matched the request.
