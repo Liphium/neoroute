@@ -1,6 +1,6 @@
 # Neoroute
 
-![Coverage](https://img.shields.io/badge/Coverage-49.6%25-yellow)
+![Coverage](https://img.shields.io/badge/Coverage-49.5%25-yellow)
 
 > [!WARNING]
 > Even though we released Neoroute as 1.0.0 recently, there might still be bugs as we have not done large scale testing yet. We expect Neoroute to become more stable over the coming weeks and months. When we're confident enough in the framework, we'll remove this warning.
