@@ -35,6 +35,12 @@ func (r *responseData) Is(target error) bool {
 	return ok
 }
 
+// IsUserError checks if the given error is a user error.
+func IsUserError(err error) bool {
+	_, ok := err.(*responseData)
+	return ok
+}
+
 // This type is used for routes that have no response so no error is thrown.
 type noResponse struct{}
 
