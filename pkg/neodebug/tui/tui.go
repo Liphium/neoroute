@@ -79,9 +79,11 @@ func renderDivider(w int) string {
 type tui struct {
 	transporter neoschema.TransporterSchema
 
-	full    fullScreenView
-	input   Input
-	history History
+	// Mouse motion can be toggled with ctrl+d
+	mouseMotion bool
+	full        fullScreenView
+	input       Input
+	history     History
 
 	// Viewport / layout
 	width    int
@@ -96,6 +98,7 @@ type tui struct {
 	expandInput    key.Binding
 	exitFullscreen key.Binding
 	helpKey        key.Binding
+	toggleMouse    key.Binding
 }
 
 func Run(transporter neoschema.TransporterSchema) *tui {
@@ -116,6 +119,7 @@ func Run(transporter neoschema.TransporterSchema) *tui {
 	return &tui{
 		transporter: transporter,
 		full:        fullScreenNone,
+		mouseMotion: true,
 		input:       newInput(transporter),
 		history:     NewHistory(0, 0),
 		width:       0,
@@ -146,6 +150,10 @@ func Run(transporter neoschema.TransporterSchema) *tui {
 		helpKey: key.NewBinding(
 			key.WithKeys("ctrl+h"),
 			key.WithHelp("ctrl+h", "toggle help"),
+		),
+		toggleMouse: key.NewBinding(
+			key.WithKeys("ctrl+d"),
+			key.WithHelp("ctrl+d", "toggle mouse motion"),
 		),
 	}
 }
@@ -187,6 +195,10 @@ func (m tui) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.ShowAll = !m.help.ShowAll
 			m.relayoutHeight()
 			return m, nil
+
+		case key.Matches(msg, m.toggleMouse):
+			handled = true
+			m.mouseMotion = !m.mouseMotion
 
 		case key.Matches(msg, m.expandHistory):
 			handled = true
@@ -303,7 +315,9 @@ func (m tui) View() tea.View {
 
 	// Configure the main view
 	view := tea.NewView("")
-	view.MouseMode = tea.MouseModeCellMotion
+	if m.mouseMotion {
+		view.MouseMode = tea.MouseModeCellMotion
+	}
 	view.AltScreen = true
 
 	if m.width == 0 || m.height == 0 || m.tooSmall {
