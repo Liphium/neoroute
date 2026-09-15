@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Liphium/neoroute/compare/pkg/neodebug/v1.0.0...pkg/neodebug/v1.1.0) (2026-09-15)
+
+
+### Features
+
+* **neodebug:** Add hotkey (ctrl+d) for toggling mouse capture ([7c8c3ff](https://github.com/Liphium/neoroute/commit/7c8c3ff387b18741f8172c8f5468f914f0a00c4f))
+
 ## 1.0.0 (2026-08-29)
 
 
