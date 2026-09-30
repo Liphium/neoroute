@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/Liphium/neoroute/compare/v1.0.1...v1.1.0) (2026-09-14)
+
+
+### Features
+
+* Add a function to check for a custom error ([013c951](https://github.com/Liphium/neoroute/commit/013c951275eef5e5933bcee4a5eff690d4c76290))
+
+
+### Bug Fixes
+
+* updater only adds existing go.sum files; use !cancelled() ([5e627e1](https://github.com/Liphium/neoroute/commit/5e627e188ec79b08a965b351db5a8a8b703d9e2f))
+
 ## [1.0.1](https://github.com/Liphium/neoroute/compare/v1.0.0...v1.0.1) (2026-09-06)
 
 

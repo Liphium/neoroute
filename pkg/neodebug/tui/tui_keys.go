@@ -32,8 +32,8 @@ func (m tui) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
 		Title: "App control",
 		Keys: [][]key.Binding{
-			[]key.Binding{m.expandInput, m.expandHistory, m.exitFullscreen},
-			[]key.Binding{m.goToBottom, m.helpKey, m.quit},
+			{m.expandInput, m.expandHistory, m.exitFullscreen},
+			{m.goToBottom, m.helpKey, m.toggleMouse, m.quit},
 		},
 	}
 }

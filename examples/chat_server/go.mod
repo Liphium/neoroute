@@ -17,7 +17,7 @@ replace github.com/Liphium/neoroute/client/transporter/http => ../../client/tran
 replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
 
 require (
-	github.com/Liphium/neoroute v1.0.1
+	github.com/Liphium/neoroute v1.1.0
 	github.com/Liphium/neoroute/pkg/neodebug v1.0.0
 	github.com/Liphium/neoroute/transporter/http v1.0.0
 	github.com/Liphium/neoroute/transporter/websocket v1.0.0
@@ -32,7 +32,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Liphium/neoroute/client v1.0.0 // indirect
 	github.com/Liphium/neoroute/client/transporter/http v1.0.0 // indirect
-	github.com/Liphium/neoroute/client/transporter/websocket v1.0.1 // indirect
+	github.com/Liphium/neoroute/client/transporter/websocket v1.0.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect
@@ -48,6 +48,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/xo/terminfo v1.0.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
