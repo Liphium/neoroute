@@ -41,6 +41,9 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 		}
 
 	case *neoschema.ArrayType:
+		if element, ok := schema.Element.(*neoschema.BasicType); ok && element.ActualType == neoschema.TypeByte {
+			return newFileNode()
+		}
 		return &SliceNode{
 			element:  schema.Element,
 			registry: registry,
