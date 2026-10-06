@@ -1,7 +1,8 @@
 package neoschema
 
 type Generator struct {
-	transporters map[string]Transporter
+	transporters  map[string]Transporter
+	customObjects []PackedType
 }
 
 // Create a new generator.
@@ -13,6 +14,10 @@ func NewGenerator() *Generator {
 	return &Generator{
 		transporters: map[string]Transporter{},
 	}
+}
+
+func (g *Generator) Add(t ...any) {
+	// TODO: Implement
 }
 
 // Add a new transporter, needs to implement the interface for schema generation of course...

@@ -17,7 +17,7 @@ replace github.com/Liphium/neoroute/client/transporter/http => ../../client/tran
 replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
 
 require (
-	github.com/Liphium/neoroute v1.0.1
+	github.com/Liphium/neoroute v1.1.0
 	github.com/Liphium/neoroute/pkg/neodebug v1.0.0
 	github.com/Liphium/neoroute/transporter/http v1.0.0
 	github.com/Liphium/neoroute/transporter/websocket v1.0.0
