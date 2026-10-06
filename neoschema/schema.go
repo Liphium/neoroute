@@ -17,6 +17,7 @@ const (
 type Schema struct {
 	Version      int                          `json:"version"`
 	Generator    string                       `json:"generator"`
+	CustomTypes  []PackedType                 `json:"custom_types"`
 	Transporters map[string]TransporterSchema `json:"transporters"`
 }
 
@@ -110,6 +111,8 @@ func (rs RouteSchema) GetSendType() SendType {
 
 func (g *Generator) Generate() (Schema, error) {
 	var err error
+
+	// TODO: Generate the custom objects as well
 
 	packedTransporters := map[string]TransporterSchema{}
 	for name, transporter := range g.transporters {
