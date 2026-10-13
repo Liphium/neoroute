@@ -107,6 +107,11 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 		session: session,
 	}
 
+	// TODO:
+	// - immediate disconnections for invalid wire format (request header / extra bytes at the end), make DisconnectErrors (also without sending any kind of feedback to the client)
+	// 	- enforce disconnection directly on transporter level (return an error from this function again)
+	// - for too big requests send an error to the client, leave it to users if they want to disconnect or not
+
 	// Read only the first bytes of the request header (we want to make sure it's not too long)
 	headerReader := msgp.NewReaderSize(io.LimitReader(reqReader, maxRequestHeaderSize), maxRequestHeaderSize)
 	id, route, size, leftover, err := readRequestHeader(headerReader)

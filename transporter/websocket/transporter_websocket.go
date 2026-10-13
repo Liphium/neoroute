@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"sync"
 	"time"
@@ -103,7 +102,7 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 		if max := router.MaxRequestSize(); max > 0 {
 			conn.SetReadLimit(max)
 		} else {
-			conn.SetReadLimit(math.MaxInt64)
+			conn.SetReadLimit(-1)
 		}
 
 		// Add session to transporter
