@@ -1,13 +1,11 @@
 package client
 
-import (
-	"time"
-)
-
 // Config holds the configuration for the client.
 type Config struct {
-	ErrorHandler   func(err error)
-	RequestTimeout time.Duration
+	// RequestOptions holds the default request options, they can be overridden per request.
+	RequestOptions
+
+	ErrorHandler func(err error)
 }
 
 // RunErrorHandler runs the error handler function if one is set. It logs the error if no handler is set.

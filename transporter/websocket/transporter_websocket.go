@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"sync"
 	"time"
@@ -96,6 +97,13 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 		if err != nil {
 			neoroute.Logger.Info("Upgrade to WebSocket failed", "err", err)
 			return
+		}
+
+		// The connection limit has to fit the biggest route, the route specific limit is checked by the router
+		if max := router.MaxRequestSize(); max > 0 {
+			conn.SetReadLimit(max)
+		} else {
+			conn.SetReadLimit(math.MaxInt64)
 		}
 
 		// Add session to transporter
@@ -248,7 +256,20 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 		}
 
 		// Handle request and send response back over the same connection
-		resp, runAfter := t.router.Handle(reader, userSession)
+		resp, runAfter, err := t.router.HandleRequest(reader, userSession)
+		if errors.Is(err, neoroute.ErrRequestTooLarge) {
+			// Close the connection immediately, the rest of the message is never read
+			neoroute.Logger.Info("websocket request too large, closing connection")
+			if resp != nil {
+				session.sendMutex.Lock()
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+				conn.Write(ctx, websocket.MessageBinary, resp)
+				cancel()
+				session.sendMutex.Unlock()
+			}
+			conn.CloseNow()
+			return
+		}
 		if resp != nil {
 			session.sendMutex.Lock()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)

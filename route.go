@@ -19,6 +19,9 @@ type RouteData[D any] struct {
 
 	// hasError indicates if the handler returns an error.
 	hasError bool
+
+	// options holds the per route options.
+	options RouteOptions
 }
 
 // Route saves a handler for a given route.
@@ -28,10 +31,10 @@ type RouteData[D any] struct {
 // Any non-allowed characters will simply be stripped.
 //
 // Make sure the handler never returns nil, otherwise the router will panic.
-func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *ResCtx[D, RS], req RQ) error) *Router[D] {
+func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *ResCtx[D, RS], req RQ) error, opts ...func(*RouteOptions)) *Router[D] {
 	nilCheck := nilResponseCheck[RS]()
 
-	return addRoute(r, route, RouteData[D]{
+	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
 			// Parse request data into struct
@@ -64,10 +67,10 @@ func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](r
 // RouteNoRequest is the same as Route but the handler does not receive a request struct, only the context.
 //
 // This can be useful if you only want to receive the request and don't want any data.
-func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func(c *ResCtx[D, RS]) error) *Router[D] {
+func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func(c *ResCtx[D, RS]) error, opts ...func(*RouteOptions)) *Router[D] {
 	nilCheck := nilResponseCheck[RS]()
 
-	return addRoute(r, route, RouteData[D]{
+	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
 			ctx := &ResCtx[D, RS]{
@@ -91,8 +94,8 @@ func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func
 // RouteOk is the same as Route but the handler does not have a return type, it can only succeed or error.
 //
 // This can be useful if you don't have any return data, but the request can still have an error.
-func (r *Router[D]) RouteOk[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *OkCtx[D], req RQ) error) *Router[D] {
-	return addRoute(r, route, RouteData[D]{
+func (r *Router[D]) RouteOk[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *OkCtx[D], req RQ) error, opts ...func(*RouteOptions)) *Router[D] {
+	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
 			// Parse request data into struct
@@ -124,8 +127,8 @@ func (r *Router[D]) RouteOk[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, hand
 // RouteOkNoRequest is the same as RouteOk but the handler does not receive a request struct, only the context.
 //
 // This can be useful if you don't want to receive any data and the handler can only succeed or error.
-func (r *Router[D]) RouteOkNoRequest(route string, handler func(c *OkCtx[D]) error) *Router[D] {
-	return addRoute(r, route, RouteData[D]{
+func (r *Router[D]) RouteOkNoRequest(route string, handler func(c *OkCtx[D]) error, opts ...func(*RouteOptions)) *Router[D] {
+	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 			ctx := &OkCtx[D]{
 				Ctx: c,
@@ -147,8 +150,8 @@ func (r *Router[D]) RouteOkNoRequest(route string, handler func(c *OkCtx[D]) err
 // RouteNoResponse is the same as Route but the handler does not return anything.
 //
 // This can be useful if you only want to receive the data for example streaming over WebTransport.
-func (r *Router[D]) RouteNoResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *Ctx[D], req RQ)) *Router[D] {
-	return addRoute(r, route, RouteData[D]{
+func (r *Router[D]) RouteNoResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *Ctx[D], req RQ), opts ...func(*RouteOptions)) *Router[D] {
+	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
 			// Parse request data into struct
@@ -177,8 +180,8 @@ func (r *Router[D]) RouteNoResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](route stri
 // RoutePing is the same as Route but the handler does not receive a request struct, only the context.
 //
 // This can be useful if you only want to receive the request and don't want any data.
-func (r *Router[D]) RoutePing(route string, handler func(c *Ctx[D])) *Router[D] {
-	return addRoute(r, route, RouteData[D]{
+func (r *Router[D]) RoutePing(route string, handler func(c *Ctx[D]), opts ...func(*RouteOptions)) *Router[D] {
+	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
 			// Let the handler handle it
@@ -211,8 +214,9 @@ func nilResponseCheck[RS msgp.Marshaler]() func(RS) bool {
 	}
 }
 
-func addRoute[D any](r *Router[D], route string, routeData RouteData[D]) *Router[D] {
+func addRoute[D any](r *Router[D], route string, opts []func(*RouteOptions), routeData RouteData[D]) *Router[D] {
 	route = cleanRoute(route)
+	routeData.options = newRouteOptions(opts...)
 	if route == "" {
 		panic("route cannot be empty")
 	}

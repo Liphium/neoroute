@@ -1,11 +1,10 @@
 package neoroute
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"sync"
-
-	"github.com/tinylib/msgp/msgp"
 )
 
 type MiddlewareFunc[D any] = func(c *Ctx[D]) error
@@ -102,24 +101,45 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 		session: session,
 	}
 
-	var data request
-	err := data.DecodeMsg(msgp.NewReader(reqReader))
+	// Read only the first bytes of the request header (we want to make sure it's not too long)
+	id, route, size, leftover, err := readRequestHeaderFrom(reqReader)
 	if err != nil {
 		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
 	}
 
-	route := cleanRoute(data.Route)
-
-	c.id = data.Id
-	c.reqData = data.Data
+	route = cleanRoute(route)
+	c.id = id
 	c.route = route
 
-	// Check if handler for route exists
+	// Check the size of the request before reading the data
 	routeData, exists := r.actualRoutes[route]
 	if !exists {
 		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRouteDoesntExist, c))), nil
 	}
+	if limit := r.maxRequestSizeFor(routeData); limit > 0 && size > limit {
+		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRequestTooLarge, c))), nil
+	}
 
+	data, err := readRequestData(io.MultiReader(bytes.NewReader(leftover), reqReader), size)
+	if err != nil {
+		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
+	}
+	c.reqData = data
+
+	resp, runAfter := r.handleRoute(c, routeData)
+	return resp, runAfter
+}
+
+// maxRequestSizeFor returns the max request size of a route, falling back to the router default if not set on the route.
+func (r *Router[D]) maxRequestSizeFor(routeData exportedRoute[D]) int64 {
+	if routeData.options.MaxRequestSize < 0 {
+		return r.config.MaxRequestSize
+	}
+	return routeData.options.MaxRequestSize
+}
+
+// handleRoute runs the middlewares and the handler of a route and returns the response.
+func (r *Router[D]) handleRoute(c *Ctx[D], routeData exportedRoute[D]) ([]byte, []func()) {
 	// Run middlewares
 	for _, middleware := range routeData.middlewares {
 		if err := middleware(c); err != nil {
@@ -147,7 +167,7 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	}
 
 	// Handle request
-	err = routeData.handler(c)
+	err := routeData.handler(c)
 	if err == nil {
 
 		// Handlers never should return nil.
