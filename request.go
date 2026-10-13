@@ -25,6 +25,7 @@ type request struct {
 //go:generate msgp -unexported
 
 // readRequestHeader reads the tuple header, the id and route, and the size of the data without reading the data itself.
+//
 // It also returns the bytes that were already buffered after the header, these are the start of the body.
 func readRequestHeader(dc *msgp.Reader) (id int, route string, size int64, leftover []byte, err error) {
 	n, err := dc.ReadArrayHeader()
