@@ -216,7 +216,7 @@ func nilResponseCheck[RS msgp.Marshaler]() func(RS) bool {
 
 func addRoute[D any](r *Router[D], route string, opts []func(*RouteOptions), routeData RouteData[D]) *Router[D] {
 	route = cleanRoute(route)
-	routeData.options = newRouteOptions(opts...)
+	routeData.options = getRouteOptions(r.config.RouteOptions, opts...)
 	if route == "" {
 		panic("route cannot be empty")
 	}

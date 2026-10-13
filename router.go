@@ -27,6 +27,10 @@ type Router[D any] struct {
 // NewRouter returns a new Router instance with the given config.
 // Use this to create a new router instance to pass to the transporters.
 func NewRouter[D any](config Config[D]) *Router[D] {
+
+	// Set config default values to make sure we have the proper config in here
+	config.setDefaultOptions()
+
 	return &Router[D]{
 		config:       config,
 		actualRoutes: make(map[string]exportedRoute[D]),

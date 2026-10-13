@@ -1,5 +1,7 @@
 package neoroute
 
+const DefaultMaxRequestSize = 2 * 1024 * 1024 // 2 MB
+
 // RouteOptions configures a single route. Options are applied on top of the defaults when a route is registered.
 type RouteOptions struct {
 	// MaxRequestSize is the max size of the request data in bytes. 0 means unlimited.
@@ -8,16 +10,18 @@ type RouteOptions struct {
 	MaxRequestSize int64
 }
 
-// inheritRouteOption marks a route option as not set, so the router default is used.
-const inheritRouteOption = -1
-
-// newRouteOptions returns the default route options with all given options applied in order.
-func newRouteOptions(opts ...func(*RouteOptions)) RouteOptions {
-	options := RouteOptions{MaxRequestSize: inheritRouteOption}
-	for _, opt := range opts {
-		opt(&options)
+func (r RouteOptions) setDefaultOptions() {
+	if r.MaxRequestSize == 0 {
+		r.MaxRequestSize = DefaultMaxRequestSize
 	}
-	return options
+}
+
+// getRouteOptions returns the base route options with all given options applied in order.
+func getRouteOptions(base RouteOptions, opts ...func(*RouteOptions)) RouteOptions {
+	for _, opt := range opts {
+		opt(&base)
+	}
+	return base
 }
 
 // WithMaxRequestSize sets the max request size in bytes for a route. 0 means unlimited.
