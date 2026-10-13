@@ -13,8 +13,6 @@ import (
 // This number might change in the future, but it should be fine to fit basically anything.
 const maxRequestHeaderSize = 1024
 
-//go:generate msgp -unexported
-
 // request is encoded as a msgp tuple: [id, route, data]. Order is guaranteed on the wire.
 //
 //msgp:tuple request
@@ -24,65 +22,51 @@ type request struct {
 	Data  []byte `msg:"data"`
 }
 
-// readRequestHeader parses the tuple header, the id and route, and the size of the data from the given bytes
-// without reading the data itself. It returns the bytes that were not consumed by the header.
-//
-// If the bytes are incomplete, the returned error wraps msgp.ErrShortBytes.
-func readRequestHeader(b []byte) (id int, route string, size int64, rest []byte, err error) {
-	n, b, err := msgp.ReadArrayHeaderBytes(b)
+//go:generate msgp -unexported
+
+// readRequestHeader reads the tuple header, the id and route, and the size of the data without reading the data itself.
+// It also returns the bytes that were already buffered after the header, these are the start of the body.
+func readRequestHeader(dc *msgp.Reader) (id int, route string, size int64, leftover []byte, err error) {
+	n, err := dc.ReadArrayHeader()
 	if err != nil {
-		return 0, "", 0, nil, fmt.Errorf("%w: %w", ErrInvalidRequestFormat, err)
+		return 0, "", 0, nil, fmt.Errorf("%w: %v", ErrInvalidRequestFormat, err)
 	}
 	if n != 3 {
 		return 0, "", 0, nil, fmt.Errorf("%w: expected 3 fields, got %d", ErrInvalidRequestFormat, n)
 	}
-	id, b, err = msgp.ReadIntBytes(b)
+	id, err = dc.ReadInt()
 	if err != nil {
-		return 0, "", 0, nil, fmt.Errorf("%w: %w", ErrInvalidRequestFormat, err)
+		return 0, "", 0, nil, fmt.Errorf("%w: %v", ErrInvalidRequestFormat, err)
 	}
-	route, b, err = msgp.ReadStringBytes(b)
+	route, err = dc.ReadString()
 	if err != nil {
-		return 0, "", 0, nil, fmt.Errorf("%w: %w", ErrInvalidRequestFormat, err)
+		return 0, "", 0, nil, fmt.Errorf("%w: %v", ErrInvalidRequestFormat, err)
 	}
-	dataSize, b, err := msgp.ReadBytesHeader(b)
+	dataSize, err := dc.ReadBytesHeader()
 	if err != nil {
-		return 0, "", 0, nil, fmt.Errorf("%w: %w", ErrInvalidRequestFormat, err)
+		return 0, "", 0, nil, fmt.Errorf("%w: %v", ErrInvalidRequestFormat, err)
 	}
-	return id, route, int64(dataSize), b, nil
+	// Take the bytes the reader already buffered ahead of the header, they belong to the body
+	buffered, err := dc.R.Next(dc.Buffered())
+	if err != nil {
+		return 0, "", 0, nil, fmt.Errorf("%w: %v", ErrInvalidRequestFormat, err)
+	}
+	// Copy, the slice points into the reader's internal buffer
+	leftover = append([]byte(nil), buffered...)
+	return id, route, int64(dataSize), leftover, nil
 }
 
-// readRequestHeaderFrom reads from r in small chunks until the request header can be parsed.
-// It returns the header values and the bytes read from r that belong to the data after the header.
-// At most maxRequestHeaderSize bytes are read from r.
-func readRequestHeaderFrom(r io.Reader) (id int, route string, size int64, leftover []byte, err error) {
-	buf := make([]byte, 0, 64)
-	chunk := make([]byte, 64)
-	for {
-		if len(buf) >= maxRequestHeaderSize {
-			return 0, "", 0, nil, fmt.Errorf("%w: header exceeds %d bytes", ErrInvalidRequestFormat, maxRequestHeaderSize)
-		}
-		want := maxRequestHeaderSize - len(buf)
-		if want > len(chunk) {
-			want = len(chunk)
-		}
-		n, readErr := r.Read(chunk[:want])
-		buf = append(buf, chunk[:n]...)
-		if n > 0 {
-			id, route, size, rest, parseErr := readRequestHeader(buf)
-			if parseErr == nil {
-				return id, route, size, rest, nil
-			}
-			if !errors.Is(parseErr, msgp.ErrShortBytes) {
-				return 0, "", 0, nil, parseErr
-			}
-		}
-		if readErr != nil {
-			if errors.Is(readErr, io.EOF) {
-				readErr = io.ErrUnexpectedEOF
-			}
-			return 0, "", 0, nil, fmt.Errorf("%w: %v", ErrInvalidRequestFormat, readErr)
-		}
+// ensureBodyEnded checks that r has no bytes left after the body, reading at most one byte.
+func ensureBodyEnded(r io.Reader) error {
+	var one [1]byte
+	n, err := r.Read(one[:])
+	if n > 0 {
+		return fmt.Errorf("%w: trailing bytes after request body", ErrInvalidRequestFormat)
 	}
+	if err != nil && !errors.Is(err, io.EOF) {
+		return fmt.Errorf("%w: %v", ErrReadingBody, err)
+	}
+	return nil
 }
 
 // readRequestData reads the data of a request with the given size.
