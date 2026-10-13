@@ -65,7 +65,7 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 
 		defer r.Body.Close()
 
-		resp, runAfter := transporter.router.HandleRequest(r.Body, session)
+		resp, runAfter := transporter.router.Handle(r.Body, session)
 
 		// Send response
 		w.WriteHeader(http.StatusOK)

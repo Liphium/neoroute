@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"sync"
+
+	"github.com/tinylib/msgp/msgp"
 )
 
 type MiddlewareFunc[D any] = func(c *Ctx[D]) error
@@ -102,7 +104,8 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	}
 
 	// Read only the first bytes of the request header (we want to make sure it's not too long)
-	id, route, size, leftover, err := readRequestHeaderFrom(reqReader)
+	headerReader := msgp.NewReaderSize(io.LimitReader(reqReader, maxRequestHeaderSize), maxRequestHeaderSize)
+	id, route, size, leftover, err := readRequestHeader(headerReader)
 	if err != nil {
 		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
 	}
@@ -120,8 +123,15 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRequestTooLarge, c))), nil
 	}
 
-	data, err := readRequestData(io.MultiReader(bytes.NewReader(leftover), reqReader), size)
+	// Body reader: buffered leftover from the header first, then the rest of the request, capped at exactly size bytes
+	rawBody := io.MultiReader(bytes.NewReader(leftover), reqReader)
+	data, err := readRequestData(io.LimitReader(rawBody, size), size)
 	if err != nil {
+		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
+	}
+
+	// The body must end exactly at size, any further byte means the request is malformed
+	if err := ensureBodyEnded(rawBody); err != nil {
 		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
 	}
 	c.reqData = data
