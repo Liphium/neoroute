@@ -54,6 +54,30 @@ func decodePackedMap(m map[string]json.RawMessage) (map[string]PackedType, error
 	return res, nil
 }
 
+// UnmarshalJSON resolves PackedType values in Schema.CustomObjects.
+func (s *Schema) UnmarshalJSON(data []byte) error {
+	var aux struct {
+		Version       int                          `json:"version"`
+		Generator     string                       `json:"generator"`
+		CustomObjects map[string]json.RawMessage   `json:"custom_objects"`
+		Transporters  map[string]TransporterSchema `json:"transporters"`
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	customObjects, err := decodePackedMap(aux.CustomObjects)
+	if err != nil {
+		return err
+	}
+
+	s.Version = aux.Version
+	s.Generator = aux.Generator
+	s.CustomObjects = customObjects
+	s.Transporters = aux.Transporters
+	return nil
+}
+
 // UnmarshalJSON prevents raw interface unmarshaling errors for BasicType.
 func (bt *BasicType) UnmarshalJSON(data []byte) error {
 	var aux struct {
