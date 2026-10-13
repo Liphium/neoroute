@@ -28,6 +28,7 @@ type response struct {
 
 // Outgoing messages
 
+//msgp:tuple request
 type request struct {
 	Id    int    `msg:"id"`
 	Route string `msg:"route"`

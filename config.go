@@ -1,6 +1,8 @@
 package neoroute
 
 type Config[D any] struct {
+	// RouteOptions holds the router defaults for every route. Route options override these.
+	RouteOptions
 
 	// If an error is returned from a route, this function will be called with the error and the context (which includes the session) and should return a string that will be sent back to the client.
 	//
