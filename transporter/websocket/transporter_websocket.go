@@ -255,17 +255,10 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 		}
 
 		// Handle request and send response back over the same connection
-		resp, runAfter, err := t.router.HandleRequest(reader, userSession)
-		if errors.Is(err, neoroute.ErrRequestTooLarge) {
+		resp, runAfter, err := t.router.Handle(reader, userSession)
+		if err != nil {
 			// Close the connection immediately, the rest of the message is never read
-			neoroute.Logger.Info("websocket request too large, closing connection")
-			if resp != nil {
-				session.sendMutex.Lock()
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-				conn.Write(ctx, websocket.MessageBinary, resp)
-				cancel()
-				session.sendMutex.Unlock()
-			}
+			neoroute.Logger.Debug("websocket connection disconnected because of wrong format", "err", err)
 			conn.CloseNow()
 			return
 		}
