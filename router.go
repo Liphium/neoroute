@@ -46,13 +46,13 @@ func (r *Router[D]) Config() Config[D] {
 
 // MaxRequestSize returns the biggest max request size of all routes in bytes.
 //
-// Returns 0 if any route is unlimited (or if the router has no routes).
+// Returns -1 if any route is unlimited, and 0 if the router has no routes.
 func (r *Router[D]) MaxRequestSize() int64 {
 	var largest int64
 	for _, routeData := range r.actualRoutes {
-		limit := r.maxRequestSizeFor(routeData)
-		if limit <= 0 {
-			return 0
+		limit := routeData.options.MaxRequestSize
+		if limit < 0 {
+			return -1
 		}
 		if limit > largest {
 			largest = limit
@@ -140,7 +140,7 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	if !exists {
 		return nil, nil, errors.New(r.config.RunErrorHandler(ErrRouteDoesntExist, c))
 	}
-	if limit := r.maxRequestSizeFor(routeData); limit > 0 && size > limit {
+	if limit := routeData.options.MaxRequestSize; limit > 0 && size > limit {
 		if routeData.hasError {
 			return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRequestTooLarge, c))), nil, nil
 		}
@@ -163,14 +163,6 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 
 	resp, runAfter := r.handleRoute(c, routeData)
 	return resp, runAfter, nil
-}
-
-// maxRequestSizeFor returns the max request size of a route, falling back to the router default if not set on the route.
-func (r *Router[D]) maxRequestSizeFor(routeData exportedRoute[D]) int64 {
-	if routeData.options.MaxRequestSize < 0 {
-		return r.config.MaxRequestSize
-	}
-	return routeData.options.MaxRequestSize
 }
 
 // handleRoute runs the middlewares and the handler of a route and returns the response.
