@@ -10,8 +10,6 @@ var (
 	ErrInvalidRequestFormat = errors.New("invalid request format")
 	// ErrRouteDoesntExist is returned to the error handler of routers when the router receives a message that is completely invalid in format.
 	ErrRouteDoesntExist = errors.New("this route does not exist")
-	// ErrRequestTooLarge is returned by HandleRequest when the request exceeds the max request size of its route. The transporter should close the connection.
+	// ErrRequestTooLarge is returned by Router.Handle when the request exceeds the max request size of its route. The transporter should close the connection.
 	ErrRequestTooLarge = errors.New("request too large")
-	// ErrRequestHeaderTooLarge is returned by HandleRequest when the request envelope does not fit into maxRequestHeaderSize bytes. The transporter should close the connection.
-	ErrRequestHeaderTooLarge = errors.New("request header too large")
 )

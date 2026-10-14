@@ -4,13 +4,14 @@ const DefaultMaxRequestSize = 2 * 1024 * 1024 // 2 MB
 
 // RouteOptions configures a single route. Options are applied on top of the defaults when a route is registered.
 type RouteOptions struct {
-	// MaxRequestSize is the max size of the request data in bytes. 0 means unlimited.
+	// MaxRequestSize is the max size of the request data in bytes.
 	//
-	// A negative value means "not set" and the router default from Config is used.
+	// -1 means unlimited.
 	MaxRequestSize int64
 }
 
-func (r RouteOptions) setDefaultOptions() {
+// setDefaultOptions fills in the values that were not set.
+func (r *RouteOptions) setDefaultOptions() {
 	if r.MaxRequestSize == 0 {
 		r.MaxRequestSize = DefaultMaxRequestSize
 	}
@@ -24,7 +25,7 @@ func getRouteOptions(base RouteOptions, opts ...func(*RouteOptions)) RouteOption
 	return base
 }
 
-// WithMaxRequestSize sets the max request size in bytes for a route. 0 means unlimited.
+// WithMaxRequestSize sets the max request size in bytes for a route. -1 means unlimited.
 func WithMaxRequestSize(size int64) func(*RouteOptions) {
 	return func(o *RouteOptions) {
 		o.MaxRequestSize = size
