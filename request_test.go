@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/tinylib/msgp/msgp"
 )
 
@@ -31,17 +33,11 @@ func TestRequestBodySizes(t *testing.T) {
 
 			r.Init()
 			_, runAfters, err := makeRequest(r, NewTestingSession(false, "s"), "body-route", body)
-			if err != nil {
-				t.Fatalf("size %d: makeRequest: %v", size, err)
-			}
+			require.NoError(t, err, "size %d: makeRequest", size)
 			executeRunAfters(runAfters)
 
-			if !called {
-				t.Fatalf("size %d: handler not called", size)
-			}
-			if !bytes.Equal(got, body) {
-				t.Fatalf("size %d: body mismatch: got %d bytes, want %d", size, len(got), len(body))
-			}
+			require.True(t, called, "size %d: handler not called", size)
+			require.Truef(t, bytes.Equal(got, body), "size %d: body mismatch: got %d bytes, want %d", size, len(got), len(body))
 		})
 	}
 }
@@ -54,29 +50,16 @@ func TestRequestMaxSize(t *testing.T) {
 
 	// Exactly at the limit is accepted.
 	r.Init()
-	if _, _, err := makeRequest(r, NewTestingSession(false, "s"), "limited", make([]byte, 10)); err != nil {
-		t.Fatal(err)
-	}
-	if !called || len(got) != 10 {
-		t.Fatalf("body at limit not handled: called=%v len=%d", called, len(got))
-	}
+	_, _, err := makeRequest(r, NewTestingSession(false, "s"), "limited", make([]byte, 10))
+	require.NoError(t, err)
+	require.True(t, called && len(got) == 10, "body at limit not handled: called=%v len=%d", called, len(got))
 
 	// One over the limit is rejected before the body is read.
 	called = false
 	respBytes, _, err := makeRequest(r, NewTestingSession(false, "s"), "limited", make([]byte, 11))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if called {
-		t.Fatal("handler called for oversized request")
-	}
-	resp, err := handleResponseData(respBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !resp.IsError {
-		t.Fatal("expected error response for oversized request")
-	}
+	assert.Error(t, err)
+	assert.Nil(t, respBytes)
+	assert.False(t, called, "handler called for oversized request")
 }
 
 func TestRequestHeaderTooLong(t *testing.T) {
@@ -86,19 +69,9 @@ func TestRequestHeaderTooLong(t *testing.T) {
 	captureRoute(r, strings.Repeat("a", 2000), &got, &called)
 
 	respBytes, _, err := makeRequest(r, NewTestingSession(false, "s"), strings.Repeat("a", 2000), []byte("hi"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if called {
-		t.Fatal("handler called for request with oversized header")
-	}
-	resp, err := handleResponseData(respBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !resp.IsError {
-		t.Fatal("expected error response for oversized header")
-	}
+	require.Error(t, err)
+	require.False(t, called, "handler called for request with oversized header")
+	require.Nil(t, respBytes)
 }
 
 func TestRequestMalformedHeader(t *testing.T) {
@@ -110,26 +83,17 @@ func TestRequestMalformedHeader(t *testing.T) {
 
 	// Not a 3-tuple: array of 2 elements.
 	bad := []byte{0x92, 0x01, 0xa1, 'x'}
-	respBytes, _ := r.Handle(bytes.NewReader(bad), NewTestingSession(false, "s"))
-	if called {
-		t.Fatal("handler called for malformed header")
-	}
-	resp, err := handleResponseData(respBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !resp.IsError {
-		t.Fatal("expected error response for malformed header")
-	}
+	respBytes, _, err := r.Handle(bytes.NewReader(bad), NewTestingSession(false, "s"))
+	require.False(t, called, "handler called for malformed header")
+	require.Error(t, err, "handler called without error")
+	require.Nil(t, respBytes)
 }
 
 func TestRequestBodyTrailingBytesIsError(t *testing.T) {
 	body := bytes.Repeat([]byte{0x11}, 50)
 	mReq := request{Id: 1, Route: "trail", Data: body}
 	reqBytes, err := mReq.MarshalMsg(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	for _, extra := range []int{1, 67, 2000} {
 		var got []byte
@@ -139,17 +103,10 @@ func TestRequestBodyTrailingBytesIsError(t *testing.T) {
 		r.Init()
 
 		stream := append(append([]byte{}, reqBytes...), bytes.Repeat([]byte{0x22}, extra)...)
-		respBytes, _ := r.Handle(bytes.NewReader(stream), NewTestingSession(false, "s"))
-		if called {
-			t.Fatalf("extra=%d: handler called despite trailing bytes", extra)
-		}
-		resp, err := handleResponseData(respBytes)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !resp.IsError {
-			t.Fatalf("extra=%d: expected error response for trailing bytes", extra)
-		}
+		respBytes, _, err := r.Handle(bytes.NewReader(stream), NewTestingSession(false, "s"))
+		require.False(t, called, "extra=%d: handler called despite trailing bytes", extra)
+		require.Error(t, err, "no error even though extra body")
+		require.Nil(t, respBytes)
 	}
 }
 
@@ -157,18 +114,12 @@ func TestRequestBodyTrailingBytesIsError(t *testing.T) {
 func TestReadRequestHeaderMatchesMsgp(t *testing.T) {
 	mReq := request{Id: 7, Route: "some/route", Data: make([]byte, 300)}
 	reqBytes, err := mReq.MarshalMsg(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	dc := msgp.NewReaderSize(bytes.NewReader(reqBytes), 1024)
 	id, route, size, leftover, err := readRequestHeader(dc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if id != 7 || route != "some/route" || size != 300 {
-		t.Fatalf("header mismatch: id=%d route=%q size=%d", id, route, size)
-	}
-	if len(leftover) == 0 {
-		t.Fatal("expected buffered leftover bytes after header")
-	}
+	require.NoError(t, err)
+	require.Equal(t, 7, id, "id mismatch")
+	require.Equal(t, "some/route", route, "route mismatch")
+	require.Equal(t, int64(300), size, "size mismatch")
+	require.NotEmpty(t, leftover, "expected buffered leftover bytes after header")
 }

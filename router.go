@@ -44,6 +44,23 @@ func (r *Router[D]) Config() Config[D] {
 	return r.config
 }
 
+// MaxRequestSize returns the biggest max request size of all routes in bytes.
+//
+// Returns 0 if any route is unlimited (or if the router has no routes).
+func (r *Router[D]) MaxRequestSize() int64 {
+	var largest int64
+	for _, routeData := range r.actualRoutes {
+		limit := r.maxRequestSizeFor(routeData)
+		if limit <= 0 {
+			return 0
+		}
+		if limit > largest {
+			largest = limit
+		}
+	}
+	return largest
+}
+
 // GetRoutes is used for schema generation.
 func (r *Router[D]) GetRoutes() map[string]RouteData[D] {
 	routes := map[string]RouteData[D]{}
@@ -99,7 +116,7 @@ func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) error) *Rout
 // Handle is called by transporters to handle incoming requests.
 //
 // ONLY USE THIS IN A TRANSPORTER IMPLEMENTATION, THIS IS NOT MEANT TO BE USED BY USERS OF THE LIBRARY.
-func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func()) {
+func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func(), error) {
 	c := &Ctx[D]{
 		id:      -1,
 		reqData: []byte{},
@@ -107,16 +124,11 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 		session: session,
 	}
 
-	// TODO:
-	// - immediate disconnections for invalid wire format (request header / extra bytes at the end), make DisconnectErrors (also without sending any kind of feedback to the client)
-	// 	- enforce disconnection directly on transporter level (return an error from this function again)
-	// - for too big requests send an error to the client, leave it to users if they want to disconnect or not
-
 	// Read only the first bytes of the request header (we want to make sure it's not too long)
 	headerReader := msgp.NewReaderSize(io.LimitReader(reqReader, maxRequestHeaderSize), maxRequestHeaderSize)
 	id, route, size, leftover, err := readRequestHeader(headerReader)
 	if err != nil {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
+		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
 	}
 
 	route = cleanRoute(route)
@@ -126,27 +138,31 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	// Check the size of the request before reading the data
 	routeData, exists := r.actualRoutes[route]
 	if !exists {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRouteDoesntExist, c))), nil
+		return nil, nil, errors.New(r.config.RunErrorHandler(ErrRouteDoesntExist, c))
 	}
 	if limit := r.maxRequestSizeFor(routeData); limit > 0 && size > limit {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRequestTooLarge, c))), nil
+		if routeData.hasError {
+			return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRequestTooLarge, c))), nil, nil
+		}
+		Logger.Debug("error for route without error", "err", ErrRequestTooLarge)
+		return nil, nil, errors.New(r.config.RunErrorHandler(ErrRequestTooLarge, c))
 	}
 
 	// Body reader: buffered leftover from the header first, then the rest of the request, capped at exactly size bytes
 	rawBody := io.MultiReader(bytes.NewReader(leftover), reqReader)
 	data, err := readRequestData(io.LimitReader(rawBody, size), size)
 	if err != nil {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
+		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
 	}
 
 	// The body must end exactly at size, any further byte means the request is malformed
 	if err := ensureBodyEnded(rawBody); err != nil {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
+		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
 	}
 	c.reqData = data
 
 	resp, runAfter := r.handleRoute(c, routeData)
-	return resp, runAfter
+	return resp, runAfter, nil
 }
 
 // maxRequestSizeFor returns the max request size of a route, falling back to the router default if not set on the route.
