@@ -214,9 +214,7 @@ func makeRequest[D any](r *Router[D], session *Session[D], route string, data []
 
 	reader := bytes.NewReader(reqBytes)
 
-	respBytes, runAfterFuncs := r.Handle(reader, session)
-
-	return respBytes, runAfterFuncs, nil
+	return r.Handle(reader, session)
 }
 
 // marshalRequestData marshals the request data using msgp.

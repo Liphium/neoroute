@@ -98,6 +98,13 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 			return
 		}
 
+		// The connection limit has to fit the biggest route, the route specific limit is checked by the router
+		if max := router.MaxRequestSize(); max > 0 {
+			conn.SetReadLimit(max)
+		} else {
+			conn.SetReadLimit(-1)
+		}
+
 		// Add session to transporter
 		session := transporter.addSession(sessionData, conn)
 		if session == nil {
@@ -248,7 +255,13 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 		}
 
 		// Handle request and send response back over the same connection
-		resp, runAfter := t.router.Handle(reader, userSession)
+		resp, runAfter, err := t.router.Handle(reader, userSession)
+		if err != nil {
+			// Close the connection immediately, the rest of the message is never read
+			neoroute.Logger.Debug("websocket connection disconnected because of wrong format", "err", err)
+			conn.CloseNow()
+			return
+		}
 		if resp != nil {
 			session.sendMutex.Lock()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)

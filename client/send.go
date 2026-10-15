@@ -10,8 +10,9 @@ import (
 // Send sends a request to the server and returns a response.
 //
 // The error returned can be a *client.UserError in case the server returned a error message.
-func (c *Client) Send[RS any, RSP msgp.UnmarshalPtr[RS], RQ msgp.Marshaler](route string, req RQ) (RS, error) {
+func (c *Client) Send[RS any, RSP msgp.UnmarshalPtr[RS], RQ msgp.Marshaler](route string, req RQ, opts ...func(*RequestOptions)) (RS, error) {
 	var resp RS
+	timeout := c.newRequestOptions(opts...).RequestTimeout
 
 	reqBytes, err := marshalRequestData(req)
 	if err != nil {
@@ -35,16 +36,17 @@ func (c *Client) Send[RS any, RSP msgp.UnmarshalPtr[RS], RQ msgp.Marshaler](rout
 		resp, err = unmarshalResponseData[RS, RSP](res.Data)
 		return resp, err
 
-	case <-time.After(c.getConfig().RequestTimeout):
+	case <-time.After(timeout):
 		c.removeResponseWaiter(reqId)
-		return resp, fmt.Errorf("waiting for response timed out after %v", c.getConfig().RequestTimeout)
+		return resp, fmt.Errorf("waiting for response timed out after %v", timeout)
 	}
 }
 
 // SendOk sends a request to the server and waits for any error returned by the server.
 //
 // The error returned can be a *client.UserError in case the server returned a error message.
-func (c *Client) SendOk[RQ msgp.Marshaler](route string, req RQ) error {
+func (c *Client) SendOk[RQ msgp.Marshaler](route string, req RQ, opts ...func(*RequestOptions)) error {
+	timeout := c.newRequestOptions(opts...).RequestTimeout
 	reqBytes, err := marshalRequestData(req)
 	if err != nil {
 		return err
@@ -66,16 +68,17 @@ func (c *Client) SendOk[RQ msgp.Marshaler](route string, req RQ) error {
 
 		return nil
 
-	case <-time.After(c.getConfig().RequestTimeout):
+	case <-time.After(timeout):
 		c.removeResponseWaiter(reqId)
-		return fmt.Errorf("waiting for response timed out after %v", c.getConfig().RequestTimeout)
+		return fmt.Errorf("waiting for response timed out after %v", timeout)
 	}
 }
 
 // SendOkNoRequest sends to the server with no request and waits for any error returned by the server.
 //
 // The error returned can be a *client.UserError in case the server returned a error message.
-func (c *Client) SendOkNoRequest(route string) error {
+func (c *Client) SendOkNoRequest(route string, opts ...func(*RequestOptions)) error {
+	timeout := c.newRequestOptions(opts...).RequestTimeout
 	respChan, reqId, err := c.sendRequest(route, []byte{}, true)
 	if err != nil {
 		return err
@@ -92,17 +95,18 @@ func (c *Client) SendOkNoRequest(route string) error {
 
 		return nil
 
-	case <-time.After(c.getConfig().RequestTimeout):
+	case <-time.After(timeout):
 		c.removeResponseWaiter(reqId)
-		return fmt.Errorf("waiting for response timed out after %v", c.getConfig().RequestTimeout)
+		return fmt.Errorf("waiting for response timed out after %v", timeout)
 	}
 }
 
 // SendNoRequest sends a request to the server and waits for any error or response returned by the server.
 //
 // The error returned can be a *client.UserError in case the server returned a error message.
-func (c *Client) SendNoRequest[RS any, RSP msgp.UnmarshalPtr[RS]](route string) (RS, error) {
+func (c *Client) SendNoRequest[RS any, RSP msgp.UnmarshalPtr[RS]](route string, opts ...func(*RequestOptions)) (RS, error) {
 	var resp RS
+	timeout := c.newRequestOptions(opts...).RequestTimeout
 
 	respChan, reqId, err := c.sendRequest(route, []byte{}, true)
 	if err != nil {
@@ -121,14 +125,14 @@ func (c *Client) SendNoRequest[RS any, RSP msgp.UnmarshalPtr[RS]](route string) 
 		resp, err = unmarshalResponseData[RS, RSP](res.Data)
 		return resp, err
 
-	case <-time.After(c.getConfig().RequestTimeout):
+	case <-time.After(timeout):
 		c.removeResponseWaiter(reqId)
-		return resp, fmt.Errorf("waiting for response timed out after %v", c.getConfig().RequestTimeout)
+		return resp, fmt.Errorf("waiting for response timed out after %v", timeout)
 	}
 }
 
 // SendNoResponse sends a request to the server and does not wait for any response.
-func (c *Client) SendNoResponse[RQ msgp.Marshaler](route string, req RQ) error {
+func (c *Client) SendNoResponse[RQ msgp.Marshaler](route string, req RQ, opts ...func(*RequestOptions)) error {
 	reqBytes, err := marshalRequestData[RQ](req)
 	if err != nil {
 		return err
@@ -139,7 +143,7 @@ func (c *Client) SendNoResponse[RQ msgp.Marshaler](route string, req RQ) error {
 }
 
 // SendPing sends to the server with not request and does not wait for any response.
-func (c *Client) SendPing(route string) error {
+func (c *Client) SendPing(route string, opts ...func(*RequestOptions)) error {
 	_, _, err := c.sendRequest(route, []byte{}, false)
 	return err
 }

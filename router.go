@@ -1,6 +1,7 @@
 package neoroute
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"sync"
@@ -26,6 +27,10 @@ type Router[D any] struct {
 // NewRouter returns a new Router instance with the given config.
 // Use this to create a new router instance to pass to the transporters.
 func NewRouter[D any](config Config[D]) *Router[D] {
+
+	// Set config default values to make sure we have the proper config in here
+	config.setDefaultOptions()
+
 	return &Router[D]{
 		config:       config,
 		actualRoutes: make(map[string]exportedRoute[D]),
@@ -37,6 +42,23 @@ func NewRouter[D any](config Config[D]) *Router[D] {
 // Config returns the router's config.
 func (r *Router[D]) Config() Config[D] {
 	return r.config
+}
+
+// MaxRequestSize returns the biggest max request size of all routes in bytes.
+//
+// Returns -1 if any route is unlimited, and 0 if the router has no routes.
+func (r *Router[D]) MaxRequestSize() int64 {
+	var largest int64
+	for _, routeData := range r.actualRoutes {
+		limit := routeData.options.MaxRequestSize
+		if limit < 0 {
+			return -1
+		}
+		if limit > largest {
+			largest = limit
+		}
+	}
+	return largest
 }
 
 // GetRoutes is used for schema generation.
@@ -94,7 +116,7 @@ func (r *Router[D]) Use(subroute string, middleware func(c *Ctx[D]) error) *Rout
 // Handle is called by transporters to handle incoming requests.
 //
 // ONLY USE THIS IN A TRANSPORTER IMPLEMENTATION, THIS IS NOT MEANT TO BE USED BY USERS OF THE LIBRARY.
-func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func()) {
+func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []func(), error) {
 	c := &Ctx[D]{
 		id:      -1,
 		reqData: []byte{},
@@ -102,24 +124,49 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 		session: session,
 	}
 
-	var data request
-	err := data.DecodeMsg(msgp.NewReader(reqReader))
+	// Read only the first bytes of the request header (we want to make sure it's not too long)
+	headerReader := msgp.NewReaderSize(io.LimitReader(reqReader, maxRequestHeaderSize), maxRequestHeaderSize)
+	id, route, size, leftover, err := readRequestHeader(headerReader)
 	if err != nil {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(err, c))), nil
+		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
 	}
 
-	route := cleanRoute(data.Route)
-
-	c.id = data.Id
-	c.reqData = data.Data
+	route = cleanRoute(route)
+	c.id = id
 	c.route = route
 
-	// Check if handler for route exists
+	// Check the size of the request before reading the data
 	routeData, exists := r.actualRoutes[route]
 	if !exists {
-		return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRouteDoesntExist, c))), nil
+		return nil, nil, errors.New(r.config.RunErrorHandler(ErrRouteDoesntExist, c))
+	}
+	if limit := routeData.options.MaxRequestSize; limit > 0 && size > limit {
+		if routeData.hasError {
+			return messageResponse(c.respondError(r.config.RunErrorHandler(ErrRequestTooLarge, c))), nil, nil
+		}
+		Logger.Debug("error for route without error", "err", ErrRequestTooLarge)
+		return nil, nil, errors.New(r.config.RunErrorHandler(ErrRequestTooLarge, c))
 	}
 
+	// Body reader: buffered leftover from the header first, then the rest of the request, capped at exactly size bytes
+	rawBody := io.MultiReader(bytes.NewReader(leftover), reqReader)
+	data, err := readRequestData(io.LimitReader(rawBody, size), size)
+	if err != nil {
+		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
+	}
+
+	// The body must end exactly at size, any further byte means the request is malformed
+	if err := ensureBodyEnded(rawBody); err != nil {
+		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
+	}
+	c.reqData = data
+
+	resp, runAfter := r.handleRoute(c, routeData)
+	return resp, runAfter, nil
+}
+
+// handleRoute runs the middlewares and the handler of a route and returns the response.
+func (r *Router[D]) handleRoute(c *Ctx[D], routeData exportedRoute[D]) ([]byte, []func()) {
 	// Run middlewares
 	for _, middleware := range routeData.middlewares {
 		if err := middleware(c); err != nil {
@@ -147,7 +194,7 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	}
 
 	// Handle request
-	err = routeData.handler(c)
+	err := routeData.handler(c)
 	if err == nil {
 
 		// Handlers never should return nil.

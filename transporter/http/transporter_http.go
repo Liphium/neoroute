@@ -65,9 +65,14 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 
 		defer r.Body.Close()
 
+		resp, runAfter, err := transporter.router.Handle(r.Body, session)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		// Send response
 		w.WriteHeader(http.StatusOK)
-		resp, runAfter := transporter.router.Handle(r.Body, session)
 		defer func() {
 			for _, fn := range runAfter {
 				fn()
