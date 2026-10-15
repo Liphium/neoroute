@@ -126,7 +126,7 @@ func (g *Generator) Generate() (Schema, error) {
 
 	objects := map[string]PackedType{}
 	for _, obj := range g.customObjects {
-		if obj.Kind() != reflect.Struct {
+		if obj == nil || obj.Kind() != reflect.Struct {
 			return Schema{}, ErrNotStruct
 		}
 
