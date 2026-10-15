@@ -42,6 +42,11 @@ func render(value any, width int) string {
 
 	case []any:
 
+		// If too long, make sure to not render it (especially for byte arrays)
+		if len(v) > 25 {
+			return fmt.Sprintf("[ /* %d items */ ]", len(v))
+		}
+
 		totalLength := 0
 		fields := make([]string, len(v))
 

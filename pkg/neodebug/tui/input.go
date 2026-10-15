@@ -33,10 +33,6 @@ const (
 	stateClosed
 )
 
-type inputRequestHeightMsg struct {
-	height int
-}
-
 var _ keyProvider = Input{}
 
 type Input struct {
@@ -55,10 +51,19 @@ type Input struct {
 
 	// Request creator
 	requestCreator inputRequestCreator
+	historyOpen    bool
+	history        inputHistory
+	openHistory    key.Binding
 }
 
 // Children implements keyProvider.
 func (m Input) Children() []keyProvider {
+
+	// History overwrites everything
+	if m.historyOpen {
+		return []keyProvider{m.history}
+	}
+
 	switch m.state {
 	case stateRouteSelect:
 		return []keyProvider{m.routeSelect}
@@ -71,12 +76,15 @@ func (m Input) Children() []keyProvider {
 
 // FooterKeys implements keyProvider.
 func (m Input) FooterKeys() []key.Binding {
+	if (m.state == stateRouteSelect || m.state == stateCreateRequest) && m.history.CanBeOpened() {
+		return []key.Binding{m.openHistory}
+	}
 	return []key.Binding{}
 }
 
 // FullKeyHelp implements keyProvider.
 func (m Input) FullKeyHelp() FullKeyHelp {
-	return FullKeyHelp{}
+	return FullKeyHelp{Title: "Input", Keys: [][]key.Binding{{m.openHistory}}}
 }
 
 func newInput(schema neoschema.TransporterSchema) Input {
@@ -85,8 +93,10 @@ func newInput(schema neoschema.TransporterSchema) Input {
 	return Input{
 		state:       stateConnecting,
 		spinner:     s,
+		openHistory: key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "request history")),
 		schema:      schema,
 		routeSelect: newRouteSelect(slices.Collect(maps.Keys(schema.Routes))),
+		history:     newInputHistory(),
 	}
 }
 
@@ -94,12 +104,14 @@ func (m *Input) SetWidth(w int) {
 	m.width = w
 	m.routeSelect.SetWidth(w)
 	m.requestCreator.SetWidth(w)
+	m.history.width = w
 }
 
 func (m *Input) SetHeight(h int) {
 	m.height = h
 	m.routeSelect.SetHeight(h)
 	m.requestCreator.SetHeight(h)
+	m.history.height = h
 }
 
 func (m Input) WantedHeight() int {
@@ -107,6 +119,9 @@ func (m Input) WantedHeight() int {
 	case stateConnecting, stateClosed:
 		return 1
 	case stateRouteSelect:
+		if m.historyOpen {
+			return m.history.WantedHeight()
+		}
 		return m.routeSelect.WantedHeight()
 	case stateCreateRequest:
 		return m.requestCreator.WantedHeight()
@@ -137,6 +152,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 		differentHandling = true
 		m.state = stateRouteSelect
 		m.connection = msg.Connection
+		m.history.connection = msg.Connection
 		return m, m.connection.WaitForEvent()
 
 	case connector.ClosedMsg:
@@ -157,7 +173,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 			return m, model.Plain(model.Error("Couldn't find route selected."))
 		}
 		if !route.HasRequest {
-			return m, m.connection.Send(msg.Route, nil)
+			return m, m.history.Send(msg.Route, nil)
 		}
 
 		// Switch to new creation state
@@ -182,23 +198,39 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 			return m, model.Plain(model.Error("Couldn't find route selected: %s", msg.Route))
 		}
 
-		return m, m.connection.Send(msg.Route, msg.Value)
+		return m, m.history.Send(msg.Route, msg.Value)
 	}
 
 	// Forward any msgs not handled here down
 	if !differentHandling {
-		switch m.state {
-		case stateRouteSelect:
-			var cmd tea.Cmd
-			m.routeSelect, cmd = m.routeSelect.Update(msg)
-			m.handledKey = m.routeSelect.handledKey
-			return m, cmd
-		case stateCreateRequest:
-			var cmd tea.Cmd
-			m.requestCreator, cmd = m.requestCreator.Update(msg)
-			m.handledKey = m.requestCreator.keyHandled
+
+		// First handle history in case open
+		if m.historyOpen {
+			exit, cmd := m.history.Update(msg)
+			if exit {
+				m.historyOpen = false
+			}
+			m.handledKey = m.history.handledKey
 			return m, cmd
 		}
+
+		var cmd tea.Cmd
+		switch m.state {
+		case stateRouteSelect:
+			m.routeSelect, cmd = m.routeSelect.Update(msg)
+			m.handledKey = m.routeSelect.handledKey
+		case stateCreateRequest:
+			m.requestCreator, cmd = m.requestCreator.Update(msg)
+			m.handledKey = m.requestCreator.keyHandled
+		}
+
+		// Open history when key not overwritten by other screens
+		if k, ok := msg.(tea.KeyPressMsg); ok && key.Matches(k, m.openHistory) && (m.state == stateRouteSelect || m.state == stateCreateRequest) && m.history.CanBeOpened() {
+			m.historyOpen = true
+			m.handledKey = true
+		}
+
+		return m, cmd
 	}
 
 	return m, nil
@@ -222,10 +254,16 @@ func (m Input) View() (*tea.Cursor, string) {
 		return nil, closeText + fill
 
 	case stateRouteSelect:
+		if m.historyOpen {
+			return nil, m.history.View()
+		}
 		cursor, view := m.routeSelect.View()
 		return cursor, view
 
 	case stateCreateRequest:
+		if m.historyOpen {
+			return nil, m.history.View()
+		}
 		cursor, view := m.requestCreator.View()
 		return cursor, view
 	}
