@@ -126,15 +126,15 @@ func (c *{{ $.Object.Name }}) Receive{{ camel $name true }}(handler func(event {
 func (c *{{ $.Object.Name }}) Send{{ camel $name true }}({{- if $route.HasRequest }}payload {{ getType $route.Request }}{{ end -}}) ({{- if $route.HasResponse }}{{ getType $route.Response }}, {{ end -}}error) {
 	{{- $sendType := $route.GetSendType -}}
 	{{- if eq $sendType $.Object.Const.SendRequestResponse }}
-	return c.client.Send[{{ getType $route.Response }}]("{{ $name }}", &payload)
+	return c.client.Send[{{ getType $route.Response }}]("{{ $name }}", payload)
 	{{- else if eq $sendType $.Object.Const.SendOK }}
-	return c.client.SendOk("{{ $name }}", &payload)
+	return c.client.SendOk("{{ $name }}", payload)
 	{{- else if eq $sendType $.Object.Const.SendOKNoRequest }}
 	return c.client.SendOkNoRequest("{{ $name }}")
 	{{- else if eq $sendType $.Object.Const.SendNoRequest }}
 	return c.client.SendNoRequest[{{ getType $route.Response }}]("{{ $name }}")
 	{{- else if eq $sendType $.Object.Const.SendNoResponse }}
-	return c.client.SendNoResponse("{{ $name }}", &payload)
+	return c.client.SendNoResponse("{{ $name }}", payload)
 	{{- else if eq $sendType $.Object.Const.SendPing }}
 	return c.client.SendPing("{{ $name }}")
 	{{- end }}
