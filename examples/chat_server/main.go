@@ -83,6 +83,10 @@ func main() {
 	}
 }
 
+type SomeStruct struct {
+	Test string `msg:"hello"`
+}
+
 func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 	if req.Text == "" {
 		return neoroute.NewError("text is required")
@@ -137,6 +141,8 @@ func InitTransporter(router *neoroute.Router[neoroute.NoData]) *http.ServeMux {
 	g := neoschema.NewGenerator()
 	g.Transporter("ws", wsT)
 	g.Transporter("http", httpT)
+
+	g.Add(SomeStruct{})
 
 	// Then let the program panic and print the schema when --neo-generate is set
 	g.PrintIfDesired()

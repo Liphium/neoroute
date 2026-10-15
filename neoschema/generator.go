@@ -1,7 +1,10 @@
 package neoschema
 
+import "reflect"
+
 type Generator struct {
-	transporters map[string]Transporter
+	transporters  map[string]Transporter
+	customObjects []reflect.Type
 }
 
 // Create a new generator.
@@ -13,6 +16,14 @@ func NewGenerator() *Generator {
 	return &Generator{
 		transporters: map[string]Transporter{},
 	}
+}
+
+// Add adds custom objects that will be generated alongside the normal models for transporters, this is useful for custom types that are not directly linked to a transporter, but you still use in other shared contexts.
+func (g *Generator) Add(objects ...any) *Generator {
+	for _, o := range objects {
+		g.customObjects = append(g.customObjects, reflect.TypeOf(o))
+	}
+	return g
 }
 
 // Add a new transporter, needs to implement the interface for schema generation of course...
