@@ -7,7 +7,7 @@ replace github.com/Liphium/neoroute/client => ../../client
 replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
 
 require (
-	github.com/Liphium/neoroute/client v0.6.0
+	github.com/Liphium/neoroute/client v1.0.0
 	github.com/Liphium/neoroute/client/transporter/http v0.5.0
 	github.com/tinylib/msgp v1.6.4
 )
