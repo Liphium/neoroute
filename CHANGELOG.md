@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/Liphium/neoroute/compare/v1.1.0...v1.2.0) (2026-10-18)
+
+
+### Features
+
+* **neoschema,neogen:** Add custom objects ([3c1d0cd](https://github.com/Liphium/neoroute/commit/3c1d0cdbfb587ff0cb2fbded04bbf7567e27f83d))
+* **neoschema,neogen:** Add custom objects ([#41](https://github.com/Liphium/neoroute/issues/41)) ([3c1d0cd](https://github.com/Liphium/neoroute/commit/3c1d0cdbfb587ff0cb2fbded04bbf7567e27f83d))
+
+
+### Bug Fixes
+
+* **neogen:** Generate pointers in Go to prevent generation errors ([3c1d0cd](https://github.com/Liphium/neoroute/commit/3c1d0cdbfb587ff0cb2fbded04bbf7567e27f83d))
+
 ## [1.1.0](https://github.com/Liphium/neoroute/compare/v1.0.1...v1.1.0) (2026-09-14)
 
 
