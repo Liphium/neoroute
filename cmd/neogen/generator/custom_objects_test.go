@@ -55,7 +55,7 @@ type StandaloneInner struct {
 type Standalone struct {
 	Code  int      ` + "`msg:\"code\"`" + `
 	Label *string  ` + "`msg:\"label\"`" + `
-	Items []Inner  ` + "`msg:\"items\"`" + `
+	Items []StandaloneInner  ` + "`msg:\"items\"`" + `
 }
 
 type mockTransporter struct{ routes map[string]neoschema.RequestResponse }
@@ -128,10 +128,13 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 		"Inner": {
 			"Note": "string",
 		},
+		"StandaloneInner": {
+			"Info": "string",
+		},
 		"Standalone": {
 			"Code":  "int64",
 			"Label": "*string",
-			"Items": "[]Inner",
+			"Items": "[]StandaloneInner",
 		},
 	}, goStructs, "generated Go structs must match exactly")
 
@@ -165,10 +168,13 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 		"Inner": {
 			"note": "string",
 		},
+		"StandaloneInner": {
+			"info": "string",
+		},
 		"Standalone": {
 			"code":  "bigint",
 			"label": "string | null",
-			"items": "Inner[]",
+			"items": "StandaloneInner[]",
 		},
 	}, parseTSInterfaces(t, string(tsModels)), "generated TS interfaces must match exactly")
 
