@@ -2,12 +2,16 @@
 package generated
 
 type MessageEvent struct {
-	Sender    string `msg:"sender"`
 	Text      string `msg:"text"`
+	Sender    string `msg:"sender"`
 	Timestamp int64  `msg:"timestamp"`
 }
 
 type SendRequest struct {
-	Sender string `msg:"sender"`
 	Text   string `msg:"text"`
+	Sender string `msg:"sender"`
+}
+
+type SomeStruct struct {
+	Hello string `msg:"hello"`
 }

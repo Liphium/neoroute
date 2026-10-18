@@ -2,6 +2,7 @@ package neoschema
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"os"
@@ -14,10 +15,15 @@ const (
 	GeneratorName  string = "neogen"
 )
 
+var (
+	ErrNotStruct = errors.New("custom types can only be generated for structs")
+)
+
 type Schema struct {
-	Version      int                          `json:"version"`
-	Generator    string                       `json:"generator"`
-	Transporters map[string]TransporterSchema `json:"transporters"`
+	Version       int                          `json:"version"`
+	Generator     string                       `json:"generator"`
+	CustomObjects map[string]PackedType        `json:"custom_objects"`
+	Transporters  map[string]TransporterSchema `json:"transporters"`
 }
 
 type TransporterType string
@@ -66,7 +72,7 @@ func SendTypeMap() map[string]SendType {
 	}
 }
 
-// GetCombinedObjectRegistry is a helper function to get a combined object registry from all transporters.
+// GetCombinedObjectRegistry is a helper function to get a combined object registry from all transporters + all of the custom objects.
 func (s Schema) GetCombinedObjectRegistry() map[string]PackedType {
 
 	// Collect all of the objects together
@@ -85,6 +91,11 @@ func (s Schema) GetCombinedObjectRegistry() map[string]PackedType {
 				maps.Insert(registry, maps.All(route.Response.ObjectRegistry()))
 			}
 		}
+	}
+
+	// Even if they are structs, the ones with fields are always in their own object registry due to to structs always generating a reference object instead of themselves
+	for _, o := range s.CustomObjects {
+		maps.Insert(registry, maps.All(o.ObjectRegistry()))
 	}
 
 	return registry
@@ -110,6 +121,22 @@ func (rs RouteSchema) GetSendType() SendType {
 
 func (g *Generator) Generate() (Schema, error) {
 	var err error
+
+	// TODO: Generate the custom objects as well
+
+	objects := map[string]PackedType{}
+	for _, obj := range g.customObjects {
+		if obj == nil || obj.Kind() != reflect.Struct {
+			return Schema{}, ErrNotStruct
+		}
+
+		packed, err := BuildPackedFor(obj)
+		if err != nil {
+			return Schema{}, err
+		}
+
+		objects[obj.Name()] = packed
+	}
 
 	packedTransporters := map[string]TransporterSchema{}
 	for name, transporter := range g.transporters {
@@ -165,9 +192,10 @@ func (g *Generator) Generate() (Schema, error) {
 	}
 
 	return Schema{
-		Version:      CurrentVersion,
-		Generator:    GeneratorName,
-		Transporters: packedTransporters,
+		Version:       CurrentVersion,
+		Generator:     GeneratorName,
+		CustomObjects: objects,
+		Transporters:  packedTransporters,
 	}, nil
 }
 
