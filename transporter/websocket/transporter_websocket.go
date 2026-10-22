@@ -44,6 +44,11 @@ func (t *Transporter[D]) Type() neoschema.TransporterType {
 
 // Config holds the configuration for the WebSocket transporter.
 type Config[D any] struct {
+	// HeaderReadTimeout limits reading the Neoroute envelope after a data message arrives.
+	//
+	// Zero defaults to ten seconds; a negative value disables it. Idle time between messages is unlimited. Body timeouts use neoroute.RouteOptions.ReadTimeout.
+	HeaderReadTimeout time.Duration
+
 	// If session is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	//
 	// If the bool is false, the handshake will be considered failed and the connection will be rejected.
@@ -67,6 +72,9 @@ type wsSession[D any] struct {
 
 // NewTransporter returns a new WebSocket transporter.
 func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.HandlerFunc, *Transporter[D]) {
+	if config.HeaderReadTimeout == 0 {
+		config.HeaderReadTimeout = 10 * time.Second
+	}
 	transporter := &Transporter[D]{
 		router:          router,
 		config:          config,
@@ -210,7 +218,6 @@ func (t *Transporter[D]) getSession(id string) (*wsSession[D], bool) {
 func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 	session.mutex.Lock()
 	conn := session.conn
-	userSession := session.session
 	session.mutex.Unlock()
 
 	defer func() {
@@ -235,7 +242,7 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 	}
 
 	for {
-		messageType, reader, err := conn.Reader(context.Background())
+		resp, runAfter, err := t.readRequest(session)
 		if err != nil {
 
 			// Only log err if it is not due to expected connection closure
@@ -250,23 +257,11 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 			return
 		}
 
-		if messageType != websocket.MessageBinary {
-			return
-		}
-
-		// Handle request and send response back over the same connection
-		resp, runAfter, err := t.router.Handle(reader, userSession)
-		if err != nil {
-			// Close the connection immediately, the rest of the message is never read
-			neoroute.Logger.Debug("websocket connection disconnected because of wrong format", "err", err)
-			conn.CloseNow()
-			return
-		}
 		if resp != nil {
 			session.sendMutex.Lock()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-			defer cancel()
 			err = conn.Write(ctx, websocket.MessageBinary, resp)
+			cancel()
 			session.sendMutex.Unlock()
 			if err != nil {
 				neoroute.Logger.Info("failed to send websocket response", "err", err)
@@ -276,6 +271,84 @@ func (t *Transporter[D]) handleSession(session *wsSession[D]) {
 		for _, fn := range runAfter {
 			fn()
 		}
-		io.Copy(io.Discard, reader)
 	}
+}
+
+// readRequest scopes timeout cleanup to a single message, including partial messages.
+func (t *Transporter[D]) readRequest(session *wsSession[D]) ([]byte, []func(), error) {
+	ctx, cancel := context.WithCancel(session.ctx)
+	defer cancel()
+	var timer *time.Timer
+	defer func() {
+		if timer != nil {
+			timer.Stop()
+		}
+	}()
+	setTimeout := func(timeout time.Duration) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if timer != nil {
+			timer.Stop()
+		}
+		if timeout > 0 {
+			if timer == nil {
+				timer = time.AfterFunc(timeout, cancel)
+			} else {
+				timer.Reset(timeout)
+			}
+		}
+		return nil
+	}
+
+	// Wait without a deadline so idle connections and ping/pong traffic do not consume the time allowed to read an incoming request's envelope.
+	messageType, reader, err := session.conn.Reader(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if messageType != websocket.MessageBinary {
+		return nil, nil, fmt.Errorf("expected binary websocket message")
+	}
+	if err := setTimeout(t.config.HeaderReadTimeout); err != nil {
+		return nil, nil, err
+	}
+
+	// Stop the read timeout as soon as the complete message has been read, before the router executes application handlers. The router checks for EOF itself.
+	reader = &messageReader{Reader: reader, cancel: func() {
+		if timer != nil {
+			timer.Stop()
+		}
+		cancel()
+	}, setTimeout: setTimeout}
+	resp, runAfter, err := t.router.Handle(reader, session.session)
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := io.Copy(io.Discard, reader); err != nil {
+		return nil, nil, err
+	}
+	return resp, runAfter, nil
+}
+
+type messageReader struct {
+	io.Reader
+	cancel     context.CancelFunc
+	done       bool
+	setTimeout func(time.Duration) error
+}
+
+func (r *messageReader) SetReadTimeout(timeout time.Duration) error {
+	return r.setTimeout(timeout)
+}
+
+func (r *messageReader) Read(p []byte) (int, error) {
+	if r.done {
+		return 0, io.EOF
+	}
+	n, err := r.Reader.Read(p)
+	if err == io.EOF {
+		r.done = true
+		r.cancel()
+	}
+	return n, err
 }

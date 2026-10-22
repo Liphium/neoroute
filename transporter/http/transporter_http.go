@@ -1,7 +1,9 @@
 package http_transporter
 
 import (
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/Liphium/neoroute"
 	"github.com/Liphium/neoroute/neoschema"
@@ -17,6 +19,12 @@ type Transporter[D any] struct {
 
 // Config holds the configuration for the HTTP transporter.
 type Config[D any] struct {
+	// HeaderReadTimeout limits reading the Neoroute envelope before the route is known. Zero defaults to ten seconds; a negative value disables it. Body timeouts use neoroute.RouteOptions.ReadTimeout.
+	//
+	// Configure http.Server.ReadHeaderTimeout separately.
+	//
+	// ResponseWriter middleware must support SetReadDeadline or expose Unwrap; requests are rejected if the deadline cannot be set.
+	HeaderReadTimeout time.Duration
 
 	// If session returned by the handshake function is nil, a new session will be created with a unique id. The data can then be set in the EnterNetworkFunc.
 	//
@@ -41,6 +49,9 @@ func (h *Transporter[D]) Type() neoschema.TransporterType {
 
 // NewTransporter creates a new HTTP transporter with the given handshake function and returns it along with an http.HandlerFunc that can be used to handle incoming HTTP requests.
 func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.HandlerFunc, *Transporter[D]) {
+	if config.HeaderReadTimeout == 0 {
+		config.HeaderReadTimeout = 10 * time.Second
+	}
 	transporter := &Transporter[D]{
 		router: router,
 	}
@@ -52,6 +63,15 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 				neoroute.PrintRecoveredPanic("HTTP", rec)
 			}
 		}()
+
+		reader := &requestReader{Reader: r.Body, controller: http.NewResponseController(w)}
+		if config.HeaderReadTimeout > 0 {
+			if err := reader.SetReadTimeout(config.HeaderReadTimeout); err != nil {
+				neoroute.Logger.Error("failed to set HTTP read deadline", "err", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
 
 		// Perform handshake to get session data
 		sessionData, ok := config.HandshakeFunc(r)
@@ -65,7 +85,7 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 
 		defer r.Body.Close()
 
-		resp, runAfter, err := transporter.router.Handle(r.Body, session)
+		resp, runAfter, err := transporter.router.Handle(reader, session)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -87,4 +107,17 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 	}
 
 	return hook, transporter
+}
+
+type requestReader struct {
+	io.Reader
+	controller *http.ResponseController
+}
+
+func (r *requestReader) SetReadTimeout(timeout time.Duration) error {
+	var deadline time.Time
+	if timeout > 0 {
+		deadline = time.Now().Add(timeout)
+	}
+	return r.controller.SetReadDeadline(deadline)
 }

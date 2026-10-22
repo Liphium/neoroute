@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/tinylib/msgp/msgp"
 )
@@ -12,6 +13,13 @@ import (
 //
 // This number might change in the future, but it should be fine to fit basically anything.
 const maxRequestHeaderSize = 1024
+
+// RequestReader lets transporters apply the route's body timeout after decoding
+// the header. SetReadTimeout replaces the header timeout; a negative value disables it.
+type RequestReader interface {
+	io.Reader
+	SetReadTimeout(time.Duration) error
+}
 
 // request is encoded as a msgp tuple: [id, route, data]. Order is guaranteed on the wire.
 //

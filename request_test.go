@@ -4,11 +4,51 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tinylib/msgp/msgp"
 )
+
+type timeoutRequestReader struct {
+	*bytes.Reader
+	timeout time.Duration
+}
+
+func (r *timeoutRequestReader) SetReadTimeout(timeout time.Duration) error {
+	r.timeout = timeout
+	return nil
+}
+
+func TestRouteReadTimeout(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		base time.Duration
+		opts []func(*RouteOptions)
+		want time.Duration
+	}{
+		{"default", 0, nil, time.Minute},
+		{"router default inherited by group", 2 * time.Second, nil, 2 * time.Second},
+		{"route override", 2 * time.Second, []func(*RouteOptions){WithReadTimeout(5 * time.Second)}, 5 * time.Second},
+		{"disabled", 2 * time.Second, []func(*RouteOptions){WithReadTimeout(-1)}, -1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := NewRouter(Config[bool]{RouteOptions: RouteOptions{ReadTimeout: tc.base}})
+			called := false
+			r.Group("group").RoutePing("x", func(*Ctx[bool]) { called = true }, tc.opts...)
+			r.Init()
+			req := request{Id: 1, Route: "group/x"}
+			data, err := req.MarshalMsg(nil)
+			require.NoError(t, err)
+			reader := &timeoutRequestReader{Reader: bytes.NewReader(data)}
+			_, _, err = r.Handle(reader, NewTestingSession(false, "s"))
+			require.NoError(t, err)
+			require.True(t, called)
+			require.Equal(t, tc.want, reader.timeout)
+		})
+	}
+}
 
 // captureRoute registers a ping route that stores the request body it receives.
 func captureRoute(r *Router[bool], route string, got *[]byte, called *bool, opts ...func(*RouteOptions)) {
@@ -87,6 +127,20 @@ func TestRequestMalformedHeader(t *testing.T) {
 	require.False(t, called, "handler called for malformed header")
 	require.Error(t, err, "handler called without error")
 	require.Nil(t, respBytes)
+}
+
+func TestRequestHeaderRejectsOversizedDeclaredRoute(t *testing.T) {
+	r := NewRouter(Config[bool]{
+		ErrorHandler: func(err error, _ *Ctx[bool]) string { return err.Error() },
+	})
+	r.Init()
+
+	// Tuple with id=1 and a str32 route declaring 16 MiB, without string contents.
+	// Reject the declared length before attempting to read or allocate the string.
+	bad := []byte{0x93, 0x01, 0xdb, 0x01, 0x00, 0x00, 0x00}
+	resp, _, err := r.Handle(bytes.NewReader(bad), NewTestingSession(false, "s"))
+	require.ErrorContains(t, err, msgp.ErrLimitExceeded.Error())
+	require.Nil(t, resp)
 }
 
 func TestRequestBodyTrailingBytesIsError(t *testing.T) {

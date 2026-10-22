@@ -80,6 +80,7 @@ func (n *Router[D]) Group(subroute string) *Router[D] {
 	subroute = cleanRoute(subroute)
 
 	r := &Router[D]{
+		config:       n.config,
 		actualRoutes: make(map[string]exportedRoute[D]),
 		children:     make(map[string][]*Router[D]),
 		middlewares:  make(map[string][]MiddlewareFunc[D]),
@@ -125,7 +126,9 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 	}
 
 	// Read only the first bytes of the request header (we want to make sure it's not too long)
+	// Also if you wonder: Timeouts for these reads are done at the transporter level, and the reader passed into here already has a timeout. We then later change the timeout to the route's read timeout.
 	headerReader := msgp.NewReaderSize(io.LimitReader(reqReader, maxRequestHeaderSize), maxRequestHeaderSize)
+	headerReader.SetMaxStringLength(maxRequestHeaderSize)
 	id, route, size, leftover, err := readRequestHeader(headerReader)
 	if err != nil {
 		return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
@@ -146,6 +149,11 @@ func (r *Router[D]) Handle(reqReader io.Reader, session *Session[D]) ([]byte, []
 		}
 		Logger.Debug("error for route without error", "err", ErrRequestTooLarge)
 		return nil, nil, errors.New(r.config.RunErrorHandler(ErrRequestTooLarge, c))
+	}
+	if reader, ok := reqReader.(RequestReader); ok {
+		if err := reader.SetReadTimeout(routeData.options.ReadTimeout); err != nil {
+			return nil, nil, errors.New(r.config.RunErrorHandler(err, c))
+		}
 	}
 
 	// Body reader: buffered leftover from the header first, then the rest of the request, capped at exactly size bytes
