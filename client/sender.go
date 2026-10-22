@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"sync"
-	"time"
 )
 
 type Client struct {
@@ -20,7 +19,7 @@ type Client struct {
 // Make sure to use a different client for every transporter.
 func NewClient(config Config) *Client {
 	if config.RequestTimeout == 0 {
-		config.RequestTimeout = 5 * time.Second
+		config.RequestTimeout = defaultRequestOptions().RequestTimeout
 	}
 	return &Client{
 		config:    config,
