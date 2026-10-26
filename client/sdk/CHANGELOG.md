@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/Liphium/neoroute/compare/client/sdk/v1.0.0...client/sdk/v1.0.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* trigger release manually to test it ([3f0c5ce](https://github.com/Liphium/neoroute/commit/3f0c5ce22a42fc95a757d204c8cb66d287a394ad))
+
 ## [1.0.0](https://github.com/Liphium/neoroute/compare/client/v0.6.0...client/v1.0.0) (2026-08-29)
 
 
