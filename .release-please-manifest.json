@@ -4,7 +4,7 @@
     "client/transporter/http": "1.0.0",
     "client/transporter/websocket": "1.0.2",
     "transporter/http": "1.0.0",
-    "transporter/websocket": "1.0.0",
+    "transporter/websocket": "1.1.0",
     "pkg/neodebug": "1.1.0",
     "examples/chat_server": "1.0.0"
 }
