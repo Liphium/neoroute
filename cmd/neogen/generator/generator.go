@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Liphium/neoroute/cmd/neogen/languages"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/languages"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 type GeneratorConfig struct {

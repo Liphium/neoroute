@@ -2,8 +2,8 @@
 package generated
 
 import (
-	"github.com/Liphium/neoroute/client/sdk"
-	"github.com/Liphium/neoroute/client/transporter/websocket"
+	client "github.com/Liphium/neoroute/client/sdk/v2"
+	"github.com/Liphium/neoroute/client/transporter/websocket/v2"
 )
 
 type WsConnector struct {

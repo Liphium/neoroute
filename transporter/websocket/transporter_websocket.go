@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2"
+	"github.com/Liphium/neoroute/v2/neoschema"
 	"github.com/google/uuid"
 
 	"github.com/coder/websocket"

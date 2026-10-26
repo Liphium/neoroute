@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Liphium/neoroute/cmd/neogen/engine"
-	"github.com/Liphium/neoroute/cmd/neogen/util"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/engine"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/util"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 var tsTypeMap = map[neoschema.SchemaType]string{

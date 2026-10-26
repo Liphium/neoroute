@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 func createNode(schema neoschema.PackedType, registry map[string]neoschema.PackedType) SchemaNode {

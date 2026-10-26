@@ -3,7 +3,7 @@ package util_test
 import (
 	"testing"
 
-	"github.com/Liphium/neoroute/cmd/neogen/util"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/util"
 )
 
 func TestToCamelCase(t *testing.T) {

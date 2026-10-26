@@ -4,11 +4,11 @@ import (
 	"net/url"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/Liphium/neoroute/client/sdk"
-	"github.com/Liphium/neoroute/client/transporter/websocket"
-	"github.com/Liphium/neoroute/neoschema"
-	"github.com/Liphium/neoroute/pkg/neodebug/config"
-	"github.com/Liphium/neoroute/pkg/neodebug/model"
+	client "github.com/Liphium/neoroute/client/sdk/v2"
+	"github.com/Liphium/neoroute/client/transporter/websocket/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/config"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/model"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 func connectWebsocket(schema neoschema.TransporterSchema) tea.Msg {

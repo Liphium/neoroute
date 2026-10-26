@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Liphium/neoroute/cmd/neogen/generator"
-	"github.com/Liphium/neoroute/cmd/neogen/languages"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/generator"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/languages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

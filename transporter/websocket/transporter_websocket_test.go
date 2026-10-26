@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/v2"
 	"github.com/coder/websocket"
 	"github.com/stretchr/testify/assert"
 )

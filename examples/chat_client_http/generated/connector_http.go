@@ -2,9 +2,10 @@
 package generated
 
 import (
-	"github.com/Liphium/neoroute/client/sdk"
-	"github.com/Liphium/neoroute/client/transporter/http"
 	"net/url"
+
+	client "github.com/Liphium/neoroute/client/sdk/v2"
+	"github.com/Liphium/neoroute/client/transporter/http/v2"
 )
 
 type HttpConnector struct {

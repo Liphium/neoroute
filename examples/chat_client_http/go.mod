@@ -2,13 +2,13 @@ module github.com/Liphium/neoroute/examples/chat_client_http
 
 go 1.27.0
 
-replace github.com/Liphium/neoroute/client/sdk => ../../client/sdk
+replace github.com/Liphium/neoroute/client/sdk/v2 => ../../client/sdk
 
-replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
+replace github.com/Liphium/neoroute/client/transporter/http/v2 => ../../client/transporter/http
 
 require (
-	github.com/Liphium/neoroute/client/sdk v1.0.0
-	github.com/Liphium/neoroute/client/transporter/http v0.5.0
+	github.com/Liphium/neoroute/client/sdk/v2 v2.0.0
+	github.com/Liphium/neoroute/client/transporter/http/v2 v2.0.0
 	github.com/tinylib/msgp v1.6.4
 )
 

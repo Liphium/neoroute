@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/client/sdk"
-	"github.com/Liphium/neoroute/pkg/neodebug/model"
+	client "github.com/Liphium/neoroute/client/sdk/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/model"
+	"github.com/Liphium/neoroute/v2"
 )
 
 // InitLogger installs a slog logger that routes to the TUI history via program.Send.

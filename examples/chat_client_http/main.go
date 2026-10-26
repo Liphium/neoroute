@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Liphium/neoroute/client/sdk"
+	client "github.com/Liphium/neoroute/client/sdk/v2"
 	"github.com/Liphium/neoroute/examples/chat_client_http/generated"
 )
 

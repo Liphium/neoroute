@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/v2"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 

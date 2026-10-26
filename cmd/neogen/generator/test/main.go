@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 type GenericData struct {
