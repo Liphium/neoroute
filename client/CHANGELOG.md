@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/Liphium/neoroute/compare/client/v1.0.0...client/v1.1.0) (2026-10-26)
+
+
+### Features
+
+* **client:** Allow different timeouts for different requests  ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **neoroute:** Add individual options for handler options ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **neoroute:** Add request body read timeouts ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **neoroute:** Add request size limit enforcement ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* Request and route options ([#42](https://github.com/Liphium/neoroute/issues/42)) ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **websocket,http:** Add request header timeouts ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+
+
+### Bug Fixes
+
+* Various minor security issues that could have caused memory spikes ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+
 ## [1.0.0](https://github.com/Liphium/neoroute/compare/client/v0.6.0...client/v1.0.0) (2026-08-29)
 
 
