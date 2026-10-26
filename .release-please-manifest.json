@@ -1,6 +1,6 @@
 {
     ".": "1.2.0",
-    "client/sdk": "1.0.0",
+    "client/sdk": "1.0.1",
     "client/transporter/http": "1.0.0",
     "client/transporter/websocket": "1.0.2",
     "transporter/http": "1.0.0",
