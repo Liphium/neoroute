@@ -8,7 +8,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/sdk"
 	"github.com/Liphium/neoroute/pkg/neodebug/model"
 )
 

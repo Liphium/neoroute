@@ -139,7 +139,7 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 	}, goStructs, "generated Go structs must match exactly")
 
 	// The generated Go package must compile
-	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client="+filepath.Join(projectDir, "client"))
+	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/sdk="+filepath.Join(projectDir, "client", "sdk"))
 	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/transporter/http="+filepath.Join(projectDir, "client", "transporter", "http"))
 	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/transporter/websocket="+filepath.Join(projectDir, "client", "transporter", "websocket"))
 	run(goDir, "mod", "tidy")

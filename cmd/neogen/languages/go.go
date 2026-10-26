@@ -85,7 +85,7 @@ import (
 	{{- if eq .Object.Type "http" }}
 	"net/url"
 	{{- end }}
-	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/sdk"
 	"github.com/Liphium/neoroute/client/transporter/{{ .Object.Type }}"
 )
 

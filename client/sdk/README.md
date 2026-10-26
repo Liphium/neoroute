@@ -7,8 +7,12 @@ This is the official library to interact with a server written with [Neoroute](h
 Run the following command in your Go project:
 
 ```sh
-go get -u github.com/Liphium/neoroute/client@latest
+go get -u github.com/Liphium/neoroute/client/sdk@latest
 ```
+
+If you previously used `github.com/Liphium/neoroute/client`, update your imports
+to `github.com/Liphium/neoroute/client/sdk`. The Go package name remains `client`.
+Transporter import paths are unchanged.
 
 Depending on which transporter you would like to use, run one of the following commands as well:
 

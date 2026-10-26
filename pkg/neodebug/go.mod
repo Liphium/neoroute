@@ -4,7 +4,7 @@ go 1.27
 
 replace github.com/Liphium/neoroute => ../../
 
-replace github.com/Liphium/neoroute/client => ../../client
+replace github.com/Liphium/neoroute/client/sdk => ../../client/sdk
 
 replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
 
@@ -15,7 +15,7 @@ require (
 	charm.land/bubbletea/v2 v2.0.9
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/Liphium/neoroute v1.2.0
-	github.com/Liphium/neoroute/client v1.0.0
+	github.com/Liphium/neoroute/client/sdk v1.0.0
 	github.com/Liphium/neoroute/client/transporter/http v1.0.0
 	github.com/Liphium/neoroute/client/transporter/websocket v1.0.2
 	github.com/stretchr/testify v1.12.1

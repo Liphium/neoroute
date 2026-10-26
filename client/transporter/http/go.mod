@@ -2,9 +2,9 @@ module github.com/Liphium/neoroute/client/transporter/http
 
 go 1.27
 
-replace github.com/Liphium/neoroute/client => ../../
+replace github.com/Liphium/neoroute/client/sdk => ../../sdk
 
-require github.com/Liphium/neoroute/client v1.0.0
+require github.com/Liphium/neoroute/client/sdk v1.0.0
 
 require (
 	github.com/philhofer/fwd v1.2.0 // indirect

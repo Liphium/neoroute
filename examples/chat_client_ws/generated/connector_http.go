@@ -2,7 +2,7 @@
 package generated
 
 import (
-	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/sdk"
 	"github.com/Liphium/neoroute/client/transporter/http"
 	"net/url"
 )

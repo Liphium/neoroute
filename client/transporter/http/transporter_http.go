@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/sdk"
 )
 
 // ApplyHTTP makes a sender send Neoroute requests over HTTP, using the given method and URL.

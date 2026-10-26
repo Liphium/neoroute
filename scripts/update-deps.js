@@ -14,7 +14,7 @@ const path = require("path");
 // Each inner array is one "step". Steps run in order — everything in a later
 // step depends on everything in earlier steps.
 const DEPENDENCY_TREE = [
-	[".", "client"],
+	[".", "client/sdk"],
 	[
 		"client/transporter/http",
 		"client/transporter/websocket",

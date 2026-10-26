@@ -1,4 +1,4 @@
-module github.com/Liphium/neoroute/client
+module github.com/Liphium/neoroute/client/sdk
 
 go 1.27
 

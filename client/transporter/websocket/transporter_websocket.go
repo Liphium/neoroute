@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Liphium/neoroute/client"
+	"github.com/Liphium/neoroute/client/sdk"
 
 	ws "github.com/coder/websocket"
 )

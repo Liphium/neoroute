@@ -7,11 +7,10 @@
 			"include-v-in-tag": true,
 			"exclude-paths": ["client", "transporter", "examples", "pkg"]
 		},
-		"client": {
+		"client/sdk": {
 			"release-type": "go",
 			"include-v-in-tag": true,
-			"component": "client",
-			"exclude-paths": ["client/transporter"]
+			"component": "client/sdk"
 		},
 		"client/transporter/http": {
 			"release-type": "go",

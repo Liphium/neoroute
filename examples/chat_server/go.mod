@@ -10,7 +10,7 @@ replace github.com/Liphium/neoroute/transporter/websocket => ../../transporter/w
 
 replace github.com/Liphium/neoroute/pkg/neodebug => ../../pkg/neodebug
 
-replace github.com/Liphium/neoroute/client => ../../client
+replace github.com/Liphium/neoroute/client/sdk => ../../client/sdk
 
 replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
 
@@ -30,7 +30,7 @@ require (
 	charm.land/bubbles/v2 v2.2.1 // indirect
 	charm.land/bubbletea/v2 v2.0.9 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/Liphium/neoroute/client v1.0.0 // indirect
+	github.com/Liphium/neoroute/client/sdk v1.0.0 // indirect
 	github.com/Liphium/neoroute/client/transporter/http v1.0.0 // indirect
 	github.com/Liphium/neoroute/client/transporter/websocket v1.0.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
