@@ -77,7 +77,12 @@ func main() {
 	slog.Info("Starting neoroute chat server example")
 
 	slog.Info("listening on localhost:6121")
-	if err := http.ListenAndServe(":6121", mux); err != nil {
+	server := &http.Server{
+		Addr:              ":6121",
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		slog.Error("failed to start server", "error", err)
 		os.Exit(1)
 	}
