@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/Liphium/neoroute/v2"
 	"github.com/Liphium/neoroute/v2/neoschema"
@@ -19,9 +20,14 @@ type Recursive struct {
 	Next *Recursive `msg:"next"`
 }
 
+type TimeValue struct {
+	SomeTime time.Time `msg:"some_time"`
+}
+
 type Normal struct {
-	Value int    `msg:"value"`
-	Text  string `msg:"text"`
+	Value int       `msg:"value"`
+	Text  string    `msg:"text"`
+	Time  TimeValue `msg:"time"`
 }
 
 type MockTransporter struct {

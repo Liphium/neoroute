@@ -25,8 +25,8 @@ const serverSource = `package main
 import (
 	"reflect"
 
-	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 type Address struct {
@@ -94,7 +94,7 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 		require.NoError(t, err, "go %v\n%s", args, out)
 	}
 	run(serverDir, "mod", "init", "custom-objects-server")
-	run(serverDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute="+projectDir)
+	run(serverDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/v2="+projectDir)
 	run(serverDir, "mod", "tidy")
 
 	// 2. Extract the schema from the server (same path neogen uses)
@@ -139,9 +139,9 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 	}, goStructs, "generated Go structs must match exactly")
 
 	// The generated Go package must compile
-	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/sdk="+filepath.Join(projectDir, "client", "sdk"))
-	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/transporter/http="+filepath.Join(projectDir, "client", "transporter", "http"))
-	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/transporter/websocket="+filepath.Join(projectDir, "client", "transporter", "websocket"))
+	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/sdk/v2="+filepath.Join(projectDir, "client", "sdk"))
+	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/transporter/http/v2="+filepath.Join(projectDir, "client", "transporter", "http"))
+	run(goDir, "mod", "edit", "-replace", "github.com/Liphium/neoroute/client/transporter/websocket/v2="+filepath.Join(projectDir, "client", "transporter", "websocket"))
 	run(goDir, "mod", "tidy")
 	run(goDir, "vet", "./...")
 

@@ -64,5 +64,10 @@ func GetSchema(serverPath string, command string) (neoschema.Schema, error) {
 		return schema, fmt.Errorf("invalid schema: %v", err)
 	}
 
+	// Make sure the version is supported
+	if schema.Version != neoschema.CurrentVersion {
+		return schema, fmt.Errorf("unsupported schema version: %d (expected %d)", schema.Version, neoschema.CurrentVersion)
+	}
+
 	return schema, nil
 }

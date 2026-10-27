@@ -11,13 +11,22 @@ import (
 )
 
 const (
-	CurrentVersion int    = 1
+	CurrentVersion int    = 2
 	GeneratorName  string = "neogen"
 )
 
 var (
 	ErrNotStruct = errors.New("custom types can only be generated for structs")
 )
+
+// IsTuple is a marker interface to mark a type as a tuple for message pack encoding. This will not actually change the generation functions msgp generates under the hood. It will only change the way neoschema generates the schema. We will specifically mark the struct as a tuple.
+//
+// This feature is only supported for structs as anything else is basically a tuple anyway.
+//
+// For more info check our documentation. Future @Unbreathable, if you read this, maybe put a link to the place where this is in the docs directly here? Thank you.
+type IsTuple interface {
+	isTupleThisIsASuperSecretFunctionThatIsOnlyImplementedByThisInterface()
+}
 
 type Schema struct {
 	Version       int                          `json:"version"`

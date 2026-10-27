@@ -11,7 +11,7 @@ func notSupportedError(kind reflect.Kind) error {
 
 // BuildPackedFor generates a schema from a Golang type using the reflect package.
 func BuildPackedFor(t reflect.Type) (PackedType, error) {
-	generated, err := buildPackedFor(t, nil, nil, 0)
+	generated, err := buildPackedFor(t, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -20,12 +20,23 @@ func BuildPackedFor(t reflect.Type) (PackedType, error) {
 	return generated, nil
 }
 
-// buildPackedFor is the internal recursive function.
-func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fieldIndex int) (PackedType, error) {
+// buildPackedFor is an internal recursive function that generates the schema for Golang type. It's a helper function for the public function above.
+func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 	var generated PackedType
 	kind := t.Kind()
 	switch kind {
 	case reflect.Struct:
+
+		// If it's a special type (e.g. time.Time), handle accordingly
+		switch t.PkgPath() + "." + t.Name() {
+		case "time.Time":
+			generated = &BasicType{
+				ActualType: TypeDate,
+			}
+		}
+		if generated != nil {
+			break
+		}
 
 		// If the struct is already in the registry, use that instead
 		if current != nil && current.ObjectRegistry()[t.Name()] != nil {
@@ -39,30 +50,37 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 			break
 		}
 
+		// Add struct to the object registry (we do not add it directly to make sure recursion in structs is supported)
 		st := &StructType{
 			Name: t.Name(),
 			BasicType: &BasicType{
 				ActualType: Kinds[kind],
 			},
 			Fields: []StructField{},
+			// If the struct is a tuple, mark it as one
+			Tuple: t.Implements(reflect.TypeFor[IsTuple]()),
 		}
 		st.BasicType.Objects = getRegistry(current)
 		st.BasicType.Objects[st.Name] = st
 
 		// Go through all struct fields and build their schemas
 		st.Fields = []StructField{}
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-
+		for field := range t.Fields() {
 			msgTag := field.Tag.Get("msg")
 			if msgTag == "-" {
 				continue
 			}
 			if msgTag == "" {
+
+				// For unexported fields with no tag, we know that they are not meant to be serialized, so we skip them
+				if !field.IsExported() {
+					continue
+				}
+
 				msgTag = field.Name
 			}
 
-			packed, err := buildPackedFor(field.Type, st, t, i)
+			packed, err := buildPackedFor(field.Type, st)
 			if err != nil {
 				return &BasicType{}, err
 			}
@@ -91,7 +109,7 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 		at.BasicType.Objects = getRegistry(current)
 
 		// Build the type for the array
-		arrayElem, err := buildPackedFor(t.Elem(), at, nil, 0)
+		arrayElem, err := buildPackedFor(t.Elem(), at)
 		if err != nil {
 			return &BasicType{}, err
 		}
@@ -109,12 +127,12 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 		mt.BasicType.Objects = getRegistry(current)
 
 		// Build the type for key and map of the array
-		mapKey, err := buildPackedFor(t.Key(), mt, nil, 0)
+		mapKey, err := buildPackedFor(t.Key(), mt)
 		if err != nil {
 			return &BasicType{}, err
 		}
 		mt.Key = mapKey
-		mapElem, err := buildPackedFor(t.Elem(), mt, nil, 0)
+		mapElem, err := buildPackedFor(t.Elem(), mt)
 		if err != nil {
 			return &BasicType{}, err
 		}
@@ -132,7 +150,7 @@ func buildPackedFor(t reflect.Type, current PackedType, parent reflect.Type, fie
 		nt.BasicType.Objects = getRegistry(current)
 
 		// Build the type for the nullable
-		nullableElem, err := buildPackedFor(t.Elem(), nt, nil, 0)
+		nullableElem, err := buildPackedFor(t.Elem(), nt)
 		if err != nil {
 			return &BasicType{}, err
 		}
