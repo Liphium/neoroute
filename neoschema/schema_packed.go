@@ -66,17 +66,16 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 		// Go through all struct fields and build their schemas
 		st.Fields = []StructField{}
 		for field := range t.Fields() {
+			// Unexported fields aren't generated (technically they could be with flags, but we're gonna not support that in neogen)
+			if !field.IsExported() {
+				continue
+			}
+
 			msgTag := field.Tag.Get("msg")
 			if msgTag == "-" {
 				continue
 			}
 			if msgTag == "" {
-
-				// For unexported fields with no tag, we know that they are not meant to be serialized, so we skip them
-				if !field.IsExported() {
-					continue
-				}
-
 				msgTag = field.Name
 			}
 

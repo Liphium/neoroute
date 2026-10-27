@@ -24,6 +24,7 @@ const serverSource = `package main
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/Liphium/neoroute/v2"
 	"github.com/Liphium/neoroute/v2/neoschema"
@@ -56,6 +57,11 @@ type Standalone struct {
 	Code  int      ` + "`msg:\"code\"`" + `
 	Label *string  ` + "`msg:\"label\"`" + `
 	Items []StandaloneInner  ` + "`msg:\"items\"`" + `
+
+	// These fields should not be generated
+	secret string
+	hello  int64 ` + "`msg:\"hello\"`" + `
+	sth time.Time
 }
 
 type mockTransporter struct{ routes map[string]neoschema.RequestResponse }
