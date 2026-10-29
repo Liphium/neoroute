@@ -18,12 +18,12 @@ require (
 	github.com/Liphium/neoroute/client/transporter/http/v2 v2.0.0
 	github.com/Liphium/neoroute/client/transporter/websocket/v2 v2.0.0
 	github.com/Liphium/neoroute/v2 v2.0.0
+	github.com/Unbreathable/nowandlater v1.0.0
 	github.com/stretchr/testify v1.12.1
 	github.com/tinylib/msgp v1.6.4
 )
 
 require (
-	github.com/Unbreathable/nowandlater v1.0.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect

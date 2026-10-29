@@ -30,7 +30,7 @@ func main() {
 			fmt.Println("From: ", event.Sender)
 		}
 		fmt.Println("Text: ", event.Text)
-		fmt.Printf("Sent at: %d\n", event.Timestamp)
+		fmt.Printf("Sent at: %s\n", event.Timestamp.Format("January 2, 2006 15:04"))
 		fmt.Println("----------------")
 	})
 

@@ -22,6 +22,7 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 
 		return &StructNode{
 			name:     schema.Name,
+			tuple:    schema.Tuple,
 			children: children,
 		}
 

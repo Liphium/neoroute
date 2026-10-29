@@ -18,17 +18,3 @@ Choose a route to try its editors:
 - `all-types`: all the above together in one request.
 
 These cover the types currently supported by Neodebug's editors. Arbitrary interface/serializable values are omitted because Neodebug has no editor for them.
-
-To print the schema without opening the TUI:
-
-```sh
-go run . --neo-generate
-```
-
-This uses `neoschema.NewGenerator`, just like `../chat_server`. Schema generation runs before Neodebug starts, including when Neodebug launches its own schema subprocess.
-
-MessagePack methods are generated in `models_gen.go`. After changing the models, regenerate them with `msgp` installed:
-
-```sh
-go generate ./...
-```
