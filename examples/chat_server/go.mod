@@ -33,6 +33,7 @@ require (
 	github.com/Liphium/neoroute/client/sdk/v2 v2.0.0 // indirect
 	github.com/Liphium/neoroute/client/transporter/http/v2 v2.0.0 // indirect
 	github.com/Liphium/neoroute/client/transporter/websocket/v2 v2.0.0 // indirect
+	github.com/Unbreathable/nowandlater v1.0.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect

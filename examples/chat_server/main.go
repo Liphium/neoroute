@@ -25,9 +25,9 @@ type SendRequest struct {
 }
 
 type MessageEvent struct {
-	Text      string `msg:"text"`
-	Sender    string `msg:"sender"`
-	Timestamp int64  `msg:"timestamp"`
+	Text      string    `msg:"text"`
+	Sender    string    `msg:"sender"`
+	Timestamp time.Time `msg:"timestamp"`
 }
 
 // Create event registry and register event for message broadcast
@@ -104,7 +104,7 @@ func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 		adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
 			Text:      req.Text,
 			Sender:    req.Sender,
-			Timestamp: time.Now().Unix(),
+			Timestamp: time.Now(),
 		}))
 	})
 
