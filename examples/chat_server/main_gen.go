@@ -37,7 +37,7 @@ func (z *MessageEvent) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "timestamp":
-			z.Timestamp, err = dc.ReadInt64()
+			z.Timestamp, err = dc.ReadTime()
 			if err != nil {
 				err = msgp.WrapError(err, "Timestamp")
 				return
@@ -81,7 +81,7 @@ func (z MessageEvent) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = en.WriteInt64(z.Timestamp)
+	err = en.WriteTime(z.Timestamp)
 	if err != nil {
 		err = msgp.WrapError(err, "Timestamp")
 		return
@@ -101,7 +101,7 @@ func (z MessageEvent) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendString(o, z.Sender)
 	// string "timestamp"
 	o = append(o, 0xa9, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70)
-	o = msgp.AppendInt64(o, z.Timestamp)
+	o = msgp.AppendTime(o, z.Timestamp)
 	return
 }
 
@@ -136,7 +136,7 @@ func (z *MessageEvent) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "timestamp":
-			z.Timestamp, bts, err = msgp.ReadInt64Bytes(bts)
+			z.Timestamp, bts, err = msgp.ReadTimeBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Timestamp")
 				return
@@ -155,7 +155,7 @@ func (z *MessageEvent) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z MessageEvent) Msgsize() (s int) {
-	s = 1 + 5 + msgp.StringPrefixSize + len(z.Text) + 7 + msgp.StringPrefixSize + len(z.Sender) + 10 + msgp.Int64Size
+	s = 1 + 5 + msgp.StringPrefixSize + len(z.Text) + 7 + msgp.StringPrefixSize + len(z.Sender) + 10 + msgp.TimeSize
 	return
 }
 
@@ -284,5 +284,108 @@ func (z *SendRequest) UnmarshalMsg(bts []byte) (o []byte, err error) {
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z SendRequest) Msgsize() (s int) {
 	s = 1 + 5 + msgp.StringPrefixSize + len(z.Text) + 7 + msgp.StringPrefixSize + len(z.Sender)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *SomeStruct) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "hello":
+			z.Test, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Test")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z SomeStruct) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 1
+	// write "hello"
+	err = en.Append(0x81, 0xa5, 0x68, 0x65, 0x6c, 0x6c, 0x6f)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Test)
+	if err != nil {
+		err = msgp.WrapError(err, "Test")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z SomeStruct) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 1
+	// string "hello"
+	o = append(o, 0x81, 0xa5, 0x68, 0x65, 0x6c, 0x6c, 0x6f)
+	o = msgp.AppendString(o, z.Test)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *SomeStruct) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "hello":
+			z.Test, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Test")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z SomeStruct) Msgsize() (s int) {
+	s = 1 + 6 + msgp.StringPrefixSize + len(z.Test)
 	return
 }

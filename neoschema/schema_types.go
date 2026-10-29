@@ -32,6 +32,7 @@ const (
 	TypeSerializable SchemaType = "serializable"
 	TypeNullable     SchemaType = "nullable"
 	TypeReference    SchemaType = "reference"
+	TypeDate         SchemaType = "date"
 	TypeNotSupported SchemaType = "-"
 )
 
@@ -132,6 +133,7 @@ type StructType struct {
 
 	Name   string        `json:"name"`
 	Fields []StructField `json:"fields"`
+	Tuple  bool          `json:"tuple"`
 }
 
 type StructField struct {

@@ -1,4 +1,4 @@
-module github.com/Liphium/neoroute
+module github.com/Liphium/neoroute/v2
 
 go 1.27
 

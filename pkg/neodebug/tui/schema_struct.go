@@ -21,6 +21,7 @@ var _ SchemaNode = &StructNode{}
 type StructNode struct {
 	basicNode
 	name     string
+	tuple    bool
 	children []StructField
 }
 
@@ -36,6 +37,16 @@ func (s *StructNode) KeyHandled() bool {
 
 // Request implements SchemaNode.
 func (s *StructNode) Request() any {
+
+	// Handle tuples correctly
+	if s.tuple {
+		req := []any{}
+		for _, f := range s.children {
+			req = append(req, f.Node.Request())
+		}
+		return req
+	}
+
 	req := map[string]any{}
 	for _, f := range s.children {
 		req[f.Name] = f.Node.Request()

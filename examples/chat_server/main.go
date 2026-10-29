@@ -7,14 +7,14 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neoschema"
-	http_transporter "github.com/Liphium/neoroute/transporter/http"
-	websocket_transporter "github.com/Liphium/neoroute/transporter/websocket"
+	http_transporter "github.com/Liphium/neoroute/transporter/http/v2"
+	websocket_transporter "github.com/Liphium/neoroute/transporter/websocket/v2"
+	"github.com/Liphium/neoroute/v2"
+	"github.com/Liphium/neoroute/v2/neoschema"
 	"github.com/coder/websocket"
 
-	"github.com/Liphium/neoroute/pkg/neodebug"
-	"github.com/Liphium/neoroute/pkg/neodebug/config"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/config"
 )
 
 //go:generate msgp
@@ -25,9 +25,9 @@ type SendRequest struct {
 }
 
 type MessageEvent struct {
-	Text      string `msg:"text"`
-	Sender    string `msg:"sender"`
-	Timestamp int64  `msg:"timestamp"`
+	Text      string    `msg:"text"`
+	Sender    string    `msg:"sender"`
+	Timestamp time.Time `msg:"timestamp"`
 }
 
 // Create event registry and register event for message broadcast
@@ -104,7 +104,7 @@ func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 		adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
 			Text:      req.Text,
 			Sender:    req.Sender,
-			Timestamp: time.Now().Unix(),
+			Timestamp: time.Now(),
 		}))
 	})
 

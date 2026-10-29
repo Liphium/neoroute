@@ -2,25 +2,25 @@ module github.com/Liphium/neoroute/examples/chat_server
 
 go 1.27.0
 
-replace github.com/Liphium/neoroute => ../../
+replace github.com/Liphium/neoroute/v2 => ../../
 
-replace github.com/Liphium/neoroute/transporter/http => ../../transporter/http
+replace github.com/Liphium/neoroute/transporter/http/v2 => ../../transporter/http
 
-replace github.com/Liphium/neoroute/transporter/websocket => ../../transporter/websocket
+replace github.com/Liphium/neoroute/transporter/websocket/v2 => ../../transporter/websocket
 
-replace github.com/Liphium/neoroute/pkg/neodebug => ../../pkg/neodebug
+replace github.com/Liphium/neoroute/pkg/neodebug/v2 => ../../pkg/neodebug
 
-replace github.com/Liphium/neoroute/client/sdk => ../../client/sdk
+replace github.com/Liphium/neoroute/client/sdk/v2 => ../../client/sdk
 
-replace github.com/Liphium/neoroute/client/transporter/http => ../../client/transporter/http
+replace github.com/Liphium/neoroute/client/transporter/http/v2 => ../../client/transporter/http
 
-replace github.com/Liphium/neoroute/client/transporter/websocket => ../../client/transporter/websocket
+replace github.com/Liphium/neoroute/client/transporter/websocket/v2 => ../../client/transporter/websocket
 
 require (
-	github.com/Liphium/neoroute v1.2.0
-	github.com/Liphium/neoroute/pkg/neodebug v1.0.0
-	github.com/Liphium/neoroute/transporter/http v1.0.0
-	github.com/Liphium/neoroute/transporter/websocket v1.0.0
+	github.com/Liphium/neoroute/pkg/neodebug/v2 v2.0.0
+	github.com/Liphium/neoroute/transporter/http/v2 v2.0.0
+	github.com/Liphium/neoroute/transporter/websocket/v2 v2.0.0
+	github.com/Liphium/neoroute/v2 v2.0.0
 	github.com/coder/websocket v1.8.15
 	github.com/google/go-cmp v0.7.0
 	github.com/tinylib/msgp v1.6.4
@@ -30,9 +30,10 @@ require (
 	charm.land/bubbles/v2 v2.2.1 // indirect
 	charm.land/bubbletea/v2 v2.0.9 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/Liphium/neoroute/client/sdk v1.0.0 // indirect
-	github.com/Liphium/neoroute/client/transporter/http v1.0.0 // indirect
-	github.com/Liphium/neoroute/client/transporter/websocket v1.0.2 // indirect
+	github.com/Liphium/neoroute/client/sdk/v2 v2.0.0 // indirect
+	github.com/Liphium/neoroute/client/transporter/http/v2 v2.0.0 // indirect
+	github.com/Liphium/neoroute/client/transporter/websocket/v2 v2.0.0 // indirect
+	github.com/Unbreathable/nowandlater v1.0.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect

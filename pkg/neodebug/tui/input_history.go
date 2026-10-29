@@ -7,8 +7,8 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/Liphium/neoroute/pkg/neodebug/connector"
-	"github.com/Liphium/neoroute/pkg/neodebug/model"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/connector"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/model"
 	"github.com/tinylib/msgp/msgp"
 )
 

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Liphium/neoroute/cmd/neogen/languages"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/languages"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 type GeneratorConfig struct {
@@ -62,6 +62,11 @@ func GetSchema(serverPath string, command string) (neoschema.Schema, error) {
 
 	if err := json.Unmarshal(bytes, &schema); err != nil {
 		return schema, fmt.Errorf("invalid schema: %v", err)
+	}
+
+	// Make sure the version is supported
+	if schema.Version != neoschema.CurrentVersion {
+		return schema, fmt.Errorf("unsupported schema version: %d (expected %d)", schema.Version, neoschema.CurrentVersion)
 	}
 
 	return schema, nil

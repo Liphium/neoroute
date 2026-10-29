@@ -6,8 +6,8 @@ import (
 	"maps"
 	"text/template"
 
-	"github.com/Liphium/neoroute/cmd/neogen/util"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/util"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 // LanguageConfig defines how a language should be generated
