@@ -57,6 +57,7 @@ type Standalone struct {
 	Code  int      ` + "`msg:\"code\"`" + `
 	Label *string  ` + "`msg:\"label\"`" + `
 	Items []StandaloneInner  ` + "`msg:\"items\"`" + `
+	SomeStamp time.Time ` + "`msg:\"some_stamp\"`" + `
 
 	// These fields should not be generated
 	secret string
@@ -138,9 +139,10 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 			"Info": "string",
 		},
 		"Standalone": {
-			"Code":  "int64",
-			"Label": "*string",
-			"Items": "[]StandaloneInner",
+			"Code":      "int64",
+			"Label":     "*string",
+			"Items":     "[]StandaloneInner",
+			"SomeStamp": "time.Time",
 		},
 	}, goStructs, "generated Go structs must match exactly")
 
@@ -178,9 +180,10 @@ func TestCustomObjectsEndToEnd(t *testing.T) {
 			"info": "string",
 		},
 		"Standalone": {
-			"code":  "bigint",
-			"label": "string | null",
-			"items": "StandaloneInner[]",
+			"code":       "bigint",
+			"label":      "string | null",
+			"items":      "StandaloneInner[]",
+			"some_stamp": "Date",
 		},
 	}, parseTSInterfaces(t, string(tsModels)), "generated TS interfaces must match exactly")
 

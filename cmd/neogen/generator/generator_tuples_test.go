@@ -4,9 +4,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/Liphium/neoroute/v2/cmd/neogen/generator"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/languages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -77,4 +80,41 @@ func TestTuplesEndToEnd(t *testing.T) {
 
 	run(goDir, "mod", "tidy")
 	run(goDir, "vet", "./...")
+
+	tsDir := t.TempDir()
+	t.Chdir(tsDir)
+	generator.GenerateWithConfig(schema, languages.NewTSConfig())
+
+	tsModels, err := os.ReadFile(filepath.Join(tsDir, "models.ts"))
+	require.NoError(t, err)
+	assert.Equal(t, map[string][]string{
+		"Coordinates": {"x: number", "y: number"},
+	}, parseTSTuples(t, string(tsModels)), "tuple elements must retain their declaration order")
+	assert.Equal(t, map[string]map[string]string{
+		"Location": {
+			"name":        "string",
+			"coordinates": "Coordinates",
+		},
+	}, parseTSInterfaces(t, string(tsModels)), "only non-tuple objects should generate interfaces")
+}
+
+// parseTSTuples returns tuple names and their ordered, labeled element types.
+// It handles the one-element-per-line format emitted by the generator.
+func parseTSTuples(t *testing.T, source string) map[string][]string {
+	t.Helper()
+	tupleRe := regexp.MustCompile(`(?ms)^export type (\w+) = \[\n(.*?)^\];`)
+	tuples := map[string][]string{}
+	for _, match := range tupleRe.FindAllStringSubmatch(source, -1) {
+		elements := []string{}
+		for line := range strings.SplitSeq(strings.TrimSpace(match[2]), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			require.True(t, strings.HasSuffix(line, ","), "tuple element must end with a comma: %s", line)
+			elements = append(elements, strings.TrimSuffix(line, ","))
+		}
+		tuples[match[1]] = elements
+	}
+	return tuples
 }
