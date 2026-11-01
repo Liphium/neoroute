@@ -11,6 +11,7 @@ const (
 
 //go:generate msgp -unexported
 
+//msgp:tuple message
 type message struct {
 	Type int    `msg:"type"` // Response or event
 	Data []byte `msg:"data"`

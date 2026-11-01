@@ -2,6 +2,7 @@ package neoroute
 
 //go:generate msgp -unexported
 
+//msgp:tuple response
 type response struct {
 	Id      int    `msg:"id"`
 	HasData bool   `msg:"has_data"`
@@ -9,6 +10,7 @@ type response struct {
 	Data    []byte `msg:"data"`
 }
 
+//msgp:tuple responseData
 type responseData struct {
 	HasData bool   `msg:"has_data"`
 	IsError bool   `msg:"error"`

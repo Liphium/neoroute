@@ -8,61 +8,39 @@ import (
 
 // DecodeMsg implements msgp.Decodable
 func (z *message) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
 	var zb0001 uint32
-	zb0001, err = dc.ReadMapHeader()
+	zb0001, err = dc.ReadArrayHeader()
 	if err != nil {
 		err = msgp.WrapError(err)
 		return
 	}
-	for zb0001 > 0 {
-		zb0001--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "type":
-			z.Type, err = dc.ReadInt()
-			if err != nil {
-				err = msgp.WrapError(err, "Type")
-				return
-			}
-		case "data":
-			z.Data, err = dc.ReadBytes(z.Data)
-			if err != nil {
-				err = msgp.WrapError(err, "Data")
-				return
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
+	if zb0001 != 2 {
+		err = msgp.ArrayError{Wanted: 2, Got: zb0001}
+		return
+	}
+	z.Type, err = dc.ReadInt()
+	if err != nil {
+		err = msgp.WrapError(err, "Type")
+		return
+	}
+	z.Data, err = dc.ReadBytes(z.Data)
+	if err != nil {
+		err = msgp.WrapError(err, "Data")
+		return
 	}
 	return
 }
 
 // EncodeMsg implements msgp.Encodable
 func (z *message) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 2
-	// write "type"
-	err = en.Append(0x82, 0xa4, 0x74, 0x79, 0x70, 0x65)
+	// array header, size 2
+	err = en.Append(0x92)
 	if err != nil {
 		return
 	}
 	err = en.WriteInt(z.Type)
 	if err != nil {
 		err = msgp.WrapError(err, "Type")
-		return
-	}
-	// write "data"
-	err = en.Append(0xa4, 0x64, 0x61, 0x74, 0x61)
-	if err != nil {
 		return
 	}
 	err = en.WriteBytes(z.Data)
@@ -76,53 +54,34 @@ func (z *message) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *message) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 2
-	// string "type"
-	o = append(o, 0x82, 0xa4, 0x74, 0x79, 0x70, 0x65)
+	// array header, size 2
+	o = append(o, 0x92)
 	o = msgp.AppendInt(o, z.Type)
-	// string "data"
-	o = append(o, 0xa4, 0x64, 0x61, 0x74, 0x61)
 	o = msgp.AppendBytes(o, z.Data)
 	return
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
 func (z *message) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
 	var zb0001 uint32
-	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	zb0001, bts, err = msgp.ReadArrayHeaderBytes(bts)
 	if err != nil {
 		err = msgp.WrapError(err)
 		return
 	}
-	for zb0001 > 0 {
-		zb0001--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			err = msgp.WrapError(err)
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "type":
-			z.Type, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "Type")
-				return
-			}
-		case "data":
-			z.Data, bts, err = msgp.ReadBytesBytes(bts, z.Data)
-			if err != nil {
-				err = msgp.WrapError(err, "Data")
-				return
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				err = msgp.WrapError(err)
-				return
-			}
-		}
+	if zb0001 != 2 {
+		err = msgp.ArrayError{Wanted: 2, Got: zb0001}
+		return
+	}
+	z.Type, bts, err = msgp.ReadIntBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "Type")
+		return
+	}
+	z.Data, bts, err = msgp.ReadBytesBytes(bts, z.Data)
+	if err != nil {
+		err = msgp.WrapError(err, "Data")
+		return
 	}
 	o = bts
 	return
@@ -130,6 +89,6 @@ func (z *message) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *message) Msgsize() (s int) {
-	s = 1 + 5 + msgp.IntSize + 5 + msgp.BytesPrefixSize + len(z.Data)
+	s = 1 + msgp.IntSize + msgp.BytesPrefixSize + len(z.Data)
 	return
 }
