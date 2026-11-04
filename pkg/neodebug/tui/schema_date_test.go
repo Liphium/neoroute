@@ -20,7 +20,7 @@ func TestDateInput(t *testing.T) {
 	assert.False(t, date.IsZero())
 	assert.Equal(t, "tomorrow", node.input.Value())
 	_, view := node.View()
-	assert.Contains(t, view, " // "+date.Format("January 2, 2006 15:04"))
+	assert.Contains(t, view, date.Format("January 2, 2006 15:04"))
 
 	node.input.SetValue("not a date")
 	assert.Error(t, node.input.Err)

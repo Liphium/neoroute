@@ -37,6 +37,10 @@ var createMessageEvent = eventRegistry.Register[MessageEvent]("message")
 var adapterRegistry = neoroute.NewAdapterRegistry()
 
 func main() {
+	presets := []config.Preset{
+		{Name: "Alice hello", Route: "send", Data: SendRequest{Text: "Hello from Alice!", Sender: "Alice"}},
+		{Name: "Bob hello", Route: "send", Data: SendRequest{Text: "Hello from Bob!", Sender: "Bob"}},
+	}
 
 	if slices.Contains(os.Args, "--debug-http") {
 		neodebug.Run(config.DebugConfig{
@@ -46,6 +50,7 @@ func main() {
 
 			// The URL to that transporter.
 			TransporterURL: "http://localhost:6121/http",
+			Presets:        presets,
 		})
 	}
 
@@ -57,6 +62,7 @@ func main() {
 
 			// The URL to that transporter.
 			TransporterURL: "ws://localhost:6121/ws",
+			Presets:        presets,
 		})
 	}
 

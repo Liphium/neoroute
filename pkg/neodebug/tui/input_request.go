@@ -57,7 +57,7 @@ func (m inputRequestCreator) FullKeyHelp() FullKeyHelp {
 	return FullKeyHelp{
 		Title: "Request editor",
 		Keys: [][]key.Binding{
-			[]key.Binding{m.send, m.back},
+			{m.send, m.back},
 		},
 	}
 }

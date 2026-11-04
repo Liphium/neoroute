@@ -19,6 +19,7 @@ require (
 	github.com/Liphium/neoroute/client/transporter/websocket/v2 v2.0.0
 	github.com/Liphium/neoroute/v2 v2.0.0
 	github.com/Unbreathable/nowandlater v1.0.0
+	github.com/sahilm/fuzzy v0.1.3
 	github.com/stretchr/testify v1.12.1
 	github.com/tinylib/msgp v1.6.4
 )
