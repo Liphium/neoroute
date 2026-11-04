@@ -58,10 +58,10 @@ func TestGenerate(t *testing.T) {
 	}
 
 	// 3. Generate
-	os.Setenv("GOPACKAGE", "definitions")
+	t.Setenv("GOPACKAGE", "definitions")
 	definitionsDir := filepath.Join(testDir, "definitions")
 	_ = os.Mkdir(definitionsDir, os.ModePerm)
-	_ = os.Chdir(definitionsDir)
+	t.Chdir(definitionsDir)
 	generator.Generate(generator.GeneratorConfig{
 		ServerPath:     "..",
 		Command:        "go run .",

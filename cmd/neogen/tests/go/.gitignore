@@ -1,0 +1,5 @@
+models.go
+models_gen.go
+models_gen_test.go
+connector_*.go
+go.sum

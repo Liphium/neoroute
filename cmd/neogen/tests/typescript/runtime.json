@@ -1,0 +1,7 @@
+{
+  "image": "node:22.14.0-bookworm-slim",
+  "commands": [
+    ["npm", "ci", "--no-audit", "--no-fund"],
+    ["npm", "test"]
+  ]
+}
