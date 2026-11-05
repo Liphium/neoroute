@@ -165,7 +165,7 @@ export class {{ .Object.Name }} {{ if eq .Object.Type "http" }}{{ else }}extends
 		{{- $sendType := $route.GetSendType }}
 		try {
 		{{- if eq $sendType $.Object.Const.SendRequestResponse }}
-			const response = await this.cl.send<{{ wireType $route.Response }}, {{ wireType $route.Request }}>("{{ $name }}", {{ toWire $route.Request "payload" }}, options);
+			const response = await this.cl.send<{{ wireType $route.Request }}, {{ wireType $route.Response }}>("{{ $name }}", {{ toWire $route.Request "payload" }}, options);
 			if (response instanceof UserError) return response;
 			return {{ fromWire $route.Response "response" }};
 		{{- else if eq $sendType $.Object.Const.SendOK }}
