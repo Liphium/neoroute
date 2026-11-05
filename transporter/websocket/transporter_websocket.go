@@ -16,6 +16,10 @@ import (
 	"github.com/coder/websocket"
 )
 
+var (
+	ErrSessionNotFound = errors.New("session not found")
+)
+
 var _ neoschema.Transporter = &Transporter[any]{}
 
 // Transporter is the WebSocket transporter implementation.
@@ -102,7 +106,9 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 		// Upgrade to WebSocket session
 		conn, err := websocket.Accept(w, r, config.AcceptOptions)
 		if err != nil {
-			neoroute.Logger.Info("Upgrade to WebSocket failed", "err", err)
+			http.Error(w, router.Config().RunErrorHandler(&neoroute.TransporterError{
+				ActualError: err,
+			}, nil), http.StatusUpgradeRequired)
 			return
 		}
 
@@ -116,6 +122,9 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 		// Add session to transporter
 		session := transporter.addSession(sessionData, conn)
 		if session == nil {
+			http.Error(w, router.Config().RunErrorHandler(&neoroute.TransporterError{
+				ActualError: ErrSessionNotFound,
+			}, nil), http.StatusInternalServerError)
 			return
 		}
 

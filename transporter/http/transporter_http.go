@@ -67,8 +67,9 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 		reader := &requestReader{Reader: r.Body, controller: http.NewResponseController(w)}
 		if config.HeaderReadTimeout > 0 {
 			if err := reader.SetReadTimeout(config.HeaderReadTimeout); err != nil {
-				neoroute.Logger.Error("failed to set HTTP read deadline", "err", err)
-				w.WriteHeader(http.StatusInternalServerError)
+				http.Error(w, router.Config().RunErrorHandler(&neoroute.TransporterError{
+					ActualError: err,
+				}, nil), http.StatusInternalServerError)
 				return
 			}
 		}
@@ -87,6 +88,7 @@ func NewTransporter[D any](router *neoroute.Router[D], config Config[D]) (http.H
 
 		resp, runAfter, err := transporter.router.Handle(reader, session)
 		if err != nil {
+			// The error handler has already been run in Handle before, we don't give the actual error message out here to prevent leakage of internal errors
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
