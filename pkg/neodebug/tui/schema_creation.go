@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 func createNode(schema neoschema.PackedType, registry map[string]neoschema.PackedType) SchemaNode {
@@ -22,6 +22,7 @@ func createNode(schema neoschema.PackedType, registry map[string]neoschema.Packe
 
 		return &StructNode{
 			name:     schema.Name,
+			tuple:    schema.Tuple,
 			children: children,
 		}
 
@@ -70,6 +71,8 @@ func newValueNode[T any](convert func(string) (T, error)) *ValueNode[T] {
 func createBasic(basic *neoschema.BasicType) SchemaNode {
 
 	switch basic.ActualType {
+	case neoschema.TypeDate:
+		return newDateNode()
 	case neoschema.TypeInt32:
 		return newValueNode(func(s string) (int32, error) {
 			i, err := strconv.ParseInt(s, 10, 32)

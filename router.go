@@ -181,6 +181,8 @@ func (r *Router[D]) handleRoute(c *Ctx[D], routeData exportedRoute[D]) ([]byte, 
 
 			// If route is of type NoResponse, return nothing.
 			if !routeData.hasError {
+				// Error still needs to be passed through the error handler, but response is ignored since there is no response to send
+				r.config.RunErrorHandler(err, c)
 				return nil, c.runAfter
 			}
 

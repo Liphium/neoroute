@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Liphium/neoroute/cmd/neogen/generator"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/generator"
 )
 
 //go:embed test/*
@@ -19,11 +19,7 @@ func TestGenerate(t *testing.T) {
 
 	// IF YOU MOVE THIS TEST UPDATE THIS
 	projectDir, _ := filepath.Abs("../../../")
-	testDir := filepath.Join(projectDir, ".testing", "neogen-env")
-	_ = os.RemoveAll(testDir)
-	if err := os.MkdirAll(testDir, os.ModePerm); err != nil {
-		panic(err)
-	}
+	testDir := t.TempDir()
 
 	// 1. Setup go module
 	cmd := exec.Command("go", "mod", "init", "test-gen")
@@ -36,10 +32,10 @@ func TestGenerate(t *testing.T) {
 
 	// Add replaces
 	replaces := []string{
-		fmt.Sprintf("github.com/Liphium/neoroute=%s", projectDir),
-		fmt.Sprintf("github.com/Liphium/neoroute/client/sdk=%s/client/sdk", projectDir),
-		fmt.Sprintf("github.com/Liphium/neoroute/client/transporter/http=%s/client/transporter/http", projectDir),
-		fmt.Sprintf("github.com/Liphium/neoroute/client/transporter/websocket=%s/client/transporter/websocket", projectDir),
+		fmt.Sprintf("github.com/Liphium/neoroute/v2=%s", projectDir),
+		fmt.Sprintf("github.com/Liphium/neoroute/client/sdk/v2=%s/client/sdk", projectDir),
+		fmt.Sprintf("github.com/Liphium/neoroute/client/transporter/http/v2=%s/client/transporter/http", projectDir),
+		fmt.Sprintf("github.com/Liphium/neoroute/client/transporter/websocket/v2=%s/client/transporter/websocket", projectDir),
 	}
 
 	for _, r := range replaces {
@@ -58,10 +54,10 @@ func TestGenerate(t *testing.T) {
 	}
 
 	// 3. Generate
-	os.Setenv("GOPACKAGE", "definitions")
+	t.Setenv("GOPACKAGE", "definitions")
 	definitionsDir := filepath.Join(testDir, "definitions")
 	_ = os.Mkdir(definitionsDir, os.ModePerm)
-	_ = os.Chdir(definitionsDir)
+	t.Chdir(definitionsDir)
 	generator.Generate(generator.GeneratorConfig{
 		ServerPath:     "..",
 		Command:        "go run .",

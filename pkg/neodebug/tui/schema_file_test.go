@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/neoschema"
 	"github.com/stretchr/testify/assert"
 )
 

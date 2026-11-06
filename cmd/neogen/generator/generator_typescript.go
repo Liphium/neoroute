@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Liphium/neoroute/cmd/neogen/engine"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/engine"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 func GenerateWithConfig(schema neoschema.Schema, config engine.LanguageConfig) {

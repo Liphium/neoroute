@@ -37,7 +37,7 @@ func (z *MessageEvent) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "timestamp":
-			z.Timestamp, err = dc.ReadInt64()
+			z.Timestamp, err = dc.ReadTime()
 			if err != nil {
 				err = msgp.WrapError(err, "Timestamp")
 				return
@@ -81,7 +81,7 @@ func (z MessageEvent) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	err = en.WriteInt64(z.Timestamp)
+	err = en.WriteTime(z.Timestamp)
 	if err != nil {
 		err = msgp.WrapError(err, "Timestamp")
 		return
@@ -101,7 +101,7 @@ func (z MessageEvent) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendString(o, z.Sender)
 	// string "timestamp"
 	o = append(o, 0xa9, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70)
-	o = msgp.AppendInt64(o, z.Timestamp)
+	o = msgp.AppendTime(o, z.Timestamp)
 	return
 }
 
@@ -136,7 +136,7 @@ func (z *MessageEvent) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "timestamp":
-			z.Timestamp, bts, err = msgp.ReadInt64Bytes(bts)
+			z.Timestamp, bts, err = msgp.ReadTimeBytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "Timestamp")
 				return
@@ -155,7 +155,7 @@ func (z *MessageEvent) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z MessageEvent) Msgsize() (s int) {
-	s = 1 + 5 + msgp.StringPrefixSize + len(z.Text) + 7 + msgp.StringPrefixSize + len(z.Sender) + 10 + msgp.Int64Size
+	s = 1 + 5 + msgp.StringPrefixSize + len(z.Text) + 7 + msgp.StringPrefixSize + len(z.Sender) + 10 + msgp.TimeSize
 	return
 }
 

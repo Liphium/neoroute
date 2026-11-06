@@ -6,16 +6,17 @@ import (
 	"maps"
 	"text/template"
 
-	"github.com/Liphium/neoroute/cmd/neogen/util"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/util"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 // LanguageConfig defines how a language should be generated
 type LanguageConfig struct {
-	Name       string
-	GetType    func(packed neoschema.PackedType) (string, error)
-	GetFileMap func(schema neoschema.Schema) (map[string]TemplateData, error)
-	Funcs      template.FuncMap
+	Name        string
+	GetType     func(packed neoschema.PackedType) (string, error)
+	GetFileMap  func(schema neoschema.Schema) (map[string]TemplateData, error)
+	Funcs       template.FuncMap
+	ProcessFile func(filename string, source []byte) ([]byte, error)
 }
 
 // TemplateData holds the template and the data object for execution
@@ -70,7 +71,14 @@ func (e *GenerationEngine) Generate(schema neoschema.Schema) (map[string]string,
 			return nil, fmt.Errorf("failed to execute template for %s: %v", fileName, err)
 		}
 
-		results[fileName] = out.String()
+		source := out.Bytes()
+		if e.config.ProcessFile != nil {
+			source, err = e.config.ProcessFile(fileName, source)
+			if err != nil {
+				return nil, fmt.Errorf("failed to process %s: %w", fileName, err)
+			}
+		}
+		results[fileName] = string(source)
 	}
 
 	return results, nil

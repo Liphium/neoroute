@@ -18,14 +18,21 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.27"
+          go-version-file: go.mod
           cache: true
 
       - name: Lint with release build tag
         run: go vet ./...
 
       - name: Formatting check
-        run: test -z "$(find . -path './.cache' -prune -o -name '*.go' -exec gofmt -l {} +)"
+        shell: bash
+        run: |
+          set -euo pipefail
+          unformatted=$(git ls-files -z -- '*.go' | xargs -0 -r gofmt -l)
+          if [[ -n "$unformatted" ]]; then
+            printf 'Go files need formatting:\n%s\n' "$unformatted"
+            exit 1
+          fi
 
   test-code:
     name: Test Code
@@ -40,7 +47,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.26"
+          go-version-file: go.mod
           cache: true
 
       - name: Clean caches
@@ -52,7 +59,17 @@ jobs:
         run: go install github.com/tinylib/msgp@latest
 
       - name: Test all of the examples and the main codebase
-        run: find . -name go.mod -execdir sh -c 'pwd && go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out' \;
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Fixture projects run through go_test.go.
+          while IFS= read -r -d '' module; do
+            (
+              cd "$(dirname "$module")"
+              echo "Testing module: $PWD"
+              go test -mod=readonly ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
+            )
+          done < <(find . -path './cmd/neogen/tests' -prune -o -name go.mod -print0)
 
       - name: Generate coverage
         run: go tool cover -func=c.out -o=c.out

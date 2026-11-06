@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Liphium/neoroute/cmd/neogen/engine"
-	"github.com/Liphium/neoroute/cmd/neogen/languages"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/engine"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/languages"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 func GenerateGo(schema neoschema.Schema) {

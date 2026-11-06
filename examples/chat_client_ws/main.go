@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Liphium/neoroute/client/sdk"
+	client "github.com/Liphium/neoroute/client/sdk/v2"
 	"github.com/Liphium/neoroute/examples/chat_client_ws/generated"
 )
 
@@ -30,7 +30,7 @@ func main() {
 			fmt.Println("From: ", event.Sender)
 		}
 		fmt.Println("Text: ", event.Text)
-		fmt.Printf("Sent at: %d\n", event.Timestamp)
+		fmt.Printf("Sent at: %s\n", event.Timestamp.Format("January 2, 2006 15:04"))
 		fmt.Println("----------------")
 	})
 

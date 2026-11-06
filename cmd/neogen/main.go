@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/Liphium/neoroute/cmd/neogen/generator"
+	"github.com/Liphium/neoroute/v2/cmd/neogen/generator"
 )
 
 var (
