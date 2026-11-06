@@ -210,6 +210,15 @@ func (r *Router[D]) RoutePing(route string, handler func(c *Ctx[D]), opts ...fun
 //
 // For pointer types it also returns the nil check used when sending responses.
 func validateRouteType[T any](route, side string) func(T) bool {
+	return validateStructType[T](fmt.Sprintf("route %q %s", route, side))
+}
+
+// validateStructType validates a payload type and returns a nil check for pointers.
+//
+// description should mention what kind of thing the type is used for.
+//
+// Reflection runs only at registration, not when the payload is sent.
+func validateStructType[T any](description string) func(T) bool {
 	t := reflect.TypeFor[T]()
 	pointer := t.Kind() == reflect.Pointer
 	underlying := t
@@ -217,7 +226,7 @@ func validateRouteType[T any](route, side string) func(T) bool {
 		underlying = t.Elem()
 	}
 	if underlying.Kind() != reflect.Struct {
-		panic(fmt.Sprintf("route %q %s type must be a struct or pointer to a struct, got %s", route, side, t))
+		panic(fmt.Sprintf("%s type must be a struct or pointer to a struct, got %s", description, t))
 	}
 	if !pointer {
 		return nil

@@ -52,7 +52,10 @@ func (er *EventRegistry) GetSchemas() []func() reflect.Type {
 }
 
 // Register returns a new event builder.
+// Event types must be structs or pointers to structs; other types panic at registration.
+// Passing a nil pointer to the returned builder also panics.
 func (e *EventRegistry) Register[E msgp.Marshaler](name string) func(ev E) event {
+	nilCheck := validateStructType[E](fmt.Sprintf("event %q", name))
 
 	e.mutex.Lock()
 	e.registeredEvents = append(e.registeredEvents, name)
@@ -62,6 +65,9 @@ func (e *EventRegistry) Register[E msgp.Marshaler](name string) func(ev E) event
 	e.mutex.Unlock()
 
 	return func(eventData E) event {
+		if nilCheck != nil && nilCheck(eventData) {
+			panic(fmt.Sprintf("event %q data must never be nil", name))
+		}
 
 		// Marshal event data
 		respData, err := eventData.MarshalMsg(nil)
