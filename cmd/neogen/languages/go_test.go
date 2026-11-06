@@ -10,8 +10,50 @@ import (
 
 	"github.com/Liphium/neoroute/v2/cmd/neogen/engine"
 	"github.com/Liphium/neoroute/v2/cmd/neogen/internal/testschema"
+	"github.com/Liphium/neoroute/v2/neoschema"
 	"github.com/stretchr/testify/require"
 )
+
+func TestGoImports(t *testing.T) {
+	type NoDates struct {
+		Name string `msg:"name"`
+	}
+	type SliceDates struct {
+		Dates []time.Time `msg:"dates"`
+	}
+	type PointerDate struct {
+		Date *time.Time `msg:"date"`
+	}
+	type MapDates struct {
+		Dates map[string]time.Time `msg:"dates"`
+	}
+	for _, tc := range []struct {
+		name     string
+		model    any
+		wantTime bool
+	}{
+		{"no dates", NoDates{}, false},
+		{"slice", SliceDates{}, true},
+		{"pointer", PointerDate{}, true},
+		{"map", MapDates{}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := neoschema.NewGenerator()
+			g.Add(tc.model)
+			schema, err := g.Generate()
+			require.NoError(t, err)
+			_, config := NewGoConfig()
+			files, err := engine.NewGenerationEngine(config).Generate(schema)
+			require.NoError(t, err)
+			if tc.wantTime {
+				require.Contains(t, files[modelFileName], `"time"`)
+			} else {
+				require.NotContains(t, files[modelFileName], `"time"`)
+			}
+			require.NotContains(t, files[modelFileName], `"github.com/Liphium/neoroute/v2/neoschema"`)
+		})
+	}
+}
 
 func TestGoRuntime(t *testing.T) {
 	root, err := filepath.Abs("../../..")

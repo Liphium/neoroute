@@ -18,7 +18,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.27"
+          go-version-file: go.mod
           cache: true
 
       - name: Lint with release build tag
@@ -40,7 +40,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.26"
+          go-version-file: go.mod
           cache: true
 
       - name: Clean caches
@@ -52,7 +52,16 @@ jobs:
         run: go install github.com/tinylib/msgp@latest
 
       - name: Test all of the examples and the main codebase
-        run: find . -name go.mod -execdir sh -c 'pwd && go test ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out' \;
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' module; do
+            (
+              cd "$(dirname "$module")"
+              echo "Testing module: $PWD"
+              go test -mod=readonly ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
+            )
+          done < <(find . -name go.mod -print0)
 
       - name: Generate coverage
         run: go tool cover -func=c.out -o=c.out
