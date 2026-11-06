@@ -13,7 +13,7 @@ An HTTP transporter is created only to describe the routes. It is never started 
 Choose a route to try its editors:
 
 - `scalars`: int32, int64, float32, float64, bool, byte, string, date (`time.Time`), and file (`[]byte`). Enter a local file path in a file field to load its bytes; you can use this README.
-- `collections`: slices, nested slices, maps with string and integer keys, nested/reused structs, file lists, and date lists.
+- `collections`: slices, nested slices, maps with string keys, nested/reused structs, file lists, and date lists.
 - `nullable`: nullable primitives, dates, files, structs, slices, and nullable values inside collections.
 - `all-types`: all the above together in one request.
 

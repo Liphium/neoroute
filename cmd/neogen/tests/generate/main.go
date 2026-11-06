@@ -35,10 +35,6 @@ func generate(language, output string) error {
 	case "typescript":
 		config = languages.NewTSConfig()
 	case "go":
-		for _, transport := range schema.Transporters {
-			delete(transport.Routes, "collection")
-			delete(transport.Routes, "lookup")
-		}
 		if err := os.Setenv("GOPACKAGE", "generated"); err != nil {
 			return err
 		}

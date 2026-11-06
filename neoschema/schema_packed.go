@@ -117,6 +117,9 @@ func buildPackedFor(t reflect.Type, current PackedType) (PackedType, error) {
 		generated = at
 
 	case reflect.Map:
+		if t.Key().Kind() != reflect.String {
+			return nil, fmt.Errorf("%w: got %s", ErrMapKeyNotString, t.Key())
+		}
 
 		mt := &MapType{
 			BasicType: &BasicType{

@@ -19,11 +19,7 @@ func TestGenerate(t *testing.T) {
 
 	// IF YOU MOVE THIS TEST UPDATE THIS
 	projectDir, _ := filepath.Abs("../../../")
-	testDir := filepath.Join(projectDir, ".testing", "neogen-env")
-	_ = os.RemoveAll(testDir)
-	if err := os.MkdirAll(testDir, os.ModePerm); err != nil {
-		panic(err)
-	}
+	testDir := t.TempDir()
 
 	// 1. Setup go module
 	cmd := exec.Command("go", "mod", "init", "test-gen")

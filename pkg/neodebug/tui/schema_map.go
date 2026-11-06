@@ -137,7 +137,7 @@ func (m *MapNode) FullKeyHelp() FullKeyHelp {
 func (m *MapNode) Request() any {
 	result := map[string]any{}
 	for _, item := range m.items {
-		// Message pack only accepts strings for now, so we need to customize this like this
+		// Schemas only allow string map keys.
 		result[fmt.Sprintf("%v", item.Key.Request())] = item.Value.Request()
 	}
 	return result

@@ -14,7 +14,6 @@ require("node:test").test("recursive wire conversions and generated connectors",
     items: [point, null],
     matrix: [[point]],
     lookup: { a: point, b: null },
-    numeric: { 1: point },
     next: null,
     bytes: new Uint8Array([1, 2]),
     date: new Date(1000),
@@ -27,7 +26,6 @@ require("node:test").test("recursive wire conversions and generated connectors",
   assert.deepEqual(wire.items, [[4, "test"], null]);
   assert.deepEqual(wire.matrix, [[[4, "test"]]]);
   assert.deepEqual(wire.lookup, { a: [4, "test"], b: null });
-  assert.deepEqual(wire.numeric, { 1: [4, "test"] });
 
   // Bytes, dates and opaque values pass through without copying or inspecting them.
   assert.equal(wire.bytes, model.bytes);
@@ -65,17 +63,6 @@ require("node:test").test("recursive wire conversions and generated connectors",
   assert.deepEqual(await connector.exchange(model), model);
   assert.deepEqual(connector.cl.payload, wire);
   assert.deepEqual(await connector.get(), model);
-
-  // Route roots can themselves be arrays or maps, rather than named model objects.
-  connector.cl.result = [[4, "test"], null];
-  assert.deepEqual(await connector.collection([point, null]), [point, null]);
-  assert.deepEqual(connector.cl.payload, [[4, "test"], null]);
-  connector.cl.result = { a: [4, "test"], b: null };
-  assert.deepEqual(await connector.lookup({ a: point, b: null }), {
-    a: point,
-    b: null,
-  });
-  assert.deepEqual(connector.cl.payload, { a: [4, "test"], b: null });
 
   // No-payload routes return normally; request-only routes still encode their payloads.
   assert.equal(await connector.signal(), undefined);

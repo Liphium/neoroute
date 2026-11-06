@@ -55,13 +55,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Fixture projects run through go_test.go.
           while IFS= read -r -d '' module; do
             (
               cd "$(dirname "$module")"
               echo "Testing module: $PWD"
               go test -mod=readonly ./... -count=1 -cover -coverpkg=./... -coverprofile=c.out
             )
-          done < <(find . -name go.mod -print0)
+          done < <(find . -path './cmd/neogen/tests' -prune -o -name go.mod -print0)
 
       - name: Generate coverage
         run: go tool cover -func=c.out -o=c.out

@@ -2,6 +2,7 @@ package neoschema
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // This makes sure the schema can properly be unpacked into what it was before (MOSTLY AI GENERATED)
@@ -333,6 +334,9 @@ func (at *MapType) UnmarshalJSON(data []byte) error {
 		key, err := UnmarshalPackedType(aux.Key)
 		if err != nil {
 			return err
+		}
+		if key.Type() != TypeString {
+			return fmt.Errorf("%w: got %s", ErrMapKeyNotString, key.Type())
 		}
 		at.Key = key
 	}

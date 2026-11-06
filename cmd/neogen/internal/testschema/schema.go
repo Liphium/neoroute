@@ -13,15 +13,14 @@ type Point struct {
 	Label             string  `msg:"label"`
 }
 type Envelope struct {
-	Point   Point             `msg:"point"`
-	Items   []*Point          `msg:"items"`
-	Matrix  [][]Point         `msg:"matrix"`
-	Lookup  map[string]*Point `msg:"lookup"`
-	Numeric map[int32]Point   `msg:"numeric"`
-	Next    *Envelope         `msg:"next"`
-	Bytes   []byte            `msg:"bytes"`
-	Date    time.Time         `msg:"date"`
-	Opaque  any               `msg:"opaque"`
+	Point  Point             `msg:"point"`
+	Items  []*Point          `msg:"items"`
+	Matrix [][]Point         `msg:"matrix"`
+	Lookup map[string]*Point `msg:"lookup"`
+	Next   *Envelope         `msg:"next"`
+	Bytes  []byte            `msg:"bytes"`
+	Date   time.Time         `msg:"date"`
+	Opaque any               `msg:"opaque"`
 }
 
 type Address struct {
@@ -85,24 +84,14 @@ func Schema() (neoschema.Schema, error) {
 	if err != nil {
 		return schema, err
 	}
-	collection, err := neoschema.BuildPackedFor(reflect.TypeFor[[]*Point]())
-	if err != nil {
-		return schema, err
-	}
-	lookup, err := neoschema.BuildPackedFor(reflect.TypeFor[map[string]*Point]())
-	if err != nil {
-		return schema, err
-	}
 	routes := map[string]neoschema.RouteSchema{
-		"getUser":    {HasRequest: true, Request: user, HasResponse: true, Response: user},
-		"exchange":   {HasRequest: true, Request: packed, HasResponse: true, Response: packed},
-		"get":        {HasResponse: true, Response: packed},
-		"ok":         {HasRequest: true, Request: packed, CanReturnError: true},
-		"signal":     {CanReturnError: true},
-		"push":       {HasRequest: true, Request: packed},
-		"ping":       {},
-		"collection": {HasRequest: true, Request: collection, HasResponse: true, Response: collection},
-		"lookup":     {HasRequest: true, Request: lookup, HasResponse: true, Response: lookup},
+		"getUser":  {HasRequest: true, Request: user, HasResponse: true, Response: user},
+		"exchange": {HasRequest: true, Request: packed, HasResponse: true, Response: packed},
+		"get":      {HasResponse: true, Response: packed},
+		"ok":       {HasRequest: true, Request: packed, CanReturnError: true},
+		"signal":   {CanReturnError: true},
+		"push":     {HasRequest: true, Request: packed},
+		"ping":     {},
 	}
 	schema.Transporters = map[string]neoschema.TransporterSchema{
 		"http": {Type: neoschema.TransporterHTTP, Routes: routes, Events: map[string]neoschema.PackedType{"update": packed}},

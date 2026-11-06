@@ -16,7 +16,8 @@ const (
 )
 
 var (
-	ErrNotStruct = errors.New("custom types can only be generated for structs")
+	ErrNotStruct       = errors.New("custom types can only be generated for structs")
+	ErrMapKeyNotString = errors.New("map keys must be strings")
 )
 
 // IsTuple is a marker interface to mark a type as a tuple for message pack encoding. This will not actually change the generation functions msgp generates under the hood. It will only change the way neoschema generates the schema. We will specifically mark the struct as a tuple.

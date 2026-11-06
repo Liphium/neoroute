@@ -34,7 +34,7 @@ func TestModelShapes(t *testing.T) {
 		{reflect.TypeFor[Point](), []field{fieldOf[float64]("X", "x"), fieldOf[string]("Label", "label")}},
 		{reflect.TypeFor[Envelope](), []field{
 			fieldOf[Point]("Point", "point"), fieldOf[[]*Point]("Items", "items"), fieldOf[[][]Point]("Matrix", "matrix"),
-			fieldOf[map[string]*Point]("Lookup", "lookup"), fieldOf[map[int32]Point]("Numeric", "numeric"),
+			fieldOf[map[string]*Point]("Lookup", "lookup"),
 			fieldOf[*Envelope]("Next", "next"), fieldOf[[]byte]("Bytes", "bytes"), fieldOf[time.Time]("Date", "date"), fieldOf[neoschema.UsableMessage]("Opaque", "opaque"),
 		}},
 	}

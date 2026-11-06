@@ -66,8 +66,8 @@ func (c *Ctx[D]) respondError(msg string) response {
 type ResCtx[D any, RS msgp.Marshaler] struct {
 	*Ctx[D]
 
-	// nilResponseCheck checks if the response is a nil value (pointer or interface).
-	// Set by the route registration if the response type can be nil.
+	// nilResponseCheck checks pointer responses for nil.
+	// Set by route type validation when the response is a pointer to a struct.
 	nilResponseCheck func(RS) bool
 }
 

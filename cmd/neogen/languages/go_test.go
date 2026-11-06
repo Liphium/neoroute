@@ -60,12 +60,6 @@ func TestGoRuntime(t *testing.T) {
 	require.NoError(t, err)
 	schema, err := testschema.Schema()
 	require.NoError(t, err)
-	// Go route payloads require generated message methods on named models.
-	// Collection roots are exercised by the TypeScript connector tests.
-	for _, transport := range schema.Transporters {
-		delete(transport.Routes, "collection")
-		delete(transport.Routes, "lookup")
-	}
 	t.Setenv("GOPACKAGE", "generated")
 	_, config := NewGoConfig()
 	files, err := engine.NewGenerationEngine(config).Generate(schema)

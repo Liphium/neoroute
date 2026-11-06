@@ -27,4 +27,4 @@ If you use tuples and reorder fields, you need to re-generate the code to make s
 
 ## Testing generated code
 
-See [the runtime test projects](tests/README.md) for the different tests we run to verify that neogen is actually generating validated code. Most of this has been created with the assistance of AI and just verified by eye since it's too much work to write by hand for a small project like ours.
+See [the runtime test projects](tests/README.md) for the different tests we run to verify that neogen is actually generating valid code. Most of this has been created with the assistance of AI and just verified by eye since it's too much work to write by hand for a small project like ours.

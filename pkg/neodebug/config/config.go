@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/Liphium/neoroute/v2/neoschema"
+	"github.com/tinylib/msgp/msgp"
 )
 
 // This is just here so we don't get into import cycles.
@@ -59,7 +60,17 @@ func (p Preset) Check(routes map[string]neoschema.RouteSchema) string {
 			return "Route does not accept a request body"
 		}
 
-		t, err := neoschema.BuildPackedFor(reflect.TypeOf(p.Data))
+		dataType := reflect.TypeOf(p.Data)
+		if !dataType.Implements(reflect.TypeFor[msgp.Marshaler]()) {
+			return fmt.Sprintf("Data type %v does not implement msgp.Marshaler", dataType.Name())
+		}
+
+		// Pointers should still be treated as editable, but to check if the same generates, we need to unpack the pointer (neoroute also does this by default for requests in handlers).
+		if dataType.Kind() == reflect.Pointer {
+			dataType = dataType.Elem()
+		}
+
+		t, err := neoschema.BuildPackedFor(dataType)
 		if err != nil {
 			return fmt.Sprintf("Schema build error: %v", err)
 		}

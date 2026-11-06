@@ -28,7 +28,6 @@ type CollectionRequest struct {
 	Matrix   [][]float64         `msg:"matrix"`
 	Details  []Detail            `msg:"details"`
 	Labels   map[string]string   `msg:"labels"`
-	ByNumber map[int32]Detail    `msg:"by_number"`
 	Groups   map[string][]Detail `msg:"groups"`
 	Nested   Detail              `msg:"nested"`
 	Another  Detail              `msg:"another"`

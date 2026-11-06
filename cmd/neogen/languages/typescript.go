@@ -305,7 +305,7 @@ func tsConvert(p neoschema.PackedType, value string, toWire bool, depth int) str
 		return value + ".map((" + item + ") => " + tsConvert(t.Element, item, toWire, depth+1) + ")"
 	case *neoschema.MapType:
 		item := fmt.Sprintf("item%d", depth)
-		// Object.entries stringifies numeric keys just as the MessagePack object codec does.
+		// Schemas only allow string map keys.
 		return "Object.fromEntries(Object.entries(" + value + ").map(([key, " + item + "]) => [key, " + tsConvert(t.Value, item, toWire, depth+1) + "]))"
 	default:
 		return value

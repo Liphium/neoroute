@@ -79,7 +79,6 @@ type ModelAssertions = [
         items: (Point | null)[];
         matrix: Point[][];
         lookup: Record<string, Point | null>;
-        numeric: Record<number, Point>;
         next: Envelope | null;
         bytes: Uint8Array;
         date: Date;
@@ -129,7 +128,6 @@ type WireAssertions = [
         items: (PointWire | null)[];
         matrix: PointWire[][];
         lookup: Record<string, PointWire | null>;
-        numeric: Record<number, PointWire>;
         next: EnvelopeWire | null;
         bytes: Uint8Array;
         date: Date;
@@ -148,7 +146,7 @@ type ConverterAssertions = [
 ];
 
 // Callers of either connector should only see application models and request options.
-// Include every send variant plus routes whose roots are arrays or maps.
+// Include every send variant.
 type ExpectedMethods = {
   getUser: (
     payload: User,
@@ -169,14 +167,6 @@ type ExpectedMethods = {
   ) => Promise<UserError | void>;
   signal: (options?: RequestOptions) => Promise<UserError | void>;
   ping: (options?: RequestOptions) => Promise<UserError | void>;
-  collection: (
-    payload: (Point | null)[],
-    options?: RequestOptions,
-  ) => Promise<(Point | null)[] | UserError>;
-  lookup: (
-    payload: Record<string, Point | null>,
-    options?: RequestOptions,
-  ) => Promise<Record<string, Point | null> | UserError>;
 };
 
 // Pick checks the route methods without comparing private fields or transport methods.
@@ -195,7 +185,7 @@ type ConnectorAssertions = [
 // Each @ts-expect-error requires the next line to fail compilation.
 // If invalid usage ever becomes accepted, tsc reports an unused directive.
 // Keeping these expressions in an uncalled function prevents accidental execution.
-function invalidUsage(client: HttpConnector, point: Point, wire: PointWire) {
+function invalidUsage(point: Point, wire: PointWire) {
   // @ts-expect-error application models are objects
   const invalidModel: Point = [4, "test"];
   // @ts-expect-error tuples retain field order and field types
@@ -211,8 +201,6 @@ function invalidUsage(client: HttpConnector, point: Point, wire: PointWire) {
   };
   // @ts-expect-error standalone models must not include unexported Go fields
   const privateField: keyof Standalone = "secret";
-  // @ts-expect-error route payloads use application objects
-  client.collection([wire]);
 }
 
 // Every generated model must expose both converter directions.
