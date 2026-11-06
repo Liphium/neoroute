@@ -23,16 +23,16 @@ type Detail struct {
 
 // CollectionRequest exercises adding, removing and navigating nested values.
 type CollectionRequest struct {
-	Strings  []string            `msg:"strings"`
-	Numbers  []int32             `msg:"numbers"`
-	Matrix   [][]float64         `msg:"matrix"`
-	Details  []Detail            `msg:"details"`
-	Labels   map[string]string   `msg:"labels"`
-	Groups   map[string][]Detail `msg:"groups"`
-	Nested   Detail              `msg:"nested"`
-	Another  Detail              `msg:"another"`
-	Files    [][]byte            `msg:"files"`
-	Dates    []time.Time         `msg:"dates"`
+	Strings []string            `msg:"strings"`
+	Numbers []int32             `msg:"numbers"`
+	Matrix  [][]float64         `msg:"matrix"`
+	Details []Detail            `msg:"details"`
+	Labels  map[string]string   `msg:"labels"`
+	Groups  map[string][]Detail `msg:"groups"`
+	Nested  Detail              `msg:"nested"`
+	Another Detail              `msg:"another"`
+	Files   [][]byte            `msg:"files"`
+	Dates   []time.Time         `msg:"dates"`
 }
 
 // NullableRequest covers toggling null on primitives and composite values.
