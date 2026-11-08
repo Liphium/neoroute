@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.0.0](https://github.com/Liphium/neoroute/compare/client/transporter/http/v1.0.0...client/transporter/http/v2.0.0) (2026-11-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* Neoroute v2 ([#49](https://github.com/Liphium/neoroute/issues/49))
+
+### Features
+
+* **neodebug:** Add playground for trying out neodebug ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neodebug:** Fuzzy search for finding routes more easily ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neodebug:** Input of time is now available ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neodebug:** Presets: pre-defined requests ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neogen:** Support to generate structs as tuples in MessagePack ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neogen:** time.Time is now a specific type (not generated as struct) ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* Neoroute v2 ([#49](https://github.com/Liphium/neoroute/issues/49)) ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+
+
+### Bug Fixes
+
+* **neogen:** Neogen no longer generates unexported struct fields ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* Various fixes and performance improvements ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+
 ## [1.0.0](https://github.com/Liphium/neoroute/compare/client/transporter/http/v0.5.0...client/transporter/http/v1.0.0) (2026-08-29)
 
 
