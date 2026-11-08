@@ -5,7 +5,7 @@ go 1.27
 replace github.com/Liphium/neoroute/client/sdk/v2 => ../../sdk
 
 require (
-	github.com/Liphium/neoroute/client/sdk/v2 v2.0.0
+	github.com/Liphium/neoroute/client/sdk/v2 v2.0.0-rc.1
 	github.com/coder/websocket v1.8.15
 )
 
