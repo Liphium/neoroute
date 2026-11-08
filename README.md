@@ -1,6 +1,9 @@
 # Neoroute
 
 ![Coverage](https://img.shields.io/badge/Coverage-58.4%25-yellow)
+[![Go Reference](https://pkg.go.dev/badge/github.com/Liphium/neoroute/v2.svg)](https://pkg.go.dev/github.com/Liphium/neoroute/v2)
+[![Documentation](https://img.shields.io/badge/docs-liphium.dev-blue)](https://liphium.dev/neoroute)
+[![Release](https://img.shields.io/github/v/release/Liphium/neoroute?include_prereleases&filter=v2.*&sort=semver)](https://github.com/Liphium/neoroute/releases)
 
 > [!WARNING]
 > You are currently viewing the `v2.0.0` release candidate version of this repository. We may still ship some minor changes, but according to our testing this version should pretty much be stable. However, we're releasing it as release candidate since we've not verified this release in production yet. Major changes are listed at [https://liphium.dev/neoroute-v2](https://liphium.dev/neoroute-v2).
