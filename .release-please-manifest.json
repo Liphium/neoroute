@@ -2,7 +2,7 @@
     ".": "2.0.0-rc.1",
     "client/sdk": "2.0.0-rc.1",
     "client/transporter/http": "2.0.0-rc.1",
-    "client/transporter/websocket": "1.0.2",
+    "client/transporter/websocket": "2.0.0-rc.1",
     "transporter/http": "2.0.0-rc.1",
     "transporter/websocket": "2.0.0-rc.1",
     "pkg/neodebug": "1.1.0",
