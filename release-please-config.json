@@ -1,6 +1,9 @@
 {
 	"tag-separator": "/",
 	"separate-pull-requests": true,
+	"versioning": "prerelease",
+	"prerelease-type": "rc.1",
+	"prerelease": true,
 	"packages": {
 		".": {
 			"release-type": "go",
