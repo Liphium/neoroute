@@ -7,7 +7,7 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/Liphium/neoroute/neoschema"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 var _ SchemaNode = &MapNode{}
@@ -137,7 +137,7 @@ func (m *MapNode) FullKeyHelp() FullKeyHelp {
 func (m *MapNode) Request() any {
 	result := map[string]any{}
 	for _, item := range m.items {
-		// Message pack only accepts strings for now, so we need to customize this like this
+		// Schemas only allow string map keys.
 		result[fmt.Sprintf("%v", item.Key.Request())] = item.Value.Request()
 	}
 	return result

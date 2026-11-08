@@ -30,7 +30,9 @@ func newFileNode() *FileNode {
 }
 
 func (f *FileNode) Init() {
+	value := f.value
 	f.ValueNode.Init()
 	// Display the path, not the byte array's formatted value.
 	f.input.SetValue("")
+	f.value = value
 }

@@ -26,13 +26,17 @@ type RouteData[D any] struct {
 
 // Route saves a handler for a given route.
 //
+// Request and response types must be structs or pointers to structs.
+// Unsupported types panic when the route is registered.
+//
 // Be aware that only a-z, A-Z, 0-9, "-", "_", "~", "." can be used as characters for a route. To separate subroutes use "/". Example for valid routes are: "route1", "route1/route2", "route1/route3".
 //
 // Any non-allowed characters will simply be stripped.
 //
 // Make sure the handler never returns nil, otherwise the router will panic.
 func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *ResCtx[D, RS], req RQ) error, opts ...func(*RouteOptions)) *Router[D] {
-	nilCheck := nilResponseCheck[RS]()
+	validateRouteType[RQ](route, "request")
+	nilCheck := validateRouteType[RS](route, "response")
 
 	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
@@ -68,7 +72,7 @@ func (r *Router[D]) Route[RS msgp.Marshaler, RQ any, PQ msgp.UnmarshalPtr[RQ]](r
 //
 // This can be useful if you only want to receive the request and don't want any data.
 func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func(c *ResCtx[D, RS]) error, opts ...func(*RouteOptions)) *Router[D] {
-	nilCheck := nilResponseCheck[RS]()
+	nilCheck := validateRouteType[RS](route, "response")
 
 	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
@@ -95,6 +99,8 @@ func (r *Router[D]) RouteNoRequest[RS msgp.Marshaler](route string, handler func
 //
 // This can be useful if you don't have any return data, but the request can still have an error.
 func (r *Router[D]) RouteOk[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *OkCtx[D], req RQ) error, opts ...func(*RouteOptions)) *Router[D] {
+	validateRouteType[RQ](route, "request")
+
 	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
@@ -151,6 +157,8 @@ func (r *Router[D]) RouteOkNoRequest(route string, handler func(c *OkCtx[D]) err
 //
 // This can be useful if you only want to receive the data for example streaming over WebTransport.
 func (r *Router[D]) RouteNoResponse[RQ any, PQ msgp.UnmarshalPtr[RQ]](route string, handler func(c *Ctx[D], req RQ), opts ...func(*RouteOptions)) *Router[D] {
+	validateRouteType[RQ](route, "request")
+
 	return addRoute(r, route, opts, RouteData[D]{
 		handler: func(c *Ctx[D]) error {
 
@@ -198,18 +206,34 @@ func (r *Router[D]) RoutePing(route string, handler func(c *Ctx[D]), opts ...fun
 	})
 }
 
-// nilResponseCheck returns a function that checks if a response value is nil (either a typed nil pointer or a nil interface value), as nil is not encodable.
+// validateRouteType requires a struct or a single pointer to a struct at registration.
 //
-// Returns nil if the response type cannot be nil, so no runtime check is needed.
+// For pointer types it also returns the nil check used when sending responses.
+func validateRouteType[T any](route, side string) func(T) bool {
+	return validateStructType[T](fmt.Sprintf("route %q %s", route, side))
+}
+
+// validateStructType validates a payload type and returns a nil check for pointers.
 //
-// A single reflect call is done at route registration time to determine if a check is necessary.
-func nilResponseCheck[RS msgp.Marshaler]() func(RS) bool {
-	if reflect.TypeFor[RS]().Kind() != reflect.Pointer {
+// description should mention what kind of thing the type is used for.
+//
+// Reflection runs only at registration, not when the payload is sent.
+func validateStructType[T any](description string) func(T) bool {
+	t := reflect.TypeFor[T]()
+	pointer := t.Kind() == reflect.Pointer
+	underlying := t
+	if pointer {
+		underlying = t.Elem()
+	}
+	if underlying.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("%s type must be a struct or pointer to a struct, got %s", description, t))
+	}
+	if !pointer {
 		return nil
 	}
 
-	return func(v RS) bool {
-		var zero RS
+	return func(v T) bool {
+		var zero T
 		return any(v) == any(zero)
 	}
 }

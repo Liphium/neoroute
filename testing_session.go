@@ -14,7 +14,7 @@ func NewTestingSession[D any](data D, sessionId string) *Session[D] {
 func (s *Session[D]) NewTestingResCtx[RS msgp.Marshaler](route string) *ResCtx[D, RS] {
 	return &ResCtx[D, RS]{
 		Ctx:              s.NewTestingCtx(route),
-		nilResponseCheck: nilResponseCheck[RS](),
+		nilResponseCheck: validateRouteType[RS](route, "response"),
 	}
 }
 

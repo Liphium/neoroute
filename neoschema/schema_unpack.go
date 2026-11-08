@@ -2,6 +2,7 @@ package neoschema
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // This makes sure the schema can properly be unpacked into what it was before (MOSTLY AI GENERATED)
@@ -138,6 +139,7 @@ func (st *StructType) UnmarshalJSON(data []byte) error {
 		ActualType SchemaType                 `json:"type"`
 		Objects    map[string]json.RawMessage `json:"objects,omitempty"`
 		Name       string                     `json:"name"`
+		Tuple      bool                       `json:"tuple"`
 		Fields     []struct {
 			Name string
 			Type json.RawMessage
@@ -157,6 +159,7 @@ func (st *StructType) UnmarshalJSON(data []byte) error {
 	}
 	st.BasicType = bt
 	st.Name = aux.Name
+	st.Tuple = aux.Tuple
 
 	if aux.Fields != nil {
 		res := make([]StructField, len(aux.Fields))
@@ -331,6 +334,9 @@ func (at *MapType) UnmarshalJSON(data []byte) error {
 		key, err := UnmarshalPackedType(aux.Key)
 		if err != nil {
 			return err
+		}
+		if key.Type() != TypeString {
+			return fmt.Errorf("%w: got %s", ErrMapKeyNotString, key.Type())
 		}
 		at.Key = key
 	}

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/v2"
 	"github.com/coder/websocket"
 )
 

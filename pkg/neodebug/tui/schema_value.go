@@ -13,6 +13,7 @@ var _ SchemaNode = &ValueNode[any]{}
 type ValueNode[T any] struct {
 	basicNode
 	convert    func(s string) (T, error)
+	comment    func(T) string
 	value      T
 	focused    bool
 	keyHandled bool
@@ -199,7 +200,13 @@ func (v *ValueNode[T]) View() (*tea.Cursor, string) {
 		}
 	}
 
-	view := textView + style.Render(v.suffix) + v.basicNode.Suffix
+	view := textView + style.Render(v.suffix)
+	if v.comment != nil && v.input.Err == nil {
+		if comment := v.comment(v.value); comment != "" {
+			view += secondaryTextStyle.Render(" /* " + comment + " */")
+		}
+	}
+	view += v.basicNode.Suffix
 	if v.input.Err != nil {
 		view += "\n" + errorStyle.Render(v.input.Err.Error())
 	}

@@ -1,16 +1,14 @@
 package tui
 
 import (
-	"maps"
-	"slices"
 	"strings"
 
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
-	"github.com/Liphium/neoroute/neoschema"
-	"github.com/Liphium/neoroute/pkg/neodebug/connector"
-	"github.com/Liphium/neoroute/pkg/neodebug/model"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/connector"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/model"
+	"github.com/Liphium/neoroute/v2/neoschema"
 )
 
 type inputFieldState int
@@ -95,7 +93,7 @@ func newInput(schema neoschema.TransporterSchema) Input {
 		spinner:     s,
 		openHistory: key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "request history")),
 		schema:      schema,
-		routeSelect: newRouteSelect(slices.Collect(maps.Keys(schema.Routes))),
+		routeSelect: newRouteSelect(schema.Routes),
 		history:     newInputHistory(),
 	}
 }
@@ -167,6 +165,12 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 	case RouteSelectedMsg:
 		differentHandling = true
 
+		// Send presets as configured, including intentionally invalid requests.
+		if msg.Preset != nil && !msg.Edit {
+			m.routeSelect.clearSearchInput()
+			return m, m.history.Send(msg.Route, msg.Preset.Data)
+		}
+
 		// When selected, switch to editing the input
 		route, ok := m.schema.Routes[msg.Route]
 		if !ok {
@@ -177,8 +181,17 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 		}
 
 		// Switch to new creation state
+		creator := newInputRequestCreator(msg.Route, route.Request, m.width, m.height)
+		if msg.Preset != nil {
+			if warning := msg.Preset.Check(m.schema.Routes); warning != "" {
+				return m, model.Plain(model.Error("Cannot edit preset: %s", warning))
+			}
+			if err := creator.loadPreset(msg.Preset.Data); err != nil {
+				return m, model.Plain(model.Error("Cannot edit preset: %v", err))
+			}
+		}
 		m.state = stateCreateRequest
-		m.requestCreator = newInputRequestCreator(msg.Route, route.Request, m.width, m.height)
+		m.requestCreator = creator
 
 		return m, nil
 
@@ -225,7 +238,7 @@ func (m Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 		}
 
 		// Open history when key not overwritten by other screens
-		if k, ok := msg.(tea.KeyPressMsg); ok && key.Matches(k, m.openHistory) && (m.state == stateRouteSelect || m.state == stateCreateRequest) && m.history.CanBeOpened() {
+		if k, ok := msg.(tea.KeyPressMsg); ok && !m.handledKey && key.Matches(k, m.openHistory) && (m.state == stateRouteSelect || m.state == stateCreateRequest) && m.history.CanBeOpened() {
 			m.historyOpen = true
 			m.handledKey = true
 		}

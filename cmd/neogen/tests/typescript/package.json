@@ -1,0 +1,13 @@
+{
+  "name": "neogen-typescript-tests",
+  "private": true,
+  "scripts": {
+    "test": "tsc -p tsconfig.json && node --test conversions.test.cjs"
+  },
+  "dependencies": {
+    "@liphium/neoroute-ts": "file:./sdk"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

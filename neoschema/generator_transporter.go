@@ -3,7 +3,7 @@ package neoschema
 import (
 	"reflect"
 
-	"github.com/Liphium/neoroute"
+	"github.com/Liphium/neoroute/v2"
 )
 
 // The definition for one request + response endpoint.

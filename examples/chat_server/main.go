@@ -7,14 +7,14 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Liphium/neoroute"
-	"github.com/Liphium/neoroute/neoschema"
-	http_transporter "github.com/Liphium/neoroute/transporter/http"
-	websocket_transporter "github.com/Liphium/neoroute/transporter/websocket"
+	http_transporter "github.com/Liphium/neoroute/transporter/http/v2"
+	websocket_transporter "github.com/Liphium/neoroute/transporter/websocket/v2"
+	"github.com/Liphium/neoroute/v2"
+	"github.com/Liphium/neoroute/v2/neoschema"
 	"github.com/coder/websocket"
 
-	"github.com/Liphium/neoroute/pkg/neodebug"
-	"github.com/Liphium/neoroute/pkg/neodebug/config"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2"
+	"github.com/Liphium/neoroute/pkg/neodebug/v2/config"
 )
 
 //go:generate msgp
@@ -25,9 +25,9 @@ type SendRequest struct {
 }
 
 type MessageEvent struct {
-	Text      string `msg:"text"`
-	Sender    string `msg:"sender"`
-	Timestamp int64  `msg:"timestamp"`
+	Text      string    `msg:"text"`
+	Sender    string    `msg:"sender"`
+	Timestamp time.Time `msg:"timestamp"`
 }
 
 // Create event registry and register event for message broadcast
@@ -37,6 +37,10 @@ var createMessageEvent = eventRegistry.Register[MessageEvent]("message")
 var adapterRegistry = neoroute.NewAdapterRegistry()
 
 func main() {
+	presets := []config.Preset{
+		{Name: "Alice hello", Route: "send", Data: SendRequest{Text: "Hello from Alice!", Sender: "Alice"}},
+		{Name: "Bob hello", Route: "send", Data: SendRequest{Text: "Hello from Bob!", Sender: "Bob"}},
+	}
 
 	if slices.Contains(os.Args, "--debug-http") {
 		neodebug.Run(config.DebugConfig{
@@ -46,6 +50,7 @@ func main() {
 
 			// The URL to that transporter.
 			TransporterURL: "http://localhost:6121/http",
+			Presets:        presets,
 		})
 	}
 
@@ -57,6 +62,7 @@ func main() {
 
 			// The URL to that transporter.
 			TransporterURL: "ws://localhost:6121/ws",
+			Presets:        presets,
 		})
 	}
 
@@ -104,7 +110,7 @@ func Send(c *neoroute.OkCtx[neoroute.NoData], req SendRequest) error {
 		adapterRegistry.Broadcast(createMessageEvent(MessageEvent{
 			Text:      req.Text,
 			Sender:    req.Sender,
-			Timestamp: time.Now().Unix(),
+			Timestamp: time.Now(),
 		}))
 	})
 
