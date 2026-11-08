@@ -17,7 +17,7 @@ require (
 	github.com/Liphium/neoroute/client/sdk/v2 v2.0.0
 	github.com/Liphium/neoroute/client/transporter/http/v2 v2.0.0
 	github.com/Liphium/neoroute/client/transporter/websocket/v2 v2.0.0
-	github.com/Liphium/neoroute/v2 v2.0.0
+	github.com/Liphium/neoroute/v2 v2.0.0-rc.1
 	github.com/Unbreathable/nowandlater v1.0.0
 	github.com/charmbracelet/x/ansi v0.11.8
 	github.com/sahilm/fuzzy v0.1.3
