@@ -7,21 +7,19 @@ This is the official library to interact with a server written with [Neoroute](h
 Run the following command in your Go project:
 
 ```sh
-go get -u github.com/Liphium/neoroute/client/sdk@latest
+go get -u github.com/Liphium/neoroute/client/sdk/v2@latest
 ```
 
-If you previously used `github.com/Liphium/neoroute/client`, update your imports
-to `github.com/Liphium/neoroute/client/sdk`. The Go package name remains `client`.
-Transporter import paths are unchanged.
+If you previously used `github.com/Liphium/neoroute/client`, update your imports to `github.com/Liphium/neoroute/client/sdk`. The Go package name remains `client`.
 
 Depending on which transporter you would like to use, run one of the following commands as well:
 
 ```sh name="HTTP" key="http"
-go get -u github.com/Liphium/neoroute/client/transporter/http@latest
+go get -u github.com/Liphium/neoroute/client/transporter/http/v2@latest
 ```
 
 ```sh name="WebSocket" key="ws"
-go get -u github.com/Liphium/neoroute/client/transporter/websocket@latest
+go get -u github.com/Liphium/neoroute/client/transporter/websocket/v2@latest
 ```
 
 ## Features
