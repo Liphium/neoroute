@@ -7,7 +7,7 @@
 // changed. Does NOT tag, release, or edit changelogs — release-please owns
 // those now.
 
-const { execSync } = require("child_process");
+const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -38,9 +38,7 @@ function run(cmd, opts = {}) {
   return execSync(cmd, { encoding: "utf8", ...opts });
 }
 
-function main() {
-  const branch = process.env.UPDATER_REF || run("git rev-parse --abbrev-ref HEAD").trim();
-
+function updateDependencies() {
   // Version of every released module, from the release-please manifest.
   const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), MANIFEST_FILE), "utf8"));
 
@@ -105,21 +103,57 @@ function main() {
   }
 
   // Commit updates across all steps, if there are any.
-  const status = run("git status --porcelain").trim();
-  if (!status) {
-    log("No changes, skipping commit.");
-    return;
-  }
-
-  log("Changes detected, committing...");
   const files = DEPENDENCY_TREE.flat()
     .flatMap((m) => [`${m.path}/go.mod`, `${m.path}/go.sum`])
     .filter((f) => fs.existsSync(f));
-  run(`git add ${files.join(" ")}`);
+  const status = git("status", "--porcelain", "--", ...files).trim();
+  if (!status) {
+    log("No changes, skipping commit.");
+    return false;
+  }
+
+  log("Changes detected, committing...");
+  git("add", "--", ...files);
   run('git commit -m "chore: upgrade dependencies"');
-  run(`git pull --rebase origin ${branch}`);
-  run(`git push origin HEAD:${branch}`);
-  log("Pushed dependency updates.");
+  return true;
+}
+
+function git(...args) {
+  return execFileSync("git", args, { encoding: "utf8" });
+}
+
+function main() {
+  const branch = process.env.UPDATER_REF || git("rev-parse", "--abbrev-ref", "HEAD").trim();
+  git("check-ref-format", `refs/heads/${branch}`);
+  // Retrying may replace our generated commit. Never do that with user changes.
+  if (git("status", "--porcelain").trim()) {
+    throw new Error("Dependency updater requires a clean working tree.");
+  }
+
+  const fetchBranch = () => {
+    git("fetch", "origin", `refs/heads/${branch}`);
+    return git("rev-parse", "FETCH_HEAD").trim();
+  };
+  // Queued Actions runs check out the triggering SHA, which may already be stale.
+  let base = fetchBranch();
+  git("merge", "--ff-only", base);
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    if (!updateDependencies()) return;
+    try {
+      git("push", "origin", `HEAD:refs/heads/${branch}`);
+      log("Pushed dependency updates.");
+      return;
+    } catch (err) {
+      const latest = fetchBranch();
+      if (latest === base || attempt === 3) throw err;
+      log("Remote branch changed; regenerating dependency updates from its latest commit.");
+      // The tree is clean and HEAD is our generated commit. Drop that commit
+      // instead of rebasing stale go.mod/go.sum edits across a concurrent release.
+      git("reset", "--keep", latest);
+      base = latest;
+    }
+  }
 }
 
 main();
