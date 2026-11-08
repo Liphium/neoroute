@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.0.0-rc.1](https://github.com/Liphium/neoroute/compare/v1.2.0...v2.0.0-rc.1) (2026-11-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* Neoroute v2 ([#49](https://github.com/Liphium/neoroute/issues/49))
+
+### Features
+
+* **client:** Allow different timeouts for different requests  ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **neodebug:** Add playground for trying out neodebug ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neodebug:** Fuzzy search for finding routes more easily ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neodebug:** Input of time is now available ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neodebug:** Presets: pre-defined requests ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neogen:** Support to generate structs as tuples in MessagePack ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neogen:** time.Time is now a specific type (not generated as struct) ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* Neoroute v2 ([#49](https://github.com/Liphium/neoroute/issues/49)) ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* **neoroute:** Add individual options for handler options ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **neoroute:** Add request body read timeouts ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **neoroute:** Add request size limit enforcement ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* Request and route options ([#42](https://github.com/Liphium/neoroute/issues/42)) ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+* **websocket,http:** Add request header timeouts ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+
+
+### Bug Fixes
+
+* **neogen:** Neogen no longer generates unexported struct fields ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* Readme stuff ([dfbbbeb](https://github.com/Liphium/neoroute/commit/dfbbbebcf0580607a32e4317dcfb15517d8a6a4f))
+* Various fixes and performance improvements ([fd7b428](https://github.com/Liphium/neoroute/commit/fd7b42885b8d9dee864a4bdf67087e900f12646e))
+* Various minor security issues that could have caused memory spikes ([7bdd0b4](https://github.com/Liphium/neoroute/commit/7bdd0b4d99fd01bbf1f6013c48b68a4695d40de2))
+
 ## [1.2.0](https://github.com/Liphium/neoroute/compare/v1.1.0...v1.2.0) (2026-10-18)
 
 
